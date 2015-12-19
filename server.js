@@ -188,10 +188,6 @@ function cleanText(mytext) {
 getStaticData('getDepartments', 0, deptsCallback);
 getStaticData("getOperators", 0, operatorsCallback);
 getStaticData("getFolders", 0, foldersCallback);
-getStaticData("getSetupItems", "FolderType=14", windowsCallback);
-getStaticData("getSetupItems", "FolderType=12", buttonsCallback);
-getStaticData("getSetupItems", "FolderType=19", websitesCallback);
-getStaticData("getSetupItems", "FolderType=29", invitationsCallback);
 
 function getStaticData (method, params, fcallback) {
 	
