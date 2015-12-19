@@ -8,8 +8,8 @@
 // asa - average speed to answer
 // act - average chat time
 // amc - average message count
-// aaway - number of agents away
-// aavail - number of agents available
+// taway - total number of agents away
+// tavail - total number of agents available
 // status - current status 0 - logged out, 1 - away, 2 - available
 // cslots - chat slots
 // tcs - time in current status
@@ -82,7 +82,6 @@ var StaticDataNotReady;	// Flag to show when all static data has been downloaded
 var ChatDataNotReady;	// Flag to show when all chat data has been downloaded so that csv file conversion can begin
 var Allchatsjson;	// chat message objects
 var Nextloop;	
-var Separator = "|";	// separator char used to separate each chat message in transcript and custom fields
 var Overall = new Object({tcaban: 0, 
 							tca: 0,
 							tcu: 0,
@@ -92,8 +91,8 @@ var Overall = new Object({tcaban: 0,
 							asa: 0,
 							act: 0,
 							amc: 0,
-							aaway: 0,
-							aavail: 0}
+							taway: 0,
+							tavail: 0}
 						);		// top level stats
 
 // Get all of the incoming Boldchat triggered data
@@ -321,7 +320,7 @@ function getInactiveChats(params) {
 		response.on('error', function(err) {
 		// handle errors with the request itself
 		console.error("Error with the request: ", err.message);
-		StaticDataNotReady--;
+		ChatDataNotReady--;
 		});
 	});
 }
@@ -342,12 +341,16 @@ io.sockets.on('connection', function(socket){
 	});
 
 	//  Call BoldChat getDepartments method and update all users with returned data
-	socket.on('getChatReport', function(data){
+	socket.on('startDashboard', function(data){
 		if(StaticDataNotReady)
 		{
 			io.sockets.emit('errorResponse', "Static data not ready");
 			return;
 		}
+
+		// set date to start of today
+		var startDate = new Date();
+		startDate.setHours(0,0,0,0);
 
 		io.sockets.emit('chatcountResponse', "Getting all chat info from "+ Object.keys(Folders).length +" folders");
 		Allchatsjson = new Array();
@@ -355,7 +358,7 @@ io.sockets.on('connection', function(socket){
 		ChatDataNotReady = 0;
 		for(var fid in Folders)
 		{
-			var parameters = "FolderID="+fid+"&FromDate="+data.fd+"&ToDate="+data.td;
+			var parameters = "FolderID="+fid+"&FromDate="+startDate;
 			getInactiveChats(parameters);
 		}
 		getAllInactiveChats();	// colate of API responses and process

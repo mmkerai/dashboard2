@@ -1,30 +1,19 @@
 var fromDate;
 var toDate;
 
-
-function setDefaultValues() {
-	$('#fromDate').val((new Date()).toISOString());
-	$('#toDate').val((new Date()).toISOString());
-}
-
 function initialiseValues() {
 	$('#error').text("");
 	$('#chatcount').text("");
-	$('#done').text("");
-	$('#link2').html("");
 }
 
 $(document).ready(function() {
-	setDefaultValues();
 	var socket = io.connect();
 	var csvfile = null;
 
 	$('#api').submit(function(event) {
 		event.preventDefault();
 		initialiseValues();
-		fromDate = $('#fromDate').val();
-		toDate = $('#toDate').val();
-		socket.emit('getChatReport', {fd: fromDate, td: toDate});
+		socket.emit('startDashboard', {});
 	});
 	
 	socket.on('errorResponse', function(data){
@@ -35,10 +24,17 @@ $(document).ready(function() {
 		$("#chatcount").text(data);
 	});
 	socket.on('overallStats', function(data){
-		var str = "Overall stats: "+ data.tcaban+" count: "+data.tca;
-		$("#overall").text(str);
+		$("#otca").text(data.tca);
+		$("#otcu").text(data.tcu);
+		$("#otcaban").text(data.tcaban);
+		$("#otac").text(data.tac);
+		$("#ocwait").text(data.cwait);
+		$("#oasa").text(data.asa);
+		$("#oact").text(data.act);
+		$("#oamc").text(data.amc);
+		$("#oaway").text(data.taway);
+		$("#oavail").text(data.tavail);
 	});
 		
 });
-
 
