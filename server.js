@@ -146,7 +146,7 @@ function operatorsCallback(dlist) {
 											status: 0,
 											tcs: 0,
 											cslots: 0,
-											achats: 0,
+											achats: new Object(),
 											asa: 0,
 											act: 0,
 											amc: 0};																					
@@ -185,11 +185,12 @@ function cleanText(mytext) {
 	return(clean2);
 }
 
-getStaticData('getDepartments', 0, deptsCallback);
-getStaticData("getOperators", 0, operatorsCallback);
-getStaticData("getFolders", 0, foldersCallback);
+getUnpagedData('getDepartments', 0, deptsCallback);
+getUnpagedData("getOperators", 0, operatorsCallback);
+getUnpagedData("getFolders", 0, foldersCallback);
 
-function getStaticData (method, params, fcallback) {
+// calls extraction API and receives JSON objects unpaged (i.e. without the "next" field)
+function getUnpagedData(method, params, fcallback) {
 	
 	StaticDataNotReady++;		// flag to show we are waiting for data as all calls are asynchronous
 	BC_API_Request(method, params, function (response) {
@@ -252,6 +253,30 @@ function processInactiveChat(chatobject) {
 	opobj.act = chattime;		// TODO - calculate the average
 	
 }
+
+// process active chat objects and update all relevat dept, operator and global metrics
+function processActiveChats(achats) {
+	var deptobj, opobj;
+	var atime, chattime;
+	var timenow = new Date();
+	Overall.tac = Overall.tac + achats.length;	// no of objects = number of active chats
+	for(var i in achats) 
+	{
+		atime = new Date(achats[i].Answered);
+		chattime = (timenow - atime )/1000;
+		deptobj = DepartmentsById[achats[i].DepartmentID];
+		deptobj.tac++;	// chats active
+		opobj = OperatorsById[achats[i].OperatorID];
+		opobj.achats.push({chatid: achats[i].ChatID, 
+							deptname: getDepartmentNameFromId(achats[i].DepartmentID}),
+							ctime: chattime,
+							messages: achats[i].OperatorMessageCount + achats[i].VisitorMessageCount
+							});
+	}
+	io.sockets.emit('overallStats', Overall);
+	io.sockets.emit('departmentStats', DepartmentsById);
+}
+
 function getAllInactiveChats() {
 	io.sockets.emit('chatcountResponse', "Total no. of chats: "+Allchatsjson.length);
 	if(ChatDataNotReady)
@@ -283,6 +308,7 @@ function loadNext(next) {
 	getInactiveChats(str.join("&"));
 }
 
+// calls extraction API and receives paged JSON objects (i.e. with the "next" field)
 function getInactiveChats(params) {
 	ChatDataNotReady++;		// flag to track api calls
 	BC_API_Request("getInactiveChats", params, function (response) {
@@ -355,13 +381,19 @@ io.sockets.on('connection', function(socket){
 		io.sockets.emit('chatcountResponse', "Getting all chat info from "+ Object.keys(Folders).length +" folders");
 		Allchatsjson = new Array();
 		Nextloop = 0;
-		ChatDataNotReady = 0;
+		var parameters;
 		for(var fid in Folders)
 		{
-			var parameters = "FolderID="+fid+"&FromDate="+startDate.toISOString();
+			parameters = "FolderID="+fid+"&FromDate="+startDate.toISOString();
 			getInactiveChats(parameters);
 		}
 		getAllInactiveChats();	// colate of API responses and process
+		
+		for(var did in DepartmentsById)
+		{
+			parameters = "DepartmentID="+did;
+			getUnpagedData("getActiveChats",parameters,processActiveChats);
+		}
 
 	});
 });

@@ -35,6 +35,24 @@ $(document).ready(function() {
 		$("#oaway").text(data.taway);
 		$("#oavail").text(data.tavail);
 	});
+	socket.on('departmentStats', function(ddata){
+		var ttable = document.getElementById("topTable");
+//		for(cnt = 0; cnt < Object.keys(ddata).length; cnt++)
+		for(var i in ddata)
+		{
+			var row = ttable.insertRow(cnt+2);	// there is already a header row and top row
+			var col = row.insertCell(0);
+			col.outerHTML = "<th scope='row'>Dept "+ddata[i].name+"</th>";
+			col = row.insertCell(1);
+			col.innerHTML = ddata[i].tca;
+			col = row.insertCell(2);
+			col.innerHTML = ddata[i].tcu;
+			col = row.insertCell(3);
+			col.innerHTML = "n/a";
+			col = row.insertCell(4);
+			col.innerHTML = ddata[i].tac;
+		}
+	});
 		
 });
 
