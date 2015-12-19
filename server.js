@@ -143,13 +143,13 @@ function operatorsCallback(dlist) {
 	{
 		OperatorsByName[dlist[i].Name] = {name: dlist[i].LoginID};
 		OperatorsById[dlist[i].LoginID] = {name: dlist[i].Name,
-											status = 0,
-											tcs = 0,
-											cslots = 0,
-											achats = 0,
-											asa = 0,
-											act = 0,
-											amc = 0};																					
+											status: 0,
+											tcs: 0,
+											cslots: 0,
+											achats: 0,
+											asa: 0,
+											act: 0,
+											amc: 0};																					
 	}
 	console.log("No of Operators: "+Object.keys(Operators).length);
 }
