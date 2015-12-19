@@ -167,7 +167,7 @@ function foldersCallback(dlist) {
 }
 
 function getDepartmentNameFromID(id) {
-	return(Departments[id]);
+	return(DepartmentsById[id]);
 }
 
 function getFolderNameFromID(id) {
@@ -175,7 +175,7 @@ function getFolderNameFromID(id) {
 }
 
 function getOperatorNameFromID(id) {
-	return(Operators[id]);
+	return(OperatorsById[id]);
 }
 
 // cleans text field of tags and newlines using regex
