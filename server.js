@@ -246,7 +246,7 @@ function processInactiveChat(chatobject) {
 	// now operator
 	opobj = OperatorsById[chatobject.OperatorID];
 	messagecount = chatobject.OperatorMessageCount + chatobject.VisitorMessageCount
-	opobj.amc = (opobj.amc * opobj.tca) + messagecount)/(opobj.tca+1);
+	opobj.amc = ((opobj.amc * opobj.tca) + messagecount)/(opobj.tca+1);
 	Overall.amc = messagecount;			// TODO - calculate correct metric
 	opobj.tca++;	// chats answered
 	startdate = new Date(chatobject.Started);
