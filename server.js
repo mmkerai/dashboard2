@@ -208,7 +208,7 @@ function getUnpagedData(method, params, fcallback) {
 			data = jsonObj.Data;
 			if(data == null)
 			{
-				alert("API Error: "+JSON.stringify(json));
+				console.log("API Error: "+JSON.stringify(json));
 				return;		// exit out if error json message received
 			}
 			fcallback(data);
