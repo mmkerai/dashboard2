@@ -358,7 +358,7 @@ io.sockets.on('connection', function(socket){
 		ChatDataNotReady = 0;
 		for(var fid in Folders)
 		{
-			var parameters = "FolderID="+fid+"&FromDate="+startDate;
+			var parameters = "FolderID="+fid+"&FromDate="+startDate.toISOString();
 			getInactiveChats(parameters);
 		}
 		getAllInactiveChats();	// colate of API responses and process
