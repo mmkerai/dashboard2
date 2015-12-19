@@ -146,7 +146,7 @@ function operatorsCallback(dlist) {
 											status: 0,
 											tcs: 0,
 											cslots: 0,
-											active: new Object(),
+											active: new Array(),
 											asa: 0,
 											act: 0,
 											amc: 0};																					
@@ -269,12 +269,12 @@ function processActiveChats(achats) {
 		deptobj.tac++;	// chats active
 		opobj = OperatorsById[achats[i].OperatorID];
 		if(opobj === 'undefined') continue;		// not sure why this would every be the case
-		var opactobj = opobj.active;
-/*		opact.push({chatid: achats[i].ChatID, 
+		var opact = opobj.active;
+		opact.push({chatid: achats[i].ChatID, 
 							deptname: getDepartmentNameFromID(achats[i].DepartmentID),
 							ctime: chattime,
 							messages: achats[i].OperatorMessageCount + achats[i].VisitorMessageCount
-							});*/
+							});
 	}
 	io.sockets.emit('overallStats', Overall);
 	io.sockets.emit('departmentStats', DepartmentsById);
