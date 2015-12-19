@@ -269,7 +269,7 @@ function processActiveChats(achats) {
 		deptobj.tac++;	// chats active
 		opobj = OperatorsById[achats[i].OperatorID];
 		if(opobj === 'undefined') continue;		// not sure why this would every be the case
-		vat opactobj = opobj.active;
+		var opactobj = opobj.active;
 /*		opact.push({chatid: achats[i].ChatID, 
 							deptname: getDepartmentNameFromID(achats[i].DepartmentID),
 							ctime: chattime,
