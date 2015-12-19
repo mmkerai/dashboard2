@@ -92,7 +92,7 @@ var Overall = new Object({tcaban: 0,
 							act: 0,
 							amc: 0,
 							aaway: 0,
-							aavail: 0};
+							aavail: 0}
 						);		// top level stats
 
 // Get all of the incoming Boldchat triggered data
