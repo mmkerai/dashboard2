@@ -268,7 +268,7 @@ function processActiveChats(achats) {
 		deptobj.tac++;	// chats active
 		opobj = OperatorsById[achats[i].OperatorID];
 		opobj.achats.push({chatid: achats[i].ChatID, 
-							deptname: getDepartmentNameFromId(achats[i].DepartmentID),
+							deptname: getDepartmentNameFromID(achats[i].DepartmentID),
 							ctime: chattime,
 							messages: achats[i].OperatorMessageCount + achats[i].VisitorMessageCount
 							});
