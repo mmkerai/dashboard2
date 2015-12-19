@@ -135,7 +135,7 @@ function deptsCallback(dlist) {
 													aaway: 0,
 													aavail: 0};
 	}
-	console.log("No of Depts: "+Object.keys(Departments).length);
+	console.log("No of Depts: "+Object.keys(DepartmentsByName).length);
 }
 
 function operatorsCallback(dlist) {
