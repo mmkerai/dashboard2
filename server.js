@@ -146,7 +146,7 @@ function operatorsCallback(dlist) {
 											status: 0,
 											tcs: 0,
 											cslots: 0,
-											active: new Array(),
+											active: new Object(),
 											asa: 0,
 											act: 0,
 											amc: 0};																					
@@ -167,7 +167,7 @@ function foldersCallback(dlist) {
 }
 
 function getDepartmentNameFromID(id) {
-	return(DepartmentsById[id]);
+	return(DepartmentsById[id].name);
 }
 
 function getFolderNameFromID(id) {
@@ -175,7 +175,7 @@ function getFolderNameFromID(id) {
 }
 
 function getOperatorNameFromID(id) {
-	return(OperatorsById[id]);
+	return(OperatorsById[id].name);
 }
 
 // cleans text field of tags and newlines using regex
@@ -269,12 +269,12 @@ function processActiveChats(achats) {
 		deptobj.tac++;	// chats active
 		opobj = OperatorsById[achats[i].OperatorID];
 		if(opobj === 'undefined') continue;		// not sure why this would every be the case
-		opact = opobj.active;
-		opact.push({chatid: achats[i].ChatID, 
+		vat opactobj = opobj.active;
+/*		opact.push({chatid: achats[i].ChatID, 
 							deptname: getDepartmentNameFromID(achats[i].DepartmentID),
 							ctime: chattime,
 							messages: achats[i].OperatorMessageCount + achats[i].VisitorMessageCount
-							});
+							});*/
 	}
 	io.sockets.emit('overallStats', Overall);
 	io.sockets.emit('departmentStats', DepartmentsById);
