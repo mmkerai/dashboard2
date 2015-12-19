@@ -268,6 +268,7 @@ function processActiveChats(achats) {
 		deptobj = DepartmentsById[achats[i].DepartmentID];
 		deptobj.tac++;	// chats active
 		opobj = OperatorsById[achats[i].OperatorID];
+		if(opobj === 'undefined') continue;		// not sure why this would every be the case
 		opact = opobj.active;
 		opact.push({chatid: achats[i].ChatID, 
 							deptname: getDepartmentNameFromID(achats[i].DepartmentID),
