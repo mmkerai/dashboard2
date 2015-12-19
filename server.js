@@ -71,7 +71,8 @@ app.get('/favicon.ico', function(req, res){
 var	DepartmentsById = new Object();	// array of dept ids and dept name objects
 var	DepartmentsByName = new Object();	// array of dept names and ids
 var	Folders = new Object();	// array of folder ids and folder name objects
-var	Operators = new Object();	// array of operator ids and name objects
+var	OperatorsById = new Object();	// array of operator ids and name objects
+var	OperatorsByName = new Object();	// array of operator ids and name objects
 var	ChatWindows = new Object();	// array of window ids and name objects
 var	ChatButtons = new Object();	// array of button ids and name objects
 var	Websites = new Object();	// array of website ids and name objects
@@ -151,7 +152,7 @@ function operatorsCallback(dlist) {
 											act: 0,
 											amc: 0};																					
 	}
-	console.log("No of Operators: "+Object.keys(Operators).length);
+	console.log("No of Operators: "+Object.keys(OperatorsByName).length);
 }
 
 function foldersCallback(dlist) {
