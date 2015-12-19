@@ -146,7 +146,7 @@ function operatorsCallback(dlist) {
 											status: 0,
 											tcs: 0,
 											cslots: 0,
-											achats: new Array(),
+											active: new Array(),
 											asa: 0,
 											act: 0,
 											amc: 0};																					
@@ -259,6 +259,7 @@ function processActiveChats(achats) {
 	var deptobj, opobj;
 	var atime, chattime;
 	var timenow = new Date();
+	var opact = [];
 	Overall.tac = Overall.tac + achats.length;	// no of objects = number of active chats
 	for(var i in achats) 
 	{
@@ -267,8 +268,8 @@ function processActiveChats(achats) {
 		deptobj = DepartmentsById[achats[i].DepartmentID];
 		deptobj.tac++;	// chats active
 		opobj = OperatorsById[achats[i].OperatorID];
-		opcobj = opobj.achats;
-		opcobj.push({chatid: achats[i].ChatID, 
+		opact = opobj.active;
+		opact.push({chatid: achats[i].ChatID, 
 							deptname: getDepartmentNameFromID(achats[i].DepartmentID),
 							ctime: chattime,
 							messages: achats[i].OperatorMessageCount + achats[i].VisitorMessageCount
