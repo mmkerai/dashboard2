@@ -142,7 +142,7 @@ function operatorsCallback(dlist) {
 	for(var i in dlist) 
 	{
 		OperatorsByName[dlist[i].Name] = {name: dlist[i].LoginID};
-		OperatorsById[dlist[i].LoginID] = {dlist[i].Name,
+		OperatorsById[dlist[i].LoginID] = {name: dlist[i].Name,
 											status = 0,
 											tcs = 0,
 											cslots = 0,
