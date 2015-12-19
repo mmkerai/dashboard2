@@ -1,3 +1,20 @@
+// acronyms used
+// tcaban - total chats abandoned
+// tca - total chats answered
+// tcu - total chats unanswered
+// tac - total active chats
+// cwait - no of chats waiting
+// awt - average waiting time
+// asa - average speed to answer
+// act - average chat time
+// amc - average message count
+// aaway - number of agents away
+// aavail - number of agents available
+// status - current status 0 - logged out, 1 - away, 2 - available
+// cslots - chat slots
+// tcs - time in current status
+// achats - active chats
+
 
 //********************************* Set up Express Server 
 http = require('http');
@@ -51,18 +68,32 @@ app.get('/favicon.ico', function(req, res){
 });
 
 //********************************* Global variables for chat data
-var	Departments = new Object();	// array of dept ids and dept name objects
+var	DepartmentsById = new Object();	// array of dept ids and dept name objects
+var	DepartmentsByName = new Object();	// array of dept names and ids
 var	Folders = new Object();	// array of folder ids and folder name objects
 var	Operators = new Object();	// array of operator ids and name objects
 var	ChatWindows = new Object();	// array of window ids and name objects
 var	ChatButtons = new Object();	// array of button ids and name objects
 var	Websites = new Object();	// array of website ids and name objects
 var	Invitations = new Object();	// array of invitation ids and name objects
+var	Teams = new Object();	// array of team names
 var StaticDataNotReady;	// Flag to show when all static data has been downloaded so that chat data download can begin
 var ChatDataNotReady;	// Flag to show when all chat data has been downloaded so that csv file conversion can begin
 var Allchatsjson;	// chat message objects
 var Nextloop;	
 var Separator = "|";	// separator char used to separate each chat message in transcript and custom fields
+var Overall = new Object({tcaban: 0, 
+							tca: 0,
+							tcu: 0,
+							tac: 0,
+							cwait: 0,
+							awt: 0,
+							asa: 0,
+							act: 0,
+							amc: 0,
+							aaway: 0,
+							aavail: 0};
+						);		// top level stats
 
 // Get all of the incoming Boldchat triggered data
 app.post('/chat-start-answer-close', function(req, res){
@@ -92,9 +123,35 @@ function BC_API_Request(api_method,params,callBackFunction) {
 function deptsCallback(dlist) {
 	for(var i in dlist) 
 	{
-		Departments[dlist[i].DepartmentID] = dlist[i].Name;
+		DepartmentsByName[dlist[i].Name] = {name: dlist[i].DepartmentID};
+		DepartmentsById[dlist[i].DepartmentID] = {name: dlist[i].Name, 
+													tca: 0, 
+													tac: 0,
+													cwait: 0,
+													await: 0,
+													asa: 0,
+													act: 0,
+													amc: 0,
+													aaway: 0,
+													aavail: 0};
 	}
 	console.log("No of Depts: "+Object.keys(Departments).length);
+}
+
+function operatorsCallback(dlist) {
+	for(var i in dlist) 
+	{
+		OperatorsByName[dlist[i].Name] = {name: dlist[i].LoginID};
+		OperatorsById[dlist[i].LoginID] = {dlist[i].Name,
+											status = 0,
+											tcs = 0,
+											cslots = 0,
+											achats = 0,
+											asa = 0,
+											act = 0,
+											amc = 0};																					
+	}
+	console.log("No of Operators: "+Object.keys(Operators).length);
 }
 
 function foldersCallback(dlist) {
@@ -109,47 +166,6 @@ function foldersCallback(dlist) {
 	console.log("No of Chat Folders: "+Object.keys(Folders).length);
 }
 
-function operatorsCallback(dlist) {
-	for(var i in dlist) 
-	{
-		Operators[dlist[i].LoginID] = dlist[i].Name;
-	}
-	console.log("No of Operators: "+Object.keys(Operators).length);
-}
-
-function windowsCallback(dlist) {
-	for(var i in dlist) 
-	{
-		ChatWindows[dlist[i].SetupItemID] = dlist[i].Name;
-	}
-	console.log("No of Chat Windows: "+Object.keys(ChatWindows).length);
-}
-
-function buttonsCallback(dlist) {
-	for(var i in dlist) 
-	{
-		ChatButtons[dlist[i].SetupItemID] = dlist[i].Name;
-//		console.log("button id: "+dlist[i].SetupItemID + " name: "+dlist[i].Name);
-	}
-	console.log("No of Chat Buttons: "+Object.keys(ChatButtons).length);
-}
-
-function websitesCallback(dlist) {
-	for(var i in dlist) 
-	{
-		Websites[dlist[i].SetupItemID] = dlist[i].Name;
-	}
-	console.log("No of Websites: "+Object.keys(Websites).length);
-}
-
-function invitationsCallback(dlist) {
-	for(var i in dlist) 
-	{
-		Invitations[dlist[i].SetupItemID] = dlist[i].Name;
-	}
-	console.log("No of Invitations: "+Object.keys(Invitations).length);
-}
-
 function getDepartmentNameFromID(id) {
 	return(Departments[id]);
 }
@@ -160,26 +176,6 @@ function getFolderNameFromID(id) {
 
 function getOperatorNameFromID(id) {
 	return(Operators[id]);
-}
-
-function getWindowNameFromID(id) {
-	if(ChatWindows[id] === undefined) return id;		
-	return(ChatWindows[id]);
-}
-
-function getButtonNameFromID(id) {
-	if(ChatButtons[id] === undefined) return("\"=\"\"" + id + "\"\"\"");		
-	return(ChatButtons[id]);
-}
-
-function getWebsiteNameFromID(id) {
-	if(Websites[id] === undefined) return id;		
-	return(Websites[id]);
-}
-
-function getInvitationNameFromID(id) {
-	if(Invitations[id] === undefined) return id;		
-	return(Invitations[id]);
 }
 
 // cleans text field of tags and newlines using regex
@@ -228,7 +224,38 @@ function getStaticData (method, params, fcallback) {
 		});
 	});
 }
+
+// process chat object and update all relevat dept, operator and global metrics
+function processInactiveChat(chatobject) {
+	if(chatobject.ChatStatusType == 1)		// abandoned chat (in prechat form )
+	{
+		Overall.tcaban++;	// abandoned
+		return;
+	}
+	//department first
+	deptobj = DepartmentsById[chatobject.DepartmentID];
+	if(chatobject.Answered === null)		// answered not set
+	{
+		Overall.tcu++;
+		deptobj.tcu++;
+		return;
+	}
+	// chat answered
+	Overall.tca++;
+	deptobj.tca++;	// chats answered
+	// now operator
+	opobj = OperatorsById[chatobject.OperatorID];
+	messagecount = chatobject.OperatorMessageCount + chatobject.VisitorMessageCount
+	opobj.amc = (opobj.amc * opobj.tca) + messagecount)/(opobj.tca+1);
+	Overall.amc = messagecount;			// TODO - calculate correct metric
+	opobj.tca++;	// chats answered
+	startdate = new Date(chatobject.Started);
+	ansdate = new Date(chatobject.Answered);
+	enddate = new Date(chatobject.Ended);
+	chattime = enddate - ansdate/1000;		// in seconds
+	opobj.act = chattime;		// TODO - calculate the average
 	
+}
 function getAllInactiveChats() {
 	io.sockets.emit('chatcountResponse', "Total no. of chats: "+Allchatsjson.length);
 	if(ChatDataNotReady)
@@ -237,89 +264,15 @@ function getAllInactiveChats() {
 		return;
 	}
 
-	// build the csv header using the first chat object
-	var chatobject = Allchatsjson[0];
-	csvtext = "";
-	for(var key in chatobject)
-	{
-		csvtext = csvtext + key + ",";
-	}
-	
-	// convert each object to a comma separated line
+	// analyse each chat and keep track of global metrics
 	for(var i=0; i < Allchatsjson.length; i++)
 	{
-		csvline = convertToCsv(Allchatsjson[i]);	
-		csvtext = csvtext + "\r\n" + csvline;	// add lines and build txt file
+		processInactiveChat(Allchatsjson[i]);	
 	}
 
 	// we got all data in csv text file so return it back to the client
-	io.sockets.emit('doneResponse', csvtext);
-}
+	io.sockets.emit('overallStats', Overall);
 
-// this converts each chat object received from API to a csv line where some ids are replaced with actual names
-// e.g. operator id 123456789012 is replaced with [LMI] Manji Kerai
-function convertToCsv(chatdata) {		
-	var nestedobj = new Object();
-	var chatline = "";
-
-	for(var key in chatdata)	// add the key values
-	{
-		if(key === "RowNumber")		// to get around bug in the API
-			continue;
-	
-		if(typeof chatdata[key] == 'object' && chatdata[key] != null) // if value is another nested json object
-		{
-			nestedobj = chatdata[key];
-//			console.log("Nested Object: "+key+" value: "+JSON.stringify(chatdata[key]));
-			if(Object.keys(nestedobj).length == 0)		// blank object
-			{
-				chatline = chatline +"n/a,";		// set it to not applicable
-			}
-			else
-			{
-				chatline = chatline +"\"";	// opening quote
-				for(var nkey in nestedobj)
-				{
-					chatline = chatline + nkey +"="+nestedobj[nkey] + "&";
-				}
-				chatline = chatline +"\",";	// closing quote
-			}
-		}
-		else
-		{
-			var value;
-			if(chatdata[key] != null && chatdata[key].length > 1)		// if more than a char in length
-			{
-				if(key === "DepartmentID")
-					value = getDepartmentNameFromID(chatdata[key]);
-				else if(key === "InitialDepartmentID")
-					value = getDepartmentNameFromID(chatdata[key]);
-				else if(key === "FolderID")
-					value = getFolderNameFromID(chatdata[key]);
-				else if(key === "OperatorID")
-					value = getOperatorNameFromID(chatdata[key]);
-				else if(key === "ChatWindowDefID")
-					value = getWindowNameFromID(chatdata[key]);
-				else if(key === "ChatButtonDefID")
-					value = getButtonNameFromID(chatdata[key]);
-				else if(key === "WebsiteDefID")
-					value = getWebsiteNameFromID(chatdata[key]);
-				else if(key === "InvitationTemplateVariantID")
-					value = getInvitationNameFromID(chatdata[key]);
-				else if(key === "EndedBy" && chatdata[key] !== null)
-						value = getOperatorNameFromID(chatdata[key]);
-				else if(isNaN(chatdata[key]))
-					value = "\"" + cleanText(chatdata[key]) + "\"";
-				else
-					value = "\"=\"\"" + chatdata[key] + "\"\"\"";
-			}
-			else
-				value = chatdata[key];		// must be null or 1 character long
-			
-			chatline = chatline + value +",";
-		}
-	}
-	return(chatline);					
 }
 
 // this function calls API again if data is truncated
@@ -362,7 +315,7 @@ function getInactiveChats(params) {
 
 			if(typeof next !== 'undefined') 
 			{
-				console.log("Next loop "+Nextloop);
+//				console.log("Next loop "+Nextloop);
 				if(Nextloop < 100)	// safety so that it does not go into infinite loop
 					loadNext(next);
 			}
@@ -409,6 +362,7 @@ io.sockets.on('connection', function(socket){
 			getInactiveChats(parameters);
 		}
 		getAllInactiveChats();	// colate of API responses and process
+
 	});
 });
 

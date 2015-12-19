@@ -34,19 +34,9 @@ $(document).ready(function() {
 		console.log("Data received");
 		$("#chatcount").text(data);
 	});
-	socket.on('doneResponse', function(data){
-		$("#done").text("Creating csv file");
-		var filedata = new Blob([data], {type: 'text/plain'});
-		// If we are replacing a previously generated file we need to
-		// manually revoke the object URL to avoid memory leaks.
-		if (csvfile !== null)
-		{
-			window.URL.revokeObjectURL(csvfile);
-		}
-
-    csvfile = window.URL.createObjectURL(filedata);
- 	$('#link2').attr('href', csvfile);
-	$('#link2').html("Download file");
+	socket.on('overallStats', function(data){
+		var str = "Overall stats: "+ data.tcaban+" count: "+data.tca;
+		$("#overall").text(str);
 	});
 		
 });
