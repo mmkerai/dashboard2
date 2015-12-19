@@ -38,7 +38,7 @@ $(document).ready(function() {
 	socket.on('departmentStats', function(ddata){
 		var ttable = document.getElementById("topTable");
 //		for(cnt = 0; cnt < Object.keys(ddata).length; cnt++)
-		var cnt=0;
+		var cnt = 0;
 		for(var i in ddata)
 		{
 			var row = ttable.insertRow(cnt+2);	// there is already a header row and top row

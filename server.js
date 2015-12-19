@@ -126,6 +126,7 @@ function deptsCallback(dlist) {
 		DepartmentsByName[dlist[i].Name] = {name: dlist[i].DepartmentID};
 		DepartmentsById[dlist[i].DepartmentID] = {name: dlist[i].Name, 
 													tca: 0, 
+													tcu: 0, 
 													tac: 0,
 													cwait: 0,
 													await: 0,
@@ -268,8 +269,8 @@ function processActiveChats(achats) {
 		deptobj = DepartmentsById[achats[i].DepartmentID];
 		deptobj.tac++;	// chats active
 		opobj = OperatorsById[achats[i].OperatorID];
-		if(opobj === 'undefined') continue;		// not sure why this would every be the case
-		var opact = opobj.active;
+		if(opobj === 'undefined') continue;		// not sure why this would ever be the case
+		opact = opobj.active;
 		opact.push({chatid: achats[i].ChatID, 
 							deptname: getDepartmentNameFromID(achats[i].DepartmentID),
 							ctime: chattime,
