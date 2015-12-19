@@ -146,7 +146,7 @@ function operatorsCallback(dlist) {
 											status: 0,
 											tcs: 0,
 											cslots: 0,
-											achats: new Object(),
+											achats: new Array(),
 											asa: 0,
 											act: 0,
 											amc: 0};																					
