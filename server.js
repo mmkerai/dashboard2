@@ -292,7 +292,8 @@ function processActiveChats(achats) {
 
 function updateChatStats() {
 	io.sockets.emit('chatcountResponse', "Total no. of chats: "+Overall.tca);
-	if(PagedDataNotReady || UnpagedDataNotReady)
+	console.log("Chats so far:"+Overall.tca);
+	if(PagedDataNotReady > 0 || UnpagedDataNotReady > 0)
 	{
 		setTimeout(updateChatStats, 1000);	// poll every second until all ajaxs are complete
 		return;
@@ -380,11 +381,11 @@ io.sockets.on('connection', function(socket){
 			getPagedData("getInactiveChats", parameters, processInactiveChats);
 		}
 		
-		for(var did in Departments)
+/*		for(var did in Departments)
 		{
 			parameters = "DepartmentID="+did;
 			getUnpagedData("getActiveChats",parameters,processActiveChats);
-		}
+		}*/
 		updateChatStats();	// colate of API responses and process
 	});
 });
