@@ -78,8 +78,8 @@ var	ChatButtons = new Object();	// array of button ids and name objects
 var	Websites = new Object();	// array of website ids and name objects
 var	Invitations = new Object();	// array of invitation ids and name objects
 var	Teams = new Object();	// array of team names
-var StaticDataNotReady;	// Flag to show when all static data has been downloaded so that chat data download can begin
-var ChatDataNotReady;	// Flag to show when all chat data has been downloaded so that csv file conversion can begin
+var UnpagedDataNotReady;	// Flag to show when all unpaged data has been received from API so that data can be processed
+var ChatDataNotReady;	// Flag to show when all chat data has been received from API 
 var Allchatsjson;	// chat message objects
 var Nextloop;	
 var Overall = new Object({tcaban: 0, 
@@ -193,7 +193,7 @@ getUnpagedData("getFolders", 0, foldersCallback);
 // calls extraction API and receives JSON objects unpaged (i.e. without the "next" field)
 function getUnpagedData(method, params, fcallback) {
 	
-	StaticDataNotReady++;		// flag to show we are waiting for data as all calls are asynchronous
+	UnpagedDataNotReady++;		// flag to show we are waiting for data as all calls are asynchronous
 	BC_API_Request(method, params, function (response) {
 		var str = '';
 		//another chunk of data has been received, so append it to `str`
@@ -202,7 +202,7 @@ function getUnpagedData(method, params, fcallback) {
 		});
 		//the whole response has been received, take final action.
 		response.on('end', function () {
-			StaticDataNotReady--;
+			UnpagedDataNotReady--;
 			var jsonObj = JSON.parse(str);
 //			console.log("Response received: "+str);
 			var data = new Array();
@@ -218,7 +218,7 @@ function getUnpagedData(method, params, fcallback) {
 		response.on('error', function(err) {
         // handle errors with the request itself
         console.error("Error with the request: ", err.message);
-		StaticDataNotReady--;
+		UnpagedDataNotReady--;
 		});
 	});
 }
@@ -278,15 +278,13 @@ function processActiveChats(achats) {
 							messages: achats[i].OperatorMessageCount + achats[i].VisitorMessageCount
 							});
 	}
-//	io.sockets.emit('overallStats', Overall);
-	io.sockets.emit('departmentStats', Departments);
 }
 
-function getAllInactiveChats() {
+function updateChatStats() {
 	io.sockets.emit('chatcountResponse', "Total no. of chats: "+Allchatsjson.length);
-	if(ChatDataNotReady)
+	if(ChatDataNotReady || UnpagedDataNotReady)
 	{
-		setTimeout(getAllInactiveChats, 1000);	// poll every second until all ajaxs are complete
+		setTimeout(updateChatStats, 1000);	// poll every second until all ajaxs are complete
 		return;
 	}
 
@@ -298,6 +296,7 @@ function getAllInactiveChats() {
 
 	// we got all data in csv text file so return it back to the client
 	io.sockets.emit('overallStats', Overall);
+	io.sockets.emit('departmentStats', Departments);
 }
 
 // this function calls API again if data is truncated
@@ -360,7 +359,7 @@ io.sockets.on('connection', function(socket){
 
 	//  Call BoldChat getDepartments method and update all users with returned data
 	socket.on('startDashboard', function(data){
-		if(StaticDataNotReady)
+		if(UnpagedDataNotReady)
 		{
 			io.sockets.emit('errorResponse', "Static data not ready");
 			return;
@@ -379,13 +378,13 @@ io.sockets.on('connection', function(socket){
 			parameters = "FolderID="+fid+"&FromDate="+startDate.toISOString();
 			getInactiveChats(parameters);
 		}
-		getAllInactiveChats();	// colate of API responses and process
 		
 		for(var did in Departments)
 		{
 			parameters = "DepartmentID="+did;
 			getUnpagedData("getActiveChats",parameters,processActiveChats);
 		}
+		updateChatStats();	// colate of API responses and process
 
 	});
 });
