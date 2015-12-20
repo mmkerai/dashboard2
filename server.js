@@ -78,8 +78,8 @@ var	ChatButtons = new Object();	// array of button ids and name objects
 var	Websites = new Object();	// array of website ids and name objects
 var	Invitations = new Object();	// array of invitation ids and name objects
 var	Teams = new Object();	// array of team names
-var UnpagedDataNotReady;	// Flag to show when all unpaged data has been received from API so that data can be processed
-var PagedDataNotReady;	// Flag to show when all chat data has been received from API 
+var UnpagedDataNotReady = 0;	// Flag to show when all unpaged data has been received from API so that data can be processed
+var PagedDataNotReady = 0;	// Flag to show when all chat data has been received from API 
 var Nextloop;	
 var Overall = new Object({tcaban: 0, 
 							tca: 0,
@@ -343,7 +343,7 @@ function getPagedData(method, params, fcallback) {
 
 			if(typeof next !== 'undefined') 
 			{
-//				console.log("Next loop "+Nextloop);
+				console.log("Next loop "+Nextloop);
 				if(Nextloop < 100)	// safety so that it does not go into infinite loop
 					loadNext(method, next, fcallback);
 			}
