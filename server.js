@@ -238,7 +238,7 @@ function processInactiveChats(chats) {
 		if(chats[i].ChatStatusType == 1)		// abandoned chat (in prechat form )
 		{
 			Overall.tcaban++;	// abandoned
-			return;
+			continue;
 		}
 		//department first
 		deptobj = Departments[chats[i].DepartmentID];
@@ -246,7 +246,7 @@ function processInactiveChats(chats) {
 		{
 			Overall.tcu++;
 			deptobj.tcu++;
-			return;
+			continue;
 		}
 		// chat answered
 		Overall.tca++;
