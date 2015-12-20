@@ -43,7 +43,7 @@ $(document).ready(function() {
 		{
 			var row = ttable.insertRow(cnt+2);	// there is already a header row and top row
 			var col = row.insertCell(0);
-			col.outerHTML = "<th scope='row'>Dept "+ddata[i].name+"</th>";
+			col.outerHTML = "<th id='"+ddata[i].name+"' scope='row'>Dept "+ddata[i].name+"</th>";
 			col = row.insertCell(1);
 			col.innerHTML = ddata[i].tca;
 			col = row.insertCell(2);

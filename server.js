@@ -68,10 +68,10 @@ app.get('/favicon.ico', function(req, res){
 });
 
 //********************************* Global variables for chat data
-var	DepartmentsById = new Object();	// array of dept ids and dept name objects
+var	Departments = new Object();	// array of dept ids and dept name objects
 var	DepartmentsByName = new Object();	// array of dept names and ids
 var	Folders = new Object();	// array of folder ids and folder name objects
-var	OperatorsById = new Object();	// array of operator ids and name objects
+var	Operators = new Object();	// array of operator ids and name objects
 var	OperatorsByName = new Object();	// array of operator ids and name objects
 var	ChatWindows = new Object();	// array of window ids and name objects
 var	ChatButtons = new Object();	// array of button ids and name objects
@@ -124,7 +124,7 @@ function deptsCallback(dlist) {
 	for(var i in dlist) 
 	{
 		DepartmentsByName[dlist[i].Name] = {name: dlist[i].DepartmentID};
-		DepartmentsById[dlist[i].DepartmentID] = {name: dlist[i].Name, 
+		Departments[dlist[i].DepartmentID] = {name: dlist[i].Name, 
 													tca: 0, 
 													tcu: 0, 
 													tac: 0,
@@ -136,14 +136,14 @@ function deptsCallback(dlist) {
 													aaway: 0,
 													aavail: 0};
 	}
-	console.log("No of Depts: "+Object.keys(DepartmentsByName).length);
+	console.log("No of Depts: "+Object.keys(Departments).length);
 }
 
 function operatorsCallback(dlist) {
 	for(var i in dlist) 
 	{
 		OperatorsByName[dlist[i].Name] = {name: dlist[i].LoginID};
-		OperatorsById[dlist[i].LoginID] = {name: dlist[i].Name,
+		Operators[dlist[i].LoginID] = {name: dlist[i].Name,
 											status: 0,
 											tcs: 0,
 											cslots: 0,
@@ -152,7 +152,7 @@ function operatorsCallback(dlist) {
 											act: 0,
 											amc: 0};																					
 	}
-	console.log("No of Operators: "+Object.keys(OperatorsByName).length);
+	console.log("No of Operators: "+Object.keys(Operators).length);
 }
 
 function foldersCallback(dlist) {
@@ -168,7 +168,7 @@ function foldersCallback(dlist) {
 }
 
 function getDepartmentNameFromID(id) {
-	return(DepartmentsById[id].name);
+	return(Departments[id].name);
 }
 
 function getFolderNameFromID(id) {
@@ -176,7 +176,7 @@ function getFolderNameFromID(id) {
 }
 
 function getOperatorNameFromID(id) {
-	return(OperatorsById[id].name);
+	return(Operators[id].name);
 }
 
 // cleans text field of tags and newlines using regex
@@ -231,7 +231,7 @@ function processInactiveChat(chatobject) {
 		return;
 	}
 	//department first
-	deptobj = DepartmentsById[chatobject.DepartmentID];
+	deptobj = Departments[chatobject.DepartmentID];
 	if(chatobject.Answered === null)		// answered not set
 	{
 		Overall.tcu++;
@@ -242,7 +242,7 @@ function processInactiveChat(chatobject) {
 	Overall.tca++;
 	deptobj.tca++;	// chats answered
 	// now operator
-	opobj = OperatorsById[chatobject.OperatorID];
+	opobj = Operators[chatobject.OperatorID];
 	messagecount = chatobject.OperatorMessageCount + chatobject.VisitorMessageCount
 	opobj.amc = ((opobj.amc * opobj.tca) + messagecount)/(opobj.tca+1);
 	Overall.amc = messagecount;			// TODO - calculate correct metric
@@ -266,9 +266,9 @@ function processActiveChats(achats) {
 	{
 		atime = new Date(achats[i].Answered);
 		chattime = (timenow - atime )/1000;
-		deptobj = DepartmentsById[achats[i].DepartmentID];
+		deptobj = Departments[achats[i].DepartmentID];
 		deptobj.tac++;	// chats active
-		opobj = OperatorsById[achats[i].OperatorID];
+		opobj = Operators[achats[i].OperatorID];
 		if(opobj === 'undefined') continue;		// not sure why this would ever be the case
 		opact = opobj.active;
 		opact.push({chatid: achats[i].ChatID, 
@@ -277,8 +277,8 @@ function processActiveChats(achats) {
 							messages: achats[i].OperatorMessageCount + achats[i].VisitorMessageCount
 							});
 	}
-	io.sockets.emit('overallStats', Overall);
-	io.sockets.emit('departmentStats', DepartmentsById);
+//	io.sockets.emit('overallStats', Overall);
+	io.sockets.emit('departmentStats', Departments);
 }
 
 function getAllInactiveChats() {
@@ -297,7 +297,6 @@ function getAllInactiveChats() {
 
 	// we got all data in csv text file so return it back to the client
 	io.sockets.emit('overallStats', Overall);
-
 }
 
 // this function calls API again if data is truncated
@@ -358,18 +357,6 @@ function getInactiveChats(params) {
 // Set up callbacks
 io.sockets.on('connection', function(socket){
 
-	// Test call to see if another user by same name exists.
-	socket.on('new user', function(data, callback){
-		if (data in users){
-			callback(false);
-		} else {
-			callback(true);
-			socket.nickname = data;
-			users[socket.nickname] = socket;
-			updateNicknames();
-		}
-	});
-
 	//  Call BoldChat getDepartments method and update all users with returned data
 	socket.on('startDashboard', function(data){
 		if(StaticDataNotReady)
@@ -382,7 +369,7 @@ io.sockets.on('connection', function(socket){
 		var startDate = new Date();
 		startDate.setHours(0,0,0,0);
 
-		io.sockets.emit('chatcountResponse', "Getting all chat info from "+ Object.keys(Folders).length +" folders");
+		console.log("Getting all chat info from "+ Object.keys(Folders).length +" folders");
 		Allchatsjson = new Array();
 		Nextloop = 0;
 		var parameters;
@@ -393,7 +380,7 @@ io.sockets.on('connection', function(socket){
 		}
 		getAllInactiveChats();	// colate of API responses and process
 		
-		for(var did in DepartmentsById)
+		for(var did in Departments)
 		{
 			parameters = "DepartmentID="+did;
 			getUnpagedData("getActiveChats",parameters,processActiveChats);
