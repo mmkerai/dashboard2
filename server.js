@@ -119,6 +119,14 @@ function BC_API_Request(api_method,params,callBackFunction) {
 	https.request(options, callBackFunction).end();
 }
 
+function debugLog(dataobj) {
+	console.log("object");
+	for(key in dataobj) {
+    if(dataobj.hasOwnProperty(key)) {
+		console.log(key +":"+dataobj[key]);
+    }
+}
+
 function deptsCallback(dlist) {
 	for(var i in dlist) 
 	{
@@ -291,8 +299,9 @@ function updateChatStats() {
 	}
 
 	// we got all data so return it back to the client
-	io.sockets.emit('overallStats', Overall);
-	io.sockets.emit('departmentStats', Departments);
+//	io.sockets.emit('overallStats', Overall);
+//	io.sockets.emit('departmentStats', Departments);
+	debugLog(Overall);
 }
 
 // this function calls API again if data is truncated
