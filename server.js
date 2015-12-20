@@ -79,8 +79,7 @@ var	Websites = new Object();	// array of website ids and name objects
 var	Invitations = new Object();	// array of invitation ids and name objects
 var	Teams = new Object();	// array of team names
 var UnpagedDataNotReady;	// Flag to show when all unpaged data has been received from API so that data can be processed
-var ChatDataNotReady;	// Flag to show when all chat data has been received from API 
-var Allchatsjson;	// chat message objects
+var PagedDataNotReady;	// Flag to show when all chat data has been received from API 
 var Nextloop;	
 var Overall = new Object({tcaban: 0, 
 							tca: 0,
@@ -223,36 +222,39 @@ function getUnpagedData(method, params, fcallback) {
 	});
 }
 
-// process chat object and update all relevat dept, operator and global metrics
-function processInactiveChat(chatobject) {
-	if(chatobject.ChatStatusType == 1)		// abandoned chat (in prechat form )
+// process chat objects and update all relevat dept, operator and global metrics
+function processInactiveChats(chats) {
+	// analyse each chat and keep track of global metrics
+	for(var i in chats)
 	{
-		Overall.tcaban++;	// abandoned
-		return;
+		if(chats[i].ChatStatusType == 1)		// abandoned chat (in prechat form )
+		{
+			Overall.tcaban++;	// abandoned
+			return;
+		}
+		//department first
+		deptobj = Departments[chats[i].DepartmentID];
+		if(chats[i].Answered === null)		// answered not set
+		{
+			Overall.tcu++;
+			deptobj.tcu++;
+			return;
+		}
+		// chat answered
+		Overall.tca++;
+		deptobj.tca++;	// chats answered
+		// now operator
+		opobj = Operators[chats[i].OperatorID];
+		messagecount = chats[i].OperatorMessageCount + chats[i].VisitorMessageCount
+		opobj.amc = ((opobj.amc * opobj.tca) + messagecount)/(opobj.tca+1);
+		Overall.amc = messagecount;			// TODO - calculate correct metric
+		opobj.tca++;	// chats answered
+		startdate = new Date(chats[i].Started);
+		ansdate = new Date(chats[i].Answered);
+		enddate = new Date(chats[i].Ended);
+		chattime = enddate - ansdate/1000;		// in seconds
+		opobj.act = chattime;		// TODO - calculate the average
 	}
-	//department first
-	deptobj = Departments[chatobject.DepartmentID];
-	if(chatobject.Answered === null)		// answered not set
-	{
-		Overall.tcu++;
-		deptobj.tcu++;
-		return;
-	}
-	// chat answered
-	Overall.tca++;
-	deptobj.tca++;	// chats answered
-	// now operator
-	opobj = Operators[chatobject.OperatorID];
-	messagecount = chatobject.OperatorMessageCount + chatobject.VisitorMessageCount
-	opobj.amc = ((opobj.amc * opobj.tca) + messagecount)/(opobj.tca+1);
-	Overall.amc = messagecount;			// TODO - calculate correct metric
-	opobj.tca++;	// chats answered
-	startdate = new Date(chatobject.Started);
-	ansdate = new Date(chatobject.Answered);
-	enddate = new Date(chatobject.Ended);
-	chattime = enddate - ansdate/1000;		// in seconds
-	opobj.act = chattime;		// TODO - calculate the average
-	
 }
 
 // process active chat objects and update all relevat dept, operator and global metrics
@@ -281,26 +283,20 @@ function processActiveChats(achats) {
 }
 
 function updateChatStats() {
-	io.sockets.emit('chatcountResponse', "Total no. of chats: "+Allchatsjson.length);
-	if(ChatDataNotReady || UnpagedDataNotReady)
+	io.sockets.emit('chatcountResponse', "Total no. of chats: "+Overall.tca);
+	if(PagedDataNotReady || UnpagedDataNotReady)
 	{
 		setTimeout(updateChatStats, 1000);	// poll every second until all ajaxs are complete
 		return;
 	}
 
-	// analyse each chat and keep track of global metrics
-	for(var i=0; i < Allchatsjson.length; i++)
-	{
-		processInactiveChat(Allchatsjson[i]);	
-	}
-
-	// we got all data in csv text file so return it back to the client
+	// we got all data so return it back to the client
 	io.sockets.emit('overallStats', Overall);
 	io.sockets.emit('departmentStats', Departments);
 }
 
 // this function calls API again if data is truncated
-function loadNext(next) {
+function loadNext(method, next, callback) {
 	var str = [];
 	for(var key in next) {
 		if (next.hasOwnProperty(key)) {
@@ -308,13 +304,13 @@ function loadNext(next) {
 		}
 	}
 	Nextloop++;
-	getInactiveChats(str.join("&"));
+	getPagedData(method, str.join("&"), callback);
 }
 
 // calls extraction API and receives paged JSON objects (i.e. with the "next" field)
-function getInactiveChats(params) {
-	ChatDataNotReady++;		// flag to track api calls
-	BC_API_Request("getInactiveChats", params, function (response) {
+function getPagedData(method, params, fcallback) {
+	PagedDataNotReady++;		// flag to track api calls
+	BC_API_Request(method, params, function (response) {
 		var str = '';
 		//another chunk of data has been received, so append it to `str`
 		response.on('data', function (chunk) {
@@ -322,34 +318,31 @@ function getInactiveChats(params) {
 		});
 		//the whole response has been received, take final action.
 		response.on('end', function () {
-			ChatDataNotReady--;
+			PagedDataNotReady--;
 			var jsonObj = JSON.parse(str);
-	//			console.log("Response received: "+str);
-			var chatsdata = new Array();
+//			console.log("Response received: "+str);
+			var data = new Array();
 			var next = jsonObj.Next;
-			chatsdata = jsonObj.Data;
-			if(chatsdata === 'undefined' || chatsdata == null)
+			data = jsonObj.Data;
+			if(data === 'undefined' || data == null)
 			{
 				console.log("No data returned: "+str);
 				return;		// exit out if error json message received
 			}
-			for(var i in chatsdata) 
-			{
-				Allchatsjson.push(chatsdata[i]);
-			}
+			fcallback(data);
 
 			if(typeof next !== 'undefined') 
 			{
 //				console.log("Next loop "+Nextloop);
 				if(Nextloop < 100)	// safety so that it does not go into infinite loop
-					loadNext(next);
+					loadNext(method, next, fcallback);
 			}
 		});
 		// in case there is a html error
 		response.on('error', function(err) {
 		// handle errors with the request itself
 		console.error("Error with the request: ", err.message);
-		ChatDataNotReady--;
+		PagedDataNotReady--;
 		});
 	});
 }
@@ -370,13 +363,12 @@ io.sockets.on('connection', function(socket){
 		startDate.setHours(0,0,0,0);
 
 		console.log("Getting all chat info from "+ Object.keys(Folders).length +" folders");
-		Allchatsjson = new Array();
 		Nextloop = 0;
 		var parameters;
 		for(var fid in Folders)
 		{
 			parameters = "FolderID="+fid+"&FromDate="+startDate.toISOString();
-			getInactiveChats(parameters);
+			getPagedData("getInactiveChats", parameters, processInactiveChats);
 		}
 		
 		for(var did in Departments)
@@ -385,7 +377,6 @@ io.sockets.on('connection', function(socket){
 			getUnpagedData("getActiveChats",parameters,processActiveChats);
 		}
 		updateChatStats();	// colate of API responses and process
-
 	});
 });
 
