@@ -122,9 +122,9 @@ function BC_API_Request(api_method,params,callBackFunction) {
 function debugLog(dataobj) {
 	console.log("object");
 	for(key in dataobj) {
-    if(dataobj.hasOwnProperty(key)) {
-		console.log(key +":"+dataobj[key]);
-    }
+		if(dataobj.hasOwnProperty(key))
+			console.log(key +":"+dataobj[key]);
+	}
 }
 
 function deptsCallback(dlist) {
