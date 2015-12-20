@@ -291,8 +291,8 @@ function processActiveChats(achats) {
 }
 
 function updateChatStats() {
-	io.sockets.emit('chatcountResponse', "Total no. of chats: "+Overall.tca);
-	console.log("Chats so far:"+Overall.tca+" PDNR:"+PagedDataNotReady+" UDNR:"+ UnpagedDataNotReady);
+//	io.sockets.emit('chatcountResponse', "Total no. of chats: "+Overall.tca);
+//	console.log("Chats so far:"+Overall.tca+" PDNR:"+PagedDataNotReady+" UDNR:"+ UnpagedDataNotReady);
 	if(PagedDataNotReady > 0 || UnpagedDataNotReady > 0)
 	{
 		setTimeout(updateChatStats, 1000);	// poll every second until all ajaxs are complete
@@ -300,9 +300,9 @@ function updateChatStats() {
 	}
 
 	// we got all data so return it back to the client
-//	io.sockets.emit('overallStats', Overall);
-//	io.sockets.emit('departmentStats', Departments);
-	debugLog(Overall);
+	io.sockets.emit('overallStats', Overall);
+	io.sockets.emit('departmentStats', Departments);
+//	debugLog(Overall);
 }
 
 // this function calls API again if data is truncated
