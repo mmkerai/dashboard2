@@ -38,21 +38,40 @@ $(document).ready(function() {
 	socket.on('departmentStats', function(ddata){
 		var ttable = document.getElementById("topTable");
 //		for(cnt = 0; cnt < Object.keys(ddata).length; cnt++)
-		var cnt = 0;
+		var row, col, rowid;
 		for(var i in ddata)
 		{
-			var row = ttable.insertRow(cnt+2);	// there is already a header row and top row
-			var col = row.insertCell(0);
-			col.outerHTML = "<th id='"+ddata[i].name+"' scope='row'>Dept "+ddata[i].name+"</th>";
-			col = row.insertCell(1);
-			col.innerHTML = ddata[i].tca;
-			col = row.insertCell(2);
-			col.innerHTML = ddata[i].tcu;
-			col = row.insertCell(3);
-			col.innerHTML = "n/a";
-			col = row.insertCell(4);
-			col.innerHTML = ddata[i].tac;
-			cnt++;
+			rowid = document.getElementById(ddata[i].name);
+			if(rowid === null)		// row doesnt exist so create one
+			{
+				row = ttable.insertRow();	// there is already a header row and top row
+				col = row.insertCell(0);
+				row.id = ddata[i].name;
+				col.outerHTML = "<th scope='row'>Dept "+ddata[i].name+"</th>";
+				col = row.insertCell(1).innerHTML = ddata[i].tca;
+				col = row.insertCell(2).innerHTML = ddata[i].tcu;
+				col = row.insertCell(3).innerHTML = "n/a";
+				col = row.insertCell(4).innerHTML = ddata[i].tac;
+				col = row.insertCell(4).innerHTML = ddata[i].cwait;
+				col = row.insertCell(4).innerHTML = ddata[i].asa;
+				col = row.insertCell(4).innerHTML = ddata[i].act;
+				col = row.insertCell(4).innerHTML = ddata[i].amc;
+				col = row.insertCell(4).innerHTML = ddata[i].oaway;
+				col = row.insertCell(4).innerHTML = ddata[i].oavail;
+			}
+			else
+			{
+				rowid.cells[1].innerHTML = ddata[i].tca;
+				rowid.cells[2].innerHTML = ddata[i].tcu;
+				rowid.cells[3].innerHTML = "n/a";
+				rowid.cells[4].innerHTML = ddata[i].tac;
+				rowid.cells[4].innerHTML = ddata[i].cwait;
+				rowid.cells[4].innerHTML = ddata[i].asa;
+				rowid.cells[4].innerHTML = ddata[i].act;
+				rowid.cells[4].innerHTML = ddata[i].amc;
+				rowid.cells[4].innerHTML = ddata[i].oaway;
+				rowid.cells[4].innerHTML = ddata[i].oavail;
+			}
 		}
 	});
 		
