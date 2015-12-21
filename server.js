@@ -207,6 +207,7 @@ function processInactiveChats(chats) {
 			continue;
 		}
 		//department first
+		if(chats[i].DepartmentID === null) continue;		// should never be null at this stage but I have seen it
 		deptobj = Departments[chats[i].DepartmentID];
 		if(chats[i].Answered === null)		// answered not set
 		{
@@ -218,6 +219,7 @@ function processInactiveChats(chats) {
 		Overall.tca++;
 		deptobj.tca++;	// chats answered
 		// now operator
+		if(chats[i].OperatorID === null) continue;		// operator id not set for some strange reason
 		opobj = Operators[chats[i].OperatorID];
 		messagecount = chats[i].OperatorMessageCount + chats[i].VisitorMessageCount
 		opobj.amc = ((opobj.amc * opobj.tca) + messagecount)/(opobj.tca+1);
