@@ -252,8 +252,8 @@ function processActiveChats(achats) {
 	Overall.tac = Overall.tac + achats.length;	// no of objects = number of active chats
 	for(var i in achats) 
 	{
-		atime = new Date(achats[i].Answered);
-		chattime = (timenow - atime )/1000;
+		var atime = new Date(achats[i].Answered);
+		var chattime = (timenow - atime )/1000;
 		if(achats[i].DepartmentID === null) continue;	// not sure why this would ever be the case
 		deptobj = Departments[achats[i].DepartmentID];
 		deptobj.tac++;	// chats active

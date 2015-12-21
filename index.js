@@ -29,9 +29,9 @@ $(document).ready(function() {
 		$("#otcaban").text(data.tcaban);
 		$("#otac").text(data.tac);
 		$("#ocwait").text(data.cwait);
-		$("#oasa").text(data.asa);
-		$("#oact").text(data.act);
-		$("#oamc").text(data.amc);
+		$("#oasa").text(Math.round(data.asa));
+		$("#oact").text(Math.round(data.act));
+		$("#oamc").text(Math.round(data.amc));
 		$("#oaway").text(data.taway);
 		$("#oavail").text(data.tavail);
 	});
