@@ -52,12 +52,12 @@ $(document).ready(function() {
 				col = row.insertCell(2).innerHTML = ddata[i].tcu;
 				col = row.insertCell(3).innerHTML = "n/a";
 				col = row.insertCell(4).innerHTML = ddata[i].tac;
-				col = row.insertCell(4).innerHTML = ddata[i].cwait;
-				col = row.insertCell(4).innerHTML = ddata[i].asa;
-				col = row.insertCell(4).innerHTML = ddata[i].act;
-				col = row.insertCell(4).innerHTML = ddata[i].amc;
-				col = row.insertCell(4).innerHTML = ddata[i].oaway;
-				col = row.insertCell(4).innerHTML = ddata[i].oavail;
+				col = row.insertCell(5).innerHTML = ddata[i].cwait;
+				col = row.insertCell(6).innerHTML = ddata[i].asa;
+				col = row.insertCell(7).innerHTML = ddata[i].act;
+				col = row.insertCell(8).innerHTML = ddata[i].amc;
+				col = row.insertCell(9).innerHTML = ddata[i].oaway;
+				col = row.insertCell(10).innerHTML = ddata[i].oavail;
 			}
 			else
 			{
@@ -65,12 +65,12 @@ $(document).ready(function() {
 				rowid.cells[2].innerHTML = ddata[i].tcu;
 				rowid.cells[3].innerHTML = "n/a";
 				rowid.cells[4].innerHTML = ddata[i].tac;
-				rowid.cells[4].innerHTML = ddata[i].cwait;
-				rowid.cells[4].innerHTML = ddata[i].asa;
-				rowid.cells[4].innerHTML = ddata[i].act;
-				rowid.cells[4].innerHTML = ddata[i].amc;
-				rowid.cells[4].innerHTML = ddata[i].oaway;
-				rowid.cells[4].innerHTML = ddata[i].oavail;
+				rowid.cells[5].innerHTML = ddata[i].cwait;
+				rowid.cells[6].innerHTML = ddata[i].asa;
+				rowid.cells[7].innerHTML = ddata[i].act;
+				rowid.cells[8].innerHTML = ddata[i].amc;
+				rowid.cells[9].innerHTML = ddata[i].oaway;
+				rowid.cells[10].innerHTML = ddata[i].oavail;
 			}
 		}
 	});

@@ -150,6 +150,7 @@ function operatorsCallback(dlist) {
 	{
 		OperatorsByName[dlist[i].Name] = {name: dlist[i].LoginID};
 		Operators[dlist[i].LoginID] = {name: dlist[i].Name,
+											tca: 0,
 											status: 0,
 											tcs: 0,
 											cslots: 0,
@@ -206,7 +207,7 @@ function processInactiveChats(chats) {
 			Overall.tcaban++;	// abandoned
 			continue;
 		}
-		//department first
+		//department stats
 		if(chats[i].DepartmentID === null) continue;		// should never be null at this stage but I have seen it
 		deptobj = Departments[chats[i].DepartmentID];
 		if(chats[i].Answered === null)		// answered not set
@@ -217,19 +218,28 @@ function processInactiveChats(chats) {
 		}
 		// chat answered
 		Overall.tca++;
-		deptobj.tca++;	// chats answered
-		// now operator
+		deptobj.tca++;
+		// asa and act and amc calculations
+		var starttime = new Date(chats[i].Started);
+		var anstime = new Date(chats[i].Answered);
+		var endtime = new Date(chats[i].Ended);
+		var messagecount = chats[i].OperatorMessageCount + chats[i].VisitorMessageCount
+		var asa = (anstime - starttime)/1000;
+		var act = (endtime - anstime)/1000;		// in seconds
+		Overall.asa = ((Overall.asa * (Overall.tca - 1)) + asa)/Overall.tca;
+		Overall.act = ((Overall.act * (Overall.tca - 1)) + act)/Overall.tca;
+		Overall.amc = ((Overall.amc * (Overall.tca - 1)) + messagecount)/Overall.tca;
+		deptobj.asa = ((deptobj.asa * (deptobj.tca - 1)) + asa)/deptobj.tca;
+		deptobj.act = ((deptobj.act * (deptobj.tca - 1)) + act)/deptobj.tca;
+		deptobj.amc = ((deptobj.amc * (deptobj.tca - 1)) + messagecount)/deptobj.tca;
+		
+		//operator stats
 		if(chats[i].OperatorID === null) continue;		// operator id not set for some strange reason
 		opobj = Operators[chats[i].OperatorID];
-		messagecount = chats[i].OperatorMessageCount + chats[i].VisitorMessageCount
-		opobj.amc = ((opobj.amc * opobj.tca) + messagecount)/(opobj.tca+1);
-		Overall.amc = messagecount;			// TODO - calculate correct metric
 		opobj.tca++;	// chats answered
-		startdate = new Date(chats[i].Started);
-		ansdate = new Date(chats[i].Answered);
-		enddate = new Date(chats[i].Ended);
-		chattime = enddate - ansdate/1000;		// in seconds
-		opobj.act = chattime;		// TODO - calculate the average
+		opobj.asa = ((opobj.asa * (opobj.tca - 1)) + asa)/opobj.tca;
+		opobj.act = ((opobj.act * (opobj.tca - 1)) + act)/opobj.tca;
+		opobj.amc = ((opobj.amc * (opobj.tca - 1)) + messagecount)/opobj.tca;
 	}
 }
 
@@ -244,6 +254,7 @@ function processActiveChats(achats) {
 	{
 		atime = new Date(achats[i].Answered);
 		chattime = (timenow - atime )/1000;
+		if(achats[i].DepartmentID === null) continue;	// not sure why this would ever be the case
 		deptobj = Departments[achats[i].DepartmentID];
 		deptobj.tac++;	// chats active
 		if(achats[i].OperatorID === null) continue;		// not sure why this would ever be the case but it is
