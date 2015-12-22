@@ -94,10 +94,19 @@ var Overall = new Object({tcaban: 0,
 						);		// top level stats
 
 // Get all of the incoming Boldchat triggered chat data
-app.post('/chat-start-answer-close', function(req, res){
+app.post('/chat-answer', function(req, res){
 //	io.sockets.emit('errorResponse', req.body);
-	console.log("Event: Chat Status Changed: ");
-	debugLog(req.body);
+	console.log("Event: Chat answered");
+//	debugLog(req.body);
+	processActiveChat(req.body);
+});
+
+// Get all of the incoming Boldchat triggered chat data
+app.post('/chat-ended', function(req, res){
+//	io.sockets.emit('errorResponse', req.body);
+	console.log("Event: Chat closed");
+//	debugLog(req.body);
+	processInactiveChat(req.body);
 });
 
 // Get all of the incoming Boldchat triggered operator data
@@ -205,78 +214,91 @@ function doStartOfDay() {
 	getApiData("getFolders", 0, foldersCallback);
 }
 
-// process chat objects and update all relevat dept, operator and global metrics
-function processInactiveChats(chats) {
+// process ended chat object and update all relevat dept, operator and global metrics
+function processInactiveChat(chat) {
+	// analyse each chat and keep track of global metrics
+	//department stats
+	if(chat.DepartmentID === null) continue;		// should never be null at this stage but I have seen it
+	deptobj = Departments[chat.DepartmentID];
+	if(chat.Answered === null)		// answered not set
+	{
+		Overall.tcu++;
+		deptobj.tcu++;
+		continue;
+	}
+	// chat answered
+	Overall.tca++;
+	deptobj.tca++;
+	// asa and act and amc calculations
+	var starttime = new Date(chat.Started);
+	var anstime = new Date(chat.Answered);
+	var endtime = new Date(chat.Ended);
+	var messagecount = chat.OperatorMessageCount + chat.VisitorMessageCount
+	var asa = (anstime - starttime)/1000;
+	var act = (endtime - anstime)/1000;		// in seconds
+	Overall.asa = Math.round(((Overall.asa * (Overall.tca - 1)) + asa)/Overall.tca);
+	Overall.act = Math.round(((Overall.act * (Overall.tca - 1)) + act)/Overall.tca);
+	Overall.amc = Math.round(((Overall.amc * (Overall.tca - 1)) + messagecount)/Overall.tca);
+	deptobj.asa = Math.round(((deptobj.asa * (deptobj.tca - 1)) + asa)/deptobj.tca);
+	deptobj.act = Math.round(((deptobj.act * (deptobj.tca - 1)) + act)/deptobj.tca);
+	deptobj.amc = Math.round(((deptobj.amc * (deptobj.tca - 1)) + messagecount)/deptobj.tca);
+	
+	//operator stats
+	if(chat.OperatorID === null) continue;		// operator id not set for some strange reason
+	opobj = Operators[chat.OperatorID];
+	opobj.tca++;	// chats answered
+	opobj.asa = Math.round(((opobj.asa * (opobj.tca - 1)) + asa)/opobj.tca);
+	opobj.act = Math.round(((opobj.act * (opobj.tca - 1)) + act)/opobj.tca);
+	opobj.amc = Math.round(((opobj.amc * (opobj.tca - 1)) + messagecount)/opobj.tca);
+}
+
+// process all inactive (ended) chat objects
+function allInactiveChats(chats) {
 	// analyse each chat and keep track of global metrics
 	for(var i in chats)
 	{
 		if(chats[i].Started === null)		// started not set
 			Overall.Notstarted++;
-
+			
 		if(chats[i].ChatStatusType == 1)		// abandoned chat (in prechat form )
 		{
 			Overall.tcaban++;	// abandoned
 			continue;
 		}
-		//department stats
-		if(chats[i].DepartmentID === null) continue;		// should never be null at this stage but I have seen it
-		deptobj = Departments[chats[i].DepartmentID];
-		if(chats[i].Answered === null)		// answered not set
-		{
-			Overall.tcu++;
-			deptobj.tcu++;
-			continue;
-		}
-		// chat answered
-		Overall.tca++;
-		deptobj.tca++;
-		// asa and act and amc calculations
-		var starttime = new Date(chats[i].Started);
-		var anstime = new Date(chats[i].Answered);
-		var endtime = new Date(chats[i].Ended);
-		var messagecount = chats[i].OperatorMessageCount + chats[i].VisitorMessageCount
-		var asa = (anstime - starttime)/1000;
-		var act = (endtime - anstime)/1000;		// in seconds
-		Overall.asa = Math.round(((Overall.asa * (Overall.tca - 1)) + asa)/Overall.tca);
-		Overall.act = Math.round(((Overall.act * (Overall.tca - 1)) + act)/Overall.tca);
-		Overall.amc = Math.round(((Overall.amc * (Overall.tca - 1)) + messagecount)/Overall.tca);
-		deptobj.asa = Math.round(((deptobj.asa * (deptobj.tca - 1)) + asa)/deptobj.tca);
-		deptobj.act = Math.round(((deptobj.act * (deptobj.tca - 1)) + act)/deptobj.tca);
-		deptobj.amc = Math.round(((deptobj.amc * (deptobj.tca - 1)) + messagecount)/deptobj.tca);
-		
-		//operator stats
-		if(chats[i].OperatorID === null) continue;		// operator id not set for some strange reason
-		opobj = Operators[chats[i].OperatorID];
-		opobj.tca++;	// chats answered
-		opobj.asa = Math.round(((opobj.asa * (opobj.tca - 1)) + asa)/opobj.tca);
-		opobj.act = Math.round(((opobj.act * (opobj.tca - 1)) + act)/opobj.tca);
-		opobj.amc = Math.round(((opobj.amc * (opobj.tca - 1)) + messagecount)/opobj.tca);
+		processInactiveChat(chat);
 	}
 }
 
-// process active chat objects and update all relevat dept, operator and global metrics
-function processActiveChats(achats) {
+// process active chat object and update all relevat dept, operator and global metrics
+function processActiveChat(achat) {
 	var deptobj, opobj;
-	var atime, chattime;
 	var timenow = new Date();
 	var opact = [];
-	Overall.tac = Overall.tac + achats.length;	// no of objects = number of active chats
+	var atime = new Date(achat.Answered);
+	var chattime = (timenow - atime )/1000;
+
+	Overall.tac++;		// total number of active chats
+	if(achat.DepartmentID === null) return;	// not sure why this would ever be the case but it occurs
+
+	deptobj = Departments[achat.DepartmentID];
+	deptobj.tac++;	// chats active
+	if(achat.OperatorID === null) return;		// not sure why this would ever be the case but it occurs
+
+	opobj = Operators[achat.OperatorID];
+//		console.log("opobj is "+achat.OperatorID);
+	opact = opobj.active;
+	opact.push({chatid: achat.ChatID, 
+						deptname: getDepartmentNameFromID(achats.DepartmentID),
+						ctime: chattime,
+						messages: achat.OperatorMessageCount + achat.VisitorMessageCount
+						});
+}
+
+// process all active chat objects 
+function allActiveChats(achats) {
 	for(var i in achats) 
 	{
-		var atime = new Date(achats[i].Answered);
-		var chattime = (timenow - atime )/1000;
-		if(achats[i].DepartmentID === null) continue;	// not sure why this would ever be the case but it occurs
-		deptobj = Departments[achats[i].DepartmentID];
-		deptobj.tac++;	// chats active
-		if(achats[i].OperatorID === null) continue;		// not sure why this would ever be the case but it occurs
-		opobj = Operators[achats[i].OperatorID];
-//		console.log("opobj is "+achats[i].OperatorID);
-		opact = opobj.active;
-		opact.push({chatid: achats[i].ChatID, 
-							deptname: getDepartmentNameFromID(achats[i].DepartmentID),
-							ctime: chattime,
-							messages: achats[i].OperatorMessageCount + achats[i].VisitorMessageCount
-							});
+		processActiveChat(achats[i]);
 	}
 }
 
@@ -371,7 +393,7 @@ function getActiveChatData() {
 	for(var did in Departments)	// active chats are by department
 	{
 		parameters = "DepartmentID="+did;
-		getApiData("getActiveChats",parameters,processActiveChats);
+		getApiData("getActiveChats",parameters,allActiveChats);
 //			getApiData("getEstimatedWaitTime", parameters, getEstimatedWait);
 //			getApiData("getDepartmentOperators", parameters, getDeptOperators);
 	}
