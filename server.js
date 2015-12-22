@@ -1,5 +1,6 @@
 // acronyms used
 // tcaban - total chats abandoned
+// cns - chats not started
 // tca - total chats answered
 // tcu - total chats unanswered
 // tac - total active chats
@@ -80,7 +81,7 @@ var	Invitations = new Object();	// array of invitation ids and name objects
 var	Teams = new Object();	// array of team names
 var ApiDataNotReady = 0;	// Flag to show when data has been received from API so that data can be processed
 var Overall = new Object({tcaban: 0,
-							Notstarted: 0,
+							cns: 0,
 							tca: 0,
 							tcu: 0,
 							tac: 0,
@@ -220,9 +221,11 @@ function processEndedChat(chat) {
 	//department stats
 	if(chat.DepartmentID === null) return;		// should never be null at this stage but I have seen it
 	deptobj = Departments[chat.DepartmentID];
-	// chat answered
+	// chat ended so no longer active
 	Overall.tca++;
+	Overall.tac--;
 	deptobj.tca++;
+	deptobj.tac--;
 	// asa and act and amc calculations
 	var starttime = new Date(chat.Started);
 	var anstime = new Date(chat.Answered);
@@ -252,7 +255,7 @@ function allInactiveChats(chats) {
 	for(var i in chats)
 	{
 		if(chats[i].Started === null)		// started not set
-			Overall.Notstarted++;
+			Overall.cns++;
 			
 		if(chats[i].ChatStatusType == 1)		// abandoned chat (in prechat form )
 		{
@@ -264,6 +267,7 @@ function allInactiveChats(chats) {
 			Overall.tcu++;
 			continue;
 		}
+		Overall.tac++;
 		if(chats[i].Ended !== null)		// chat has ended
 			processEndedChat(chats[i]);
 	}
