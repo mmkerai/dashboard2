@@ -439,7 +439,7 @@ function updateChatStats() {
 }
 
 doStartOfDay();
-setTimeout(getInactiveChatData, 2000);
-setTimeout(getActiveChatData, 2000);
+//setTimeout(getInactiveChatData, 2000);
+//setTimeout(getActiveChatData, 2000);
 getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
 setTimeout(updateChatStats,5000);
