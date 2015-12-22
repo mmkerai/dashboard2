@@ -32,8 +32,8 @@ $(document).ready(function() {
 		$("#oasa").text(Math.round(data.asa));
 		$("#oact").text(Math.round(data.act));
 		$("#oamc").text(Math.round(data.amc));
-		$("#oaway").text(data.taway);
-		$("#oavail").text(data.tavail);
+		$("#oaway").text(data.oaway);
+		$("#oavail").text(data.oavail);
 	});
 	socket.on('departmentStats', function(ddata){
 		var ttable = document.getElementById("topTable");

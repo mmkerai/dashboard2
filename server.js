@@ -230,20 +230,20 @@ function processInactiveChats(chats) {
 		var messagecount = chats[i].OperatorMessageCount + chats[i].VisitorMessageCount
 		var asa = (anstime - starttime)/1000;
 		var act = (endtime - anstime)/1000;		// in seconds
-		Overall.asa = ((Overall.asa * (Overall.tca - 1)) + asa)/Overall.tca;
-		Overall.act = ((Overall.act * (Overall.tca - 1)) + act)/Overall.tca;
-		Overall.amc = ((Overall.amc * (Overall.tca - 1)) + messagecount)/Overall.tca;
-		deptobj.asa = ((deptobj.asa * (deptobj.tca - 1)) + asa)/deptobj.tca;
-		deptobj.act = ((deptobj.act * (deptobj.tca - 1)) + act)/deptobj.tca;
-		deptobj.amc = ((deptobj.amc * (deptobj.tca - 1)) + messagecount)/deptobj.tca;
+		Overall.asa = Math.round(((Overall.asa * (Overall.tca - 1)) + asa)/Overall.tca);
+		Overall.act = Math.round(((Overall.act * (Overall.tca - 1)) + act)/Overall.tca);
+		Overall.amc = Math.round(((Overall.amc * (Overall.tca - 1)) + messagecount)/Overall.tca);
+		deptobj.asa = Math.round(((deptobj.asa * (deptobj.tca - 1)) + asa)/deptobj.tca);
+		deptobj.act = Math.round(((deptobj.act * (deptobj.tca - 1)) + act)/deptobj.tca);
+		deptobj.amc = Math.round(((deptobj.amc * (deptobj.tca - 1)) + messagecount)/deptobj.tca);
 		
 		//operator stats
 		if(chats[i].OperatorID === null) continue;		// operator id not set for some strange reason
 		opobj = Operators[chats[i].OperatorID];
 		opobj.tca++;	// chats answered
-		opobj.asa = ((opobj.asa * (opobj.tca - 1)) + asa)/opobj.tca;
-		opobj.act = ((opobj.act * (opobj.tca - 1)) + act)/opobj.tca;
-		opobj.amc = ((opobj.amc * (opobj.tca - 1)) + messagecount)/opobj.tca;
+		opobj.asa = Math.round(((opobj.asa * (opobj.tca - 1)) + asa)/opobj.tca);
+		opobj.act = Math.round(((opobj.act * (opobj.tca - 1)) + act)/opobj.tca);
+		opobj.amc = Math.round(((opobj.amc * (opobj.tca - 1)) + messagecount)/opobj.tca);
 	}
 }
 
@@ -304,18 +304,13 @@ function getOperatorAvailability(dlist) {
 }
 
 function updateChatStats() {
+	getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
 	io.sockets.emit('chatcountResponse', "Total no. of chats: "+(Overall.tca + Overall.tcu + Overall.tcaban));
-//	console.log("Chats so far:"+Overall.tca+" DNR:"+ApiDataNotReady);
-	if(ApiDataNotReady)
-	{
-		setTimeout(updateChatStats, 1000);	// poll every second until all ajaxs are complete
-		return;
-	}
-
-	// we got all data so return it back to the client
 	io.sockets.emit('overallStats', Overall);
 	io.sockets.emit('departmentStats', Departments);
-	debugLog(Overall);
+//	debugLog(Overall);
+	setTimeout(updateChatStats, 1000);	// send update every second
+
 }
 
 // this function calls API again if data is truncated
@@ -402,9 +397,8 @@ io.sockets.on('connection', function(socket){
 //			getApiData("getDepartmentOperators", parameters, getDeptOperators);
 		}
 		
-		getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
-
-		updateChatStats();	// colate of API responses and process
+		setTimeout(updateChatStats, 1000);
+		
 	});
 });
 
