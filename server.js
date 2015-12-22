@@ -106,7 +106,7 @@ app.post('/chat-ended', function(req, res){
 //	io.sockets.emit('errorResponse', req.body);
 	console.log("Event: Chat closed");
 //	debugLog(req.body);
-	processInactiveChat(req.body);
+	processEndedChat(req.body);
 });
 
 // Get all of the incoming Boldchat triggered operator data
@@ -215,7 +215,7 @@ function doStartOfDay() {
 }
 
 // process ended chat object and update all relevat dept, operator and global metrics
-function processInactiveChat(chat) {
+function processEndedChat(chat) {
 	// analyse each chat and keep track of global metrics
 	//department stats
 	if(chat.DepartmentID === null) return;		// should never be null at this stage but I have seen it
@@ -238,7 +238,7 @@ function processInactiveChat(chat) {
 	deptobj.amc = Math.round(((deptobj.amc * (deptobj.tca - 1)) + messagecount)/deptobj.tca);
 	
 	//operator stats
-	if(chat.OperatorID === null) continue;		// operator id not set for some strange reason
+	if(chat.OperatorID === null) return;		// operator id not set for some strange reason
 	opobj = Operators[chat.OperatorID];
 	opobj.tca++;	// chats answered
 	opobj.asa = Math.round(((opobj.asa * (opobj.tca - 1)) + asa)/opobj.tca);
@@ -259,13 +259,13 @@ function allInactiveChats(chats) {
 			Overall.tcaban++;	// abandoned
 			continue;
 		}
-		if(chat.Answered === null)		// answered not set
+		if(chats[i].Answered === null)		// answered not set
 		{
 			Overall.tcu++;
 			continue;
 		}
-
-		processInactiveChat(chat);
+		if(chats[i].Ended !== null)		// chat has ended
+			processEndedChat(chats[i]);
 	}
 }
 
