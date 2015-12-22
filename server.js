@@ -304,7 +304,6 @@ function getOperatorAvailability(dlist) {
 }
 
 function updateChatStats() {
-	getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
 	io.sockets.emit('chatcountResponse', "Total no. of chats: "+(Overall.tca + Overall.tcu + Overall.tcaban));
 	io.sockets.emit('overallStats', Overall);
 	io.sockets.emit('departmentStats', Departments);
@@ -397,6 +396,7 @@ io.sockets.on('connection', function(socket){
 //			getApiData("getDepartmentOperators", parameters, getDeptOperators);
 		}
 		
+		getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
 		setTimeout(updateChatStats, 1000);
 		
 	});
