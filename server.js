@@ -402,7 +402,7 @@ io.sockets.on('connection', function(socket){
 //			getApiData("getDepartmentOperators", parameters, getDeptOperators);
 		}
 		
-		getStaticData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
+		getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
 
 		updateChatStats();	// colate of API responses and process
 	});
