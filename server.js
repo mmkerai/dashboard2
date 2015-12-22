@@ -93,12 +93,17 @@ var Overall = new Object({tcaban: 0,
 							oavail: 0}
 						);		// top level stats
 
-// Get all of the incoming Boldchat triggered data
+// Get all of the incoming Boldchat triggered chat data
 app.post('/chat-start-answer-close', function(req, res){
-//	logMessage = "Event: Chat Status Changed ("+req.body.ChatID+")";
-	res.send({ "result": "success" });
-	io.sockets.emit('errorResponse', req.body);
-	console.log("Event: Chat Status Changed: " +req.body);
+//	io.sockets.emit('errorResponse', req.body);
+	console.log("Event: Chat Status Changed: ");
+	debugLog(req.body);
+});
+
+// Get all of the incoming Boldchat triggered operator data
+app.post('/operator-status-changed', function(req, res){
+//	console.log("Event: Operator Status Changed: " +req.body);
+	debugLog(req.body);
 });
 
 // Set up code for outbound BoldChat API calls.  All of the capture callback code should ideally be packaged as an object.
@@ -305,15 +310,6 @@ function getOperatorAvailability(dlist) {
 	}			
 }
 
-function updateChatStats() {
-	io.sockets.emit('chatcountResponse', "Total no. of chats: "+(Overall.tca + Overall.tcu + Overall.tcaban));
-	io.sockets.emit('overallStats', Overall);
-	io.sockets.emit('departmentStats', Departments);
-//	debugLog(Overall);
-	setTimeout(updateChatStats, 2000);	// send update every second
-
-}
-
 // this function calls API again if data is truncated
 function loadNext(method, next, callback) {
 	var str = [];
@@ -412,8 +408,16 @@ io.sockets.on('connection', function(socket){
 	});
 });
 
+function updateChatStats() {
+	io.sockets.emit('chatcountResponse', "Total no. of chats: "+(Overall.tca + Overall.tcu + Overall.tcaban));
+	io.sockets.emit('overallStats', Overall);
+	io.sockets.emit('departmentStats', Departments);
+	debugLog(Overall);
+//	setTimeout(updateChatStats, 2000);	// send update every second
+}
+
 doStartOfDay();
 setTimeout(getInactiveChatData, 2000);
 setTimeout(getActiveChatData, 2000);
 getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
-setTimeout(updateChatStats,2000);
+setTimeout(updateChatStats,5000);
