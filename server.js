@@ -288,7 +288,7 @@ function processActiveChat(achat) {
 //		console.log("opobj is "+achat.OperatorID);
 	opact = opobj.active;
 	opact.push({chatid: achat.ChatID, 
-						deptname: getDepartmentNameFromID(achats.DepartmentID),
+						deptname: getDepartmentNameFromID(achat.DepartmentID),
 						ctime: chattime,
 						messages: achat.OperatorMessageCount + achat.VisitorMessageCount
 						});
