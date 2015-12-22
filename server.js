@@ -416,4 +416,4 @@ doStartOfDay();
 setTimeout(getInactiveChatData, 2000);
 setTimeout(getActiveChatData, 2000);
 getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
-setTimeout(UpdateChatStats,2000);
+setTimeout(updateChatStats,2000);
