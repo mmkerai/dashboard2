@@ -218,14 +218,8 @@ function doStartOfDay() {
 function processInactiveChat(chat) {
 	// analyse each chat and keep track of global metrics
 	//department stats
-	if(chat.DepartmentID === null) continue;		// should never be null at this stage but I have seen it
+	if(chat.DepartmentID === null) return;		// should never be null at this stage but I have seen it
 	deptobj = Departments[chat.DepartmentID];
-	if(chat.Answered === null)		// answered not set
-	{
-		Overall.tcu++;
-		deptobj.tcu++;
-		continue;
-	}
 	// chat answered
 	Overall.tca++;
 	deptobj.tca++;
@@ -265,6 +259,12 @@ function allInactiveChats(chats) {
 			Overall.tcaban++;	// abandoned
 			continue;
 		}
+		if(chat.Answered === null)		// answered not set
+		{
+			Overall.tcu++;
+			continue;
+		}
+
 		processInactiveChat(chat);
 	}
 }
