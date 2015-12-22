@@ -100,6 +100,7 @@ app.post('/chat-answer', function(req, res){
 	console.log("Event: Chat answered");
 	debugLog(req.body);
 	processActiveChat(req.body);
+	res.send({ "result": "success" });
 });
 
 // Get all of the incoming Boldchat triggered chat data
@@ -108,12 +109,14 @@ app.post('/chat-ended', function(req, res){
 	console.log("Event: Chat closed");
 	debugLog(req.body);
 	processEndedChat(req.body);
+	res.send({ "result": "success" });
 });
 
 // Get all of the incoming Boldchat triggered operator data
 app.post('/operator-status-changed', function(req, res){
 //	console.log("Event: Operator Status Changed: " +req.body);
 	debugLog(req.body);
+	res.send({ "result": "success" });
 });
 
 // Set up code for outbound BoldChat API calls.  All of the capture callback code should ideally be packaged as an object.
@@ -438,12 +441,12 @@ function updateChatStats() {
 	io.sockets.emit('chatcountResponse', "Total no. of chats: "+(Overall.tca + Overall.tcu + Overall.tcaban));
 	io.sockets.emit('overallStats', Overall);
 	io.sockets.emit('departmentStats', Departments);
-	debugLog(Overall);
-	setTimeout(updateChatStats, 2000);	// send update every second
+//	debugLog(Overall);
+	setTimeout(updateChatStats, 3000);	// send update every second
 }
 
 doStartOfDay();
 //setTimeout(getInactiveChatData, 2000);
-//setTimeout(getActiveChatData, 2000);
+getActiveChatData();
 getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
-setTimeout(updateChatStats,5000);
+setTimeout(updateChatStats,3000);
