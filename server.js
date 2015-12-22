@@ -79,7 +79,6 @@ var	Websites = new Object();	// array of website ids and name objects
 var	Invitations = new Object();	// array of invitation ids and name objects
 var	Teams = new Object();	// array of team names
 var ApiDataNotReady = 0;	// Flag to show when data has been received from API so that data can be processed
-var Nextloop;	
 var Overall = new Object({tcaban: 0,
 							Notstarted: 0,
 							tca: 0,
@@ -194,9 +193,12 @@ function cleanText(mytext) {
 	return(clean2);
 }
 
-getApiData('getDepartments', 0, deptsCallback);
-getApiData("getOperators", 0, operatorsCallback);
-getApiData("getFolders", 0, foldersCallback);
+// setup all globals TODO: add teams
+function doStartOfDay() {
+	getApiData('getDepartments', 0, deptsCallback);
+	getApiData("getOperators", 0, operatorsCallback);
+	getApiData("getFolders", 0, foldersCallback);
+}
 
 // process chat objects and update all relevat dept, operator and global metrics
 function processInactiveChats(chats) {
@@ -308,7 +310,7 @@ function updateChatStats() {
 	io.sockets.emit('overallStats', Overall);
 	io.sockets.emit('departmentStats', Departments);
 //	debugLog(Overall);
-	setTimeout(updateChatStats, 1000);	// send update every second
+	setTimeout(updateChatStats, 2000);	// send update every second
 
 }
 
@@ -320,7 +322,6 @@ function loadNext(method, next, callback) {
 			str.push(encodeURIComponent(key) + "=" + encodeURIComponent(next[key]));
 		}
 	}
-	Nextloop++;
 	getApiData(method, str.join("&"), callback);
 }
 
@@ -350,9 +351,7 @@ function getApiData(method, params, fcallback) {
 
 			if(typeof next !== 'undefined') 
 			{
-				console.log("Next loop "+Nextloop);
-				if(Nextloop < 100)	// safety so that it does not go into infinite loop
-					loadNext(method, next, fcallback);
+				loadNext(method, next, fcallback);
 			}
 		});
 		// in case there is a html error
@@ -364,41 +363,57 @@ function getApiData(method, params, fcallback) {
 	});
 }
 
+// gets current active chats 
+function getActiveChatData() {
+	if(ApiDataNotReady)
+	{
+		console.log("Static data not ready");
+		setTimeout(getActiveChatData, 1000);
+		return;
+	}
+	
+	for(var did in Departments)	// active chats are by department
+	{
+		parameters = "DepartmentID="+did;
+		getApiData("getActiveChats",parameters,processActiveChats);
+//			getApiData("getEstimatedWaitTime", parameters, getEstimatedWait);
+//			getApiData("getDepartmentOperators", parameters, getDeptOperators);
+	}
+}
+
+// gets today's chat data incase system was started during the day
+function getInactiveChatData() {
+	if(ApiDataNotReady)
+	{
+		console.log("Static data not ready");
+		setTimeout(getInactiveChatData, 1000);
+		return;
+	}
+
+	// set date to start of today
+	var startDate = new Date();
+	startDate.setHours(0,0,0,0);
+
+	console.log("Getting inactive chat info from "+ Object.keys(Folders).length +" folders");
+	var parameters;
+	for(var fid in Folders)	// Inactive chats are by folders
+	{
+		parameters = "FolderID="+fid+"&FromDate="+startDate.toISOString();
+		getApiData("getInactiveChats", parameters, processInactiveChats);
+	}	
+}
+
 // Set up callbacks
 io.sockets.on('connection', function(socket){
 
 	//  Call BoldChat getDepartments method and update all users with returned data
 	socket.on('startDashboard', function(data){
-		if(ApiDataNotReady)
-		{
-			io.sockets.emit('errorResponse', "Static data not ready");
-			return;
-		}
-
-		// set date to start of today
-		var startDate = new Date();
-		startDate.setHours(0,0,0,0);
-
-		console.log("Getting all chat info from "+ Object.keys(Folders).length +" folders");
-		Nextloop = 0;
-		var parameters;
-		for(var fid in Folders)	// Inactive chats are by folders
-		{
-			parameters = "FolderID="+fid+"&FromDate="+startDate.toISOString();
-			getApiData("getInactiveChats", parameters, processInactiveChats);
-		}
-		
-		for(var did in Departments)	// active chats are by department
-		{
-			parameters = "DepartmentID="+did;
-			getApiData("getActiveChats",parameters,processActiveChats);
-//			getApiData("getEstimatedWaitTime", parameters, getEstimatedWait);
-//			getApiData("getDepartmentOperators", parameters, getDeptOperators);
-		}
-		
-		getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
-		setTimeout(updateChatStats, 1000);
 		
 	});
 });
 
+doStartOfDay();
+setTimeout(getInactiveChatData, 2000);
+setTimeout(getActiveChatData, 2000);
+getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
+setTimeout(UpdateChatStats,2000);
