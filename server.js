@@ -90,8 +90,8 @@ var Overall = new Object({tcaban: 0,
 							asa: 0,
 							act: 0,
 							amc: 0,
-							taway: 0,
-							tavail: 0}
+							oaway: 0,
+							oavail: 0}
 						);		// top level stats
 
 // Get all of the incoming Boldchat triggered data
@@ -140,8 +140,8 @@ function deptsCallback(dlist) {
 													asa: 0,
 													act: 0,
 													amc: 0,
-													aaway: 0,
-													aavail: 0};
+													oaway: 0,
+													oavail: 0};
 	}
 	console.log("No of Depts: "+Object.keys(Departments).length);
 }
@@ -273,6 +273,36 @@ function processActiveChats(achats) {
 	}
 }
 
+function getEstimatedWait(estwait) {
+	for(var i in estwait) // there should only be one set
+	{
+	}
+}
+
+function getOperatorAvailability(dlist) {
+	// StatusType 0, 1 and 2 is Logged out, logged in as away, logged in as available respectively
+	var operator;
+	var timenow = new Date();
+	for(var i in dlist)
+	{
+		operator = dlist[i].LoginID;
+//		console.log("Operator: "+operator + " StatusType is "+dlist[i].StatusType);
+		if(Operators[operator] !== 'undefined')		// check operator id is valid
+		{
+			Operators[operator].status = dlist[i].StatusType;
+			Operators[operator].tcs = (timenow - new Date(dlist[i].Created))/1000;
+			if(dlist[i].StatusType == 1)
+			{
+				Overall.oaway++;			
+			}
+			else if(dlist[i].StatusType == 2)
+			{
+				Overall.oavail++;
+			}
+		}
+	}			
+}
+
 function updateChatStats() {
 	io.sockets.emit('chatcountResponse', "Total no. of chats: "+(Overall.tca + Overall.tcu + Overall.tcaban));
 //	console.log("Chats so far:"+Overall.tca+" DNR:"+ApiDataNotReady);
@@ -358,17 +388,22 @@ io.sockets.on('connection', function(socket){
 		console.log("Getting all chat info from "+ Object.keys(Folders).length +" folders");
 		Nextloop = 0;
 		var parameters;
-		for(var fid in Folders)
+		for(var fid in Folders)	// Inactive chats are by folders
 		{
 			parameters = "FolderID="+fid+"&FromDate="+startDate.toISOString();
 			getApiData("getInactiveChats", parameters, processInactiveChats);
 		}
 		
-		for(var did in Departments)
+		for(var did in Departments)	// active chats are by department
 		{
 			parameters = "DepartmentID="+did;
 			getApiData("getActiveChats",parameters,processActiveChats);
+//			getApiData("getEstimatedWaitTime", parameters, getEstimatedWait);
+//			getApiData("getDepartmentOperators", parameters, getDeptOperators);
 		}
+		
+		getStaticData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
+
 		updateChatStats();	// colate of API responses and process
 	});
 });
