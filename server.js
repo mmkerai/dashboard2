@@ -80,7 +80,8 @@ var	Invitations = new Object();	// array of invitation ids and name objects
 var	Teams = new Object();	// array of team names
 var ApiDataNotReady = 0;	// Flag to show when data has been received from API so that data can be processed
 var Nextloop;	
-var Overall = new Object({tcaban: 0, 
+var Overall = new Object({tcaban: 0,
+							Notstarted: 0,
 							tca: 0,
 							tcu: 0,
 							tac: 0,
@@ -202,6 +203,9 @@ function processInactiveChats(chats) {
 	// analyse each chat and keep track of global metrics
 	for(var i in chats)
 	{
+		if(chats[i].Started === null)		// started not set
+			Overall.Notstarted++;
+
 		if(chats[i].ChatStatusType == 1)		// abandoned chat (in prechat form )
 		{
 			Overall.tcaban++;	// abandoned
@@ -254,10 +258,10 @@ function processActiveChats(achats) {
 	{
 		var atime = new Date(achats[i].Answered);
 		var chattime = (timenow - atime )/1000;
-		if(achats[i].DepartmentID === null) continue;	// not sure why this would ever be the case
+		if(achats[i].DepartmentID === null) continue;	// not sure why this would ever be the case but it occurs
 		deptobj = Departments[achats[i].DepartmentID];
 		deptobj.tac++;	// chats active
-		if(achats[i].OperatorID === null) continue;		// not sure why this would ever be the case but it is
+		if(achats[i].OperatorID === null) continue;		// not sure why this would ever be the case but it occurs
 		opobj = Operators[achats[i].OperatorID];
 //		console.log("opobj is "+achats[i].OperatorID);
 		opact = opobj.active;
@@ -270,7 +274,7 @@ function processActiveChats(achats) {
 }
 
 function updateChatStats() {
-	io.sockets.emit('chatcountResponse', "Total no. of chats: "+Overall.tca + Overall.tcu + Overall.tcaban);
+	io.sockets.emit('chatcountResponse', "Total no. of chats: "+(Overall.tca + Overall.tcu + Overall.tcaban));
 //	console.log("Chats so far:"+Overall.tca+" DNR:"+ApiDataNotReady);
 	if(ApiDataNotReady)
 	{
@@ -281,7 +285,7 @@ function updateChatStats() {
 	// we got all data so return it back to the client
 	io.sockets.emit('overallStats', Overall);
 	io.sockets.emit('departmentStats', Departments);
-//	debugLog(Overall);
+	debugLog(Overall);
 }
 
 // this function calls API again if data is truncated
