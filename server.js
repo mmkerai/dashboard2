@@ -97,7 +97,7 @@ var Overall = new Object({tcaban: 0,
 app.post('/chat-answer', function(req, res){
 //	io.sockets.emit('errorResponse', req.body);
 	console.log("Event: Chat answered");
-//	debugLog(req.body);
+	debugLog(req.body);
 	processActiveChat(req.body);
 });
 
@@ -105,7 +105,7 @@ app.post('/chat-answer', function(req, res){
 app.post('/chat-ended', function(req, res){
 //	io.sockets.emit('errorResponse', req.body);
 	console.log("Event: Chat closed");
-//	debugLog(req.body);
+	debugLog(req.body);
 	processEndedChat(req.body);
 });
 
@@ -417,7 +417,7 @@ function getInactiveChatData() {
 	for(var fid in Folders)	// Inactive chats are by folders
 	{
 		parameters = "FolderID="+fid+"&FromDate="+startDate.toISOString();
-		getApiData("getInactiveChats", parameters, processInactiveChats);
+		getApiData("getInactiveChats", parameters, allInactiveChats);
 	}	
 }
 
@@ -435,7 +435,7 @@ function updateChatStats() {
 	io.sockets.emit('overallStats', Overall);
 	io.sockets.emit('departmentStats', Departments);
 	debugLog(Overall);
-//	setTimeout(updateChatStats, 2000);	// send update every second
+	setTimeout(updateChatStats, 2000);	// send update every second
 }
 
 doStartOfDay();
