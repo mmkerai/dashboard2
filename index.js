@@ -1,6 +1,7 @@
 var fromDate;
 var toDate;
 var id_token;
+var profile;
 
 function initialiseValues() {
 	$('#error').text("");
@@ -9,7 +10,7 @@ function initialiseValues() {
 
 function onSignIn(googleUser) {
 // Useful data for your client-side scripts:
-	var profile = googleUser.getBasicProfile();
+	profile = googleUser.getBasicProfile();
 	console.log("ID: " + profile.getId()); // Don't send this directly to your server!
 	console.log("Name: " + profile.getName());
 	console.log("Image URL: " + profile.getImageUrl());
@@ -26,7 +27,7 @@ $(document).ready(function() {
 	$('#api').submit(function(event) {
 	event.preventDefault();
 	initialiseValues();
-	socket.emit('authentication', {idtoken: id_token});
+	socket.emit('authentication', {idtoken: id_token, email: profile.getEmail()});
 	});
 
 	socket.on('errorResponse', function(data){

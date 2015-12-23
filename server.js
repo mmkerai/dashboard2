@@ -39,7 +39,8 @@ var AID = process.env.AID || 0;
 var APISETTINGSID = process.env.APISETTINGSID || 0;
 var KEY = process.env.KEY || 0;
 var PAGEPATH = process.env.PAGEPATH || "/"; //  Obsecur page path such as /bthCn2HYe0qPlcfZkp1t
-var ACCESSPASSWORD = process.env.ACCESSPASSWORD|| "02210"; // Single password for all
+var GMAILS = process.env.GMAILS || "tropicalfnv@gmail.com"; // list of valid emails
+var VALIDUSER;
 var VALIDACCESSNETWORKS = JSON.parse(process.env.VALIDACCESSNETWORKS) || {};  // JSON string with valid public ISP addresses { "83.83.95.62": "Mark Troyer (LMI) Home Office", "10.10.10.1": "LogMeIn UK Office", "10.10": "H3G internal Network"};
 if (AID == 0 || APISETTINGSID == 0 || KEY == 0) {
 	console.log("AID = "+AID+", APISETTINGSID = "+APISETTINGSID+", KEY = "+KEY);
@@ -55,7 +56,10 @@ app.get(PAGEPATH, function(req, res){
 	} else {
 		console.log("IP Address: "+ip+" was NOT on the white list.");
 	}
-	res.sendFile(__dirname + '/index.html');
+	if(VALIDUSER)
+		res.sendFile(__dirname + '/index.html');
+	else
+		res.sendFile(__dirname + '/index.html?invaliduser=true');
 });
 
 app.get('/index.css', function(req, res){ 
@@ -69,6 +73,7 @@ app.get('/favicon.ico', function(req, res){
 });
 
 //********************************* Global variables for chat data
+var thisgmail = "";
 var	Departments = new Object();	// array of dept ids and dept name objects
 var	DepartmentsByName = new Object();	// array of dept names and ids
 var	Folders = new Object();	// array of folder ids and folder name objects
@@ -431,10 +436,17 @@ function getInactiveChatData() {
 // Set up callbacks
 io.sockets.on('connection', function(socket){
 
-	console.log("Connection socket called");
+	console.log("Connection gmail:"+thisgmail);
 	//  Call BoldChat getDepartments method and update all users with returned data
 	socket.on('authentication', function(data){
-		console.log("authentication request received: "+data.idtoken);
+		console.log("authentication request received: "+data.email);
+		thisgmail = data.email;
+		if(GMAILS[thisgmail] === 'undefined')
+			console.log("This gmail is invalid: "+thisgmail);
+		else{
+			VALIDUSER = true;
+			console.log("Valid gmail: "+thisgmail);
+		}
 	});
 });
 
