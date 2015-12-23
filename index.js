@@ -30,6 +30,10 @@ $(document).ready(function() {
 	socket.emit('authentication', {idtoken: id_token, email: profile.getEmail()});
 	});
 
+	socket.on('authRequest', function(data){
+		$("#error").text("Please authenticate yourself first");
+	});
+
 	socket.on('errorResponse', function(data){
 		$("#error").text(data);
 	});

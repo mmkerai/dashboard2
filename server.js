@@ -478,9 +478,13 @@ function validateToken(response) {
 // Set up callbacks
 io.sockets.on('connection', function(socket){
 
-	console.log("Connection gmail:"+thisgmail);
-	//  Call BoldChat getDepartments method and update all users with returned data
-	socket.on('authentication', function(data){
+	if(VALIDUSER === false)		// user not authenticated
+		io.sockets.emit('authRequest', {});
+	else
+		console.log("User already authenticated:"+thisgmail);
+	
+	//  authenticate the user email with valid emails in list and google signed token
+	socket.on('authenticate', function(data){
 		console.log("authentication request received: "+data.email);
 		thisgmail = data.email;
 		if(GMAILS[thisgmail] === 'undefined')
@@ -505,4 +509,5 @@ doStartOfDay();
 //setTimeout(getInactiveChatData, 2000);
 getActiveChatData();
 getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
-setTimeout(updateChatStats,3000);
+if(VALIDUSER)
+	setTimeout(updateChatStats,3000);
