@@ -464,7 +464,7 @@ function validateToken(response) {
 		{
 			VALIDUSER = true;
 			console.log("User authenticated:"+ thisgmail);
-			setTimeout(updateChatStats,3000);		
+			updateChatStats();	
 		}
 		else
 			VALIDUSER = false;			
