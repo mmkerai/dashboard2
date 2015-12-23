@@ -57,9 +57,15 @@ app.get(PAGEPATH, function(req, res){
 		console.log("IP Address: "+ip+" was NOT on the white list.");
 	}
 	if(VALIDUSER)
+	{
 		res.sendFile(__dirname + '/index.html');
+		console.log("user is valid");
+	}
 	else
-		res.sendFile(__dirname + '/index.html?invaliduser=true');
+	{
+		res.sendFile(__dirname + '/index.html');
+		console.log("user is invalid");
+	}
 });
 
 app.get('/index.css', function(req, res){ 
