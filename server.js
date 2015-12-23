@@ -451,27 +451,29 @@ function getInactiveChatData() {
 }
 
 function validateToken(response) {
-		var str = '';
-		//another chunk of data has been received, so append it to `str`
-		response.on('data', function (chunk) {
-			str += chunk;
-		});
-		//the whole response has been received, take final action.
-		response.on('end', function () {
-			var jwt = JSON.parse(str);
-//			console.log("Response received: "+str);
-			if(jwt.aud == Auth_Client_Id)		// valid token response
-				VALIDUSER = true;
-			else
-				VALIDUSER = false;			
-		});
-		// in case there is a html error
-		response.on('error', function(err) {
-		// handle errors with the request itself
-		console.error("Error with the request: ", err.message);
-		});
+	var str = '';
+	//another chunk of data has been received, so append it to `str`
+	response.on('data', function (chunk) {
+		str += chunk;
 	});
-	}
+	//the whole response has been received, take final action.
+	response.on('end', function () {
+		var jwt = JSON.parse(str);
+//			console.log("Response received: "+str);
+		if(jwt.aud == Auth_Client_Id)		// valid token response
+		{
+			VALIDUSER = true;
+			console.log("User authenticated:"+ thisgmail);
+		}
+		else
+			VALIDUSER = false;			
+	});
+	// in case there is a html error
+	response.on('error', function(err) {
+	// handle errors with the request itself
+	console.error("Error with the request: ", err.message);
+	});
+}
 	
 // Set up callbacks
 io.sockets.on('connection', function(socket){
