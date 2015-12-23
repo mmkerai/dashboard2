@@ -1,21 +1,34 @@
 var fromDate;
 var toDate;
+var id_token;
 
 function initialiseValues() {
 	$('#error').text("");
 	$('#chatcount').text("");
 }
 
+function onSignIn(googleUser) {
+// Useful data for your client-side scripts:
+	var profile = googleUser.getBasicProfile();
+	console.log("ID: " + profile.getId()); // Don't send this directly to your server!
+	console.log("Name: " + profile.getName());
+	console.log("Image URL: " + profile.getImageUrl());
+	console.log("Email: " + profile.getEmail());
+
+	// The ID token you need to pass to your backend:
+	id_token = googleUser.getAuthResponse().id_token;
+	console.log("ID Token: " + id_token);
+};
+	  
 $(document).ready(function() {
 	var socket = io.connect();
-	var csvfile = null;
-
-	$('#api').submit(function(event) {
-		event.preventDefault();
-		initialiseValues();
-		socket.emit('startDashboard', {});
-	});
 	
+	$('#api').submit(function(event) {
+	event.preventDefault();
+	initialiseValues();
+	socket.emit('authentication', {idtoken: id_token});
+	});
+
 	socket.on('errorResponse', function(data){
 		$("#error").text(data);
 	});
