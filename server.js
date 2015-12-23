@@ -41,7 +41,7 @@ var KEY = process.env.KEY || 0;
 var PAGEPATH = process.env.PAGEPATH || "/"; //  Obsecur page path such as /bthCn2HYe0qPlcfZkp1t
 var GMAILS = process.env.GMAILS || "tropicalfnv@gmail.com"; // list of valid emails
 var Auth_Client_Id = process.env.GOOGLE_CLIENT_ID;
-var VALIDUSER;
+var VALIDUSER = false;
 var VALIDACCESSNETWORKS = JSON.parse(process.env.VALIDACCESSNETWORKS) || {};  // JSON string with valid public ISP addresses { "83.83.95.62": "Mark Troyer (LMI) Home Office", "10.10.10.1": "LogMeIn UK Office", "10.10": "H3G internal Network"};
 if (AID == 0 || APISETTINGSID == 0 || KEY == 0) {
 	console.log("AID = "+AID+", APISETTINGSID = "+APISETTINGSID+", KEY = "+KEY);
@@ -57,16 +57,16 @@ app.get(PAGEPATH, function(req, res){
 	} else {
 		console.log("IP Address: "+ip+" was NOT on the white list.");
 	}
-	if(VALIDUSER)
-	{
+//	if(VALIDUSER)
+//	{
 		res.sendFile(__dirname + '/index.html');
-		console.log("user is valid");
-	}
-	else
-	{
-		res.sendFile(__dirname + '/index.html');
-		console.log("user is invalid");
-	}
+//		console.log("user is valid");
+//	}
+//	else
+//	{
+//		res.sendFile(__dirname + '/index.html');
+//		console.log("user is invalid");
+//	}
 });
 
 app.get('/index.css', function(req, res){ 
@@ -464,6 +464,7 @@ function validateToken(response) {
 		{
 			VALIDUSER = true;
 			console.log("User authenticated:"+ thisgmail);
+			setTimeout(updateChatStats,3000);		
 		}
 		else
 			VALIDUSER = false;			
@@ -489,10 +490,10 @@ io.sockets.on('connection', function(socket){
 		thisgmail = data.email;
 		if(GMAILS[thisgmail] === 'undefined')
 			console.log("This gmail is invalid: "+thisgmail);
-		else{
+		else
+		{
 			console.log("Valid gmail: "+thisgmail);
-			Google_Oauth_Request(data.idtoken, validateToken);
-			
+			Google_Oauth_Request(data.idtoken, validateToken);			
 		}
 	});
 });
