@@ -6,6 +6,20 @@ var profile;
 $(document).ready(function() {
 	var socket = io.connect();
 
+	if(gapi.auth2.GoogleAuth.isSignedIn.get() == true)
+	{
+		googleUser = gapi.auth2.GoogleAuth.currentUser.get();
+		profile = googleUser.getBasicProfile();
+		console.log("ID: " + profile.getId()); // Don't send this directly to your server!
+		console.log("Name: " + profile.getName());
+		console.log("Image URL: " + profile.getImageUrl());
+		console.log("Email: " + profile.getEmail());
+
+		// The ID token you need to pass to your backend:
+		id_token = googleUser.getAuthResponse().id_token;
+		socket.emit('authenticate', {idtoken: id_token, email: profile.getEmail()});		
+	}
+	
 function onSignIn(googleUser) {
 // Useful data for your client-side scripts:
 	profile = googleUser.getBasicProfile();
@@ -26,6 +40,7 @@ function onSignIn(googleUser) {
 	socket.on('errorResponse', function(data){
 		$("#error").text(data);
 	});
+	
 	socket.on('chatcountResponse', function(data){
 		console.log("Data received");
 		$("#chatcount").text(data);
