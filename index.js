@@ -1,3 +1,4 @@
+var socket = io.connect();
 var auth2;
 var id_token;
 var profile;
@@ -12,6 +13,7 @@ function onSignIn(googleUser) {
 
 	// The ID token you need to pass to your backend:
 	id_token = googleUser.getAuthResponse().id_token;
+	socket.emit('authenticate', {idtoken: id_token, email: profile.getEmail()});
 };
 
 /**
@@ -47,10 +49,11 @@ var onFailure = function(error) {
 };
 
 $(document).ready(function() {
-	var socket = io.connect();
 
-	socket.emit('authenticate', {idtoken: id_token, email: profile.getEmail()});
-	  
+	if(auth2.isSignedIn.get() == true) {
+ 	socket.emit('authenticate', {idtoken: id_token, email: profile.getEmail()});
+	}
+  
 	socket.on('authRequest', function(data){
 		$("#error").text("Please authenticate yourself first");
 	});
