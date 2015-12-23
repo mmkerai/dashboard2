@@ -3,11 +3,6 @@ var toDate;
 var id_token;
 var profile;
 
-function initialiseValues() {
-	$('#error').text("");
-	$('#chatcount').text("");
-}
-
 function onSignIn(googleUser) {
 // Useful data for your client-side scripts:
 	profile = googleUser.getBasicProfile();
@@ -18,17 +13,11 @@ function onSignIn(googleUser) {
 
 	// The ID token you need to pass to your backend:
 	id_token = googleUser.getAuthResponse().id_token;
-	console.log("ID Token: " + id_token);
+	socket.emit('authenticate', {idtoken: id_token, email: profile.getEmail()});
 };
 	  
 $(document).ready(function() {
 	var socket = io.connect();
-	
-	$('#api').submit(function(event) {
-	event.preventDefault();
-	initialiseValues();
-	socket.emit('authenticate', {idtoken: id_token, email: profile.getEmail()});
-	});
 
 	socket.on('authRequest', function(data){
 		$("#error").text("Please authenticate yourself first");
