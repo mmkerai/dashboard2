@@ -496,14 +496,29 @@ io.sockets.on('connection', function(socket){
 			Google_Oauth_Request(data.idtoken, validateToken);			
 		}
 	});
+	
+	socket.on('un-authenticate', function(data){
+		console.log("un-authentication request received: "+data.email);
+		thisgmail = data.email;
+		if(GMAILS[thisgmail] === 'undefined')
+			console.log("This gmail is invalid: "+thisgmail);
+		else
+		{
+			console.log("Valid gmail: "+thisgmail);
+			VALIDUSER = false;
+		}
+	});
 });
 
 function updateChatStats() {
-	io.sockets.emit('chatcountResponse', "Total no. of chats: "+(Overall.tca + Overall.tcu + Overall.tcaban));
-	io.sockets.emit('overallStats', Overall);
-	io.sockets.emit('departmentStats', Departments);
-//	debugLog(Overall);
-	setTimeout(updateChatStats, 3000);	// send update every second
+	if(VALIDUSER)
+	{
+		io.sockets.emit('chatcountResponse', "Total no. of chats: "+(Overall.tca + Overall.tcu + Overall.tcaban));
+		io.sockets.emit('overallStats', Overall);
+		io.sockets.emit('departmentStats', Departments);
+	//	debugLog(Overall);
+		setTimeout(updateChatStats, 3000);	// send update every second
+	}
 }
 
 doStartOfDay();
