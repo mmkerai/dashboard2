@@ -40,6 +40,7 @@ var APISETTINGSID = process.env.APISETTINGSID || 0;
 var KEY = process.env.KEY || 0;
 var PAGEPATH = process.env.PAGEPATH || "/"; //  Obsecur page path such as /bthCn2HYe0qPlcfZkp1t
 var GMAILS = process.env.GMAILS || "tropicalfnv@gmail.com"; // list of valid emails
+var Auth_Client_Id = process.env.GOOGLE_CLIENT_ID;
 var VALIDUSER;
 var VALIDACCESSNETWORKS = JSON.parse(process.env.VALIDACCESSNETWORKS) || {};  // JSON string with valid public ISP addresses { "83.83.95.62": "Mark Troyer (LMI) Home Office", "10.10.10.1": "LogMeIn UK Office", "10.10": "H3G internal Network"};
 if (AID == 0 || APISETTINGSID == 0 || KEY == 0) {
@@ -142,6 +143,16 @@ function BC_API_Request(api_method,params,callBackFunction) {
 		host : 'api.boldchat.com', 
 		port : 443, 
 		path : '/aid/'+AID+'/data/rest/json/v1/'+api_method+'?auth='+authHash+'&'+params, 
+		method : 'GET'
+	};
+	https.request(options, callBackFunction).end();
+}
+
+function Google_Oauth_Request(token,callBackFunction) {
+	var options = {
+		host : 'www.googleapis.com', 
+		port : 443, 
+		path : '/oauth2/v3/tokeninfo?id_token='+token, 
 		method : 'GET'
 	};
 	https.request(options, callBackFunction).end();
@@ -439,6 +450,29 @@ function getInactiveChatData() {
 	}	
 }
 
+function validateToken(response) {
+		var str = '';
+		//another chunk of data has been received, so append it to `str`
+		response.on('data', function (chunk) {
+			str += chunk;
+		});
+		//the whole response has been received, take final action.
+		response.on('end', function () {
+			var jwt = JSON.parse(str);
+//			console.log("Response received: "+str);
+			if(jwt.aud == Auth_Client_Id)		// valid token response
+				VALIDUSER = true;
+			else
+				VALIDUSER = false;			
+		});
+		// in case there is a html error
+		response.on('error', function(err) {
+		// handle errors with the request itself
+		console.error("Error with the request: ", err.message);
+		});
+	});
+	}
+	
 // Set up callbacks
 io.sockets.on('connection', function(socket){
 
@@ -450,8 +484,9 @@ io.sockets.on('connection', function(socket){
 		if(GMAILS[thisgmail] === 'undefined')
 			console.log("This gmail is invalid: "+thisgmail);
 		else{
-			VALIDUSER = true;
 			console.log("Valid gmail: "+thisgmail);
+			Google_Oauth_Request(data.idtoken, validateToken);
+			
 		}
 	});
 });
