@@ -50,7 +50,7 @@ var onFailure = function(error) {
 
 $(document).ready(function() {
 
-	if(auth2.isSignedIn.get() == true) {
+	if(auth2.GoogleAuth.isSignedIn.get() == true) {
  	socket.emit('authenticate', {idtoken: id_token, email: profile.getEmail()});
 	}
   
