@@ -431,9 +431,10 @@ function getInactiveChatData() {
 // Set up callbacks
 io.sockets.on('connection', function(socket){
 
+	console.log("Connection socket called");
 	//  Call BoldChat getDepartments method and update all users with returned data
 	socket.on('startDashboard', function(data){
-		
+		console.log("startDash request recived");
 	});
 });
 
