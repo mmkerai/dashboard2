@@ -20,16 +20,11 @@
 
 <h2>Overall Chat Status</h2>
 <div class="wrapper col-xs-12">
-<div class="form-horizontal col-xs-6 col-xs-offset-3">
+<div class="form-horizontal col-xs-9 col-xs-offset-3">
     <div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark"></div>
 	<a href="#" class="btn btn-primary" onclick="signOut();">Sign out</a>
 	<script>
-	  function signOut() {
-		var auth2 = gapi.auth2.getAuthInstance();
-		auth2.signOut().then(function () {
-		  console.log('User signed out.');
-		});
-	  }
+
 	</script>
 </div>
 <div class="container">
