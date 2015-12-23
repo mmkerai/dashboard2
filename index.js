@@ -3,6 +3,9 @@ var toDate;
 var id_token;
 var profile;
 
+$(document).ready(function() {
+	var socket = io.connect();
+
 function onSignIn(googleUser) {
 // Useful data for your client-side scripts:
 	profile = googleUser.getBasicProfile();
@@ -16,9 +19,6 @@ function onSignIn(googleUser) {
 	socket.emit('authenticate', {idtoken: id_token, email: profile.getEmail()});
 };
 	  
-$(document).ready(function() {
-	var socket = io.connect();
-
 	socket.on('authRequest', function(data){
 		$("#error").text("Please authenticate yourself first");
 	});
