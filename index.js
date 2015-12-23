@@ -27,7 +27,7 @@ $(document).ready(function() {
 	$('#api').submit(function(event) {
 	event.preventDefault();
 	initialiseValues();
-	socket.emit('authentication', {idtoken: id_token, email: profile.getEmail()});
+	socket.emit('authenticate', {idtoken: id_token, email: profile.getEmail()});
 	});
 
 	socket.on('authRequest', function(data){
