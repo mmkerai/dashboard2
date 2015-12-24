@@ -41,7 +41,6 @@ var KEY = process.env.KEY || 0;
 var PAGEPATH = process.env.PAGEPATH || "/"; //  Obsecur page path such as /bthCn2HYe0qPlcfZkp1t
 var GMAILS = process.env.GMAILS || "tropicalfnv@gmail.com"; // list of valid emails
 var Auth_Client_Id = process.env.GOOGLE_CLIENT_ID;
-var VALIDUSER = false;
 var VALIDACCESSNETWORKS = JSON.parse(process.env.VALIDACCESSNETWORKS) || {};  // JSON string with valid public ISP addresses { "83.83.95.62": "Mark Troyer (LMI) Home Office", "10.10.10.1": "LogMeIn UK Office", "10.10": "H3G internal Network"};
 if (AID == 0 || APISETTINGSID == 0 || KEY == 0) {
 	console.log("AID = "+AID+", APISETTINGSID = "+APISETTINGSID+", KEY = "+KEY);
@@ -506,19 +505,15 @@ io.sockets.on('connection', function(socket){
 });
 
 function updateChatStats() {
-	if(VALIDUSER)
-	{
 		io.sockets.emit('chatcountResponse', "Total no. of chats: "+(Overall.tca + Overall.tcu + Overall.tcaban));
 		io.sockets.emit('overallStats', Overall);
 		io.sockets.emit('departmentStats', Departments);
 	//	debugLog(Overall);
 		setTimeout(updateChatStats, 3000);	// send update every second
-	}
 }
 
 doStartOfDay();
 //setTimeout(getInactiveChatData, 2000);
 getActiveChatData();
 //getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
-if(VALIDUSER)
-	setTimeout(updateChatStats,3000);
+setTimeout(updateChatStats,3000);
