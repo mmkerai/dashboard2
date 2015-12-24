@@ -58,16 +58,15 @@ app.get(PAGEPATH, function(req, res){
 		console.log("IP Address: "+ip+" was NOT on the white list.");
 	}
 	
-	if(validateCredentials(req.query.idtoken,req.query.email,res))
+/*	if(validateCredentials(req.query.idtoken,req.query.email,res))
 	{
 		console.log("user is valid");
 	}
 //	else if(req.query.idtoken === 'undefined' || req.query.email === 'undefined')
 	else
-	{
-		res.sendFile(__dirname + '/index.html');
-		console.log("user is invalid");
-	}
+	{*/
+		res.sendFile(__dirname + '/dashboard.html');
+//	}
 });
 
 app.get('/index.css', function(req, res){ 
@@ -161,7 +160,7 @@ function Google_Oauth_Request(token,callBackFunction) {
 	};
 	https.request(options, callBackFunction).end();
 }
-
+/*
 function validateCredentials(token, email, res) {
 	if(token === 'undefined' || email === 'undefined')
 		return false;
@@ -197,7 +196,7 @@ function validateCredentials(token, email, res) {
 		});
 	});
 }				
-
+*/
 function debugLog(dataobj) {
 	console.log("object");
 	for(key in dataobj) {
@@ -519,7 +518,7 @@ function updateChatStats() {
 
 doStartOfDay();
 //setTimeout(getInactiveChatData, 2000);
-//getActiveChatData();
+getActiveChatData();
 //getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
 if(VALIDUSER)
 	setTimeout(updateChatStats,3000);
