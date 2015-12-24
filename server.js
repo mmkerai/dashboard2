@@ -464,12 +464,11 @@ function validateToken(response) {
 //			console.log("Response received: "+str);
 		if(jwt.aud == Auth_Client_Id)		// valid token response
 		{
-			VALIDUSER = true;
-			console.log("User authenticated:"+ loggedInUsers[]);
+			console.log("User authenticated:");
 			updateChatStats();	
 		}
-		else
-			VALIDUSER = false;			
+//		else
+//			VALIDUSER = false;			
 	});
 	// in case there is a html error
 	response.on('error', function(err) {
@@ -484,7 +483,7 @@ io.sockets.on('connection', function(socket){
 	if(VALIDUSER === false)		// user not authenticated
 		io.sockets.emit('authRequest', {});
 	else
-		console.log("User already authenticated:"+loggedInUsers[]);
+		console.log("User already authenticated:");
 	
 	//  authenticate the user email with valid emails in list and google signed token
 	socket.on('authenticate', function(data){
@@ -500,13 +499,12 @@ io.sockets.on('connection', function(socket){
 	
 	socket.on('un-authenticate', function(data){
 		console.log("un-authentication request received: "+data.email);
-		loggedInUsers[] = data.email;
-		if(GMAILS[loggedInUsers[]] === 'undefined')
-			console.log("This gmail is invalid: "+loggedInUsers[]);
+		if(GMAILS[data.email] === 'undefined')
+			console.log("This gmail is invalid: "+data.email);
 		else
 		{
-			console.log("Valid gmail: "+loggedInUsers[]);
-			VALIDUSER = false;
+			console.log("Valid gmail: "+data.email);
+			loggedInUsers[data.email] = false;
 		}
 	});
 });
