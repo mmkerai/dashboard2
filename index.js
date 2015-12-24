@@ -13,7 +13,7 @@ function onSignIn(googleUser) {
 
 	// The ID token you need to pass to your backend:
 	id_token = googleUser.getAuthResponse().id_token;
-	window.location.('/?idtoken='+id_token+'&email='+profile.getEmail());
+	window.location.('https://h3gdashboard-dev.herocu.com?idtoken='+id_token+'&email='+profile.getEmail());
 };
 
 /*
