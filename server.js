@@ -58,11 +58,11 @@ app.get(PAGEPATH, function(req, res){
 		console.log("IP Address: "+ip+" was NOT on the white list.");
 	}
 	
-	if(req.query.token == "validtoken")
+	if(validateCredentials(req.query.idtoken,req.query.email,res))
 	{
-		res.sendFile(__dirname + '/dashboard.html');
 		console.log("user is valid");
 	}
+//	else if(req.query.idtoken === 'undefined' || req.query.email === 'undefined')
 	else
 	{
 		res.sendFile(__dirname + '/index.html');
@@ -75,6 +75,9 @@ app.get('/index.css', function(req, res){
 });
 app.get('/index.js', function(req, res){
 	res.sendFile(__dirname + '/index.js');
+});
+app.get('/dashboard.js', function(req, res){
+	res.sendFile(__dirname + '/dashboard.js');
 });
 app.get('/favicon.ico', function(req, res){
 	res.sendFile(__dirname + '/favicon.ico');
@@ -158,6 +161,42 @@ function Google_Oauth_Request(token,callBackFunction) {
 	};
 	https.request(options, callBackFunction).end();
 }
+
+function validateCredentials(token, email, res) {
+	if(token === 'undefined' || email === 'undefined')
+		return false;
+	
+	if(GMAILS[data.email] === 'undefined')
+	{
+		console.log("This gmail is invalid: "+email);
+		return false;
+	}
+
+	Google_Oauth_Request(token, function (response) {
+		var str = '';
+		//another chunk of data has been received, so append it to `str`
+		response.on('data', function (chunk) {
+			str += chunk;
+		});
+		//the whole response has been received, take final action.
+		response.on('end', function () {
+			var jwt = JSON.parse(str);
+	//			console.log("Response received: "+str);
+			if(jwt.aud == Auth_Client_Id)		// valid token response
+			{
+				console.log("User authenticated:");
+				res.sendFile(__dirname + '/dashboard.html');	
+			}
+			else
+				res.sendFile(__dirname + '/index.html');			
+		});
+		// in case there is a html error
+		response.on('error', function(err) {
+		// handle errors with the request itself
+		console.error("Error with the request: ", err.message);
+		});
+	});
+}				
 
 function debugLog(dataobj) {
 	console.log("object");
@@ -451,50 +490,9 @@ function getInactiveChatData() {
 	}	
 }
 
-function validateToken(response) {
-	var str = '';
-	//another chunk of data has been received, so append it to `str`
-	response.on('data', function (chunk) {
-		str += chunk;
-	});
-	//the whole response has been received, take final action.
-	response.on('end', function () {
-		var jwt = JSON.parse(str);
-//			console.log("Response received: "+str);
-		if(jwt.aud == Auth_Client_Id)		// valid token response
-		{
-			console.log("User authenticated:");
-			updateChatStats();	
-		}
-//		else
-//			VALIDUSER = false;			
-	});
-	// in case there is a html error
-	response.on('error', function(err) {
-	// handle errors with the request itself
-	console.error("Error with the request: ", err.message);
-	});
-}
-	
+
 // Set up callbacks
 io.sockets.on('connection', function(socket){
-
-	if(VALIDUSER === false)		// user not authenticated
-		io.sockets.emit('authRequest', {});
-	else
-		console.log("User already authenticated:");
-	
-	//  authenticate the user email with valid emails in list and google signed token
-	socket.on('authenticate', function(data){
-		console.log("authentication request received: "+data.email);
-		if(GMAILS[data.email] === 'undefined')
-			console.log("This gmail is invalid: "+data.email);
-		else
-		{
-			console.log("Valid gmail: "+data.email);
-			Google_Oauth_Request(data.idtoken, validateToken);			
-		}
-	});
 	
 	socket.on('un-authenticate', function(data){
 		console.log("un-authentication request received: "+data.email);
