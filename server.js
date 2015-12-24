@@ -166,7 +166,7 @@ function validateCredentials(token, email, res) {
 	if(token === 'undefined' || email === 'undefined')
 		return false;
 	
-	if(GMAILS[data.email] === 'undefined')
+	if(GMAILS[email] === 'undefined')
 	{
 		console.log("This gmail is invalid: "+email);
 		return false;
