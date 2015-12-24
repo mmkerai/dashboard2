@@ -58,8 +58,7 @@ app.get(PAGEPATH, function(req, res){
 		console.log("IP Address: "+ip+" was NOT on the white list.");
 	}
 	
-	res.send('id: ' + req.query.id);
-	if(VALIDUSER)
+	if(req.query.token == "validtoken")
 	{
 		res.sendFile(__dirname + '/dashboard.html');
 		console.log("user is valid");
