@@ -522,7 +522,7 @@ function updateChatStats() {
 
 doStartOfDay();
 //setTimeout(getInactiveChatData, 2000);
-getActiveChatData();
-getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
+//getActiveChatData();
+//getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
 if(VALIDUSER)
 	setTimeout(updateChatStats,3000);
