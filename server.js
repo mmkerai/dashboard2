@@ -57,16 +57,18 @@ app.get(PAGEPATH, function(req, res){
 	} else {
 		console.log("IP Address: "+ip+" was NOT on the white list.");
 	}
-//	if(VALIDUSER)
-//	{
+	
+	res.send('id: ' + req.query.id);
+	if(VALIDUSER)
+	{
+		res.sendFile(__dirname + '/dashboard.html');
+		console.log("user is valid");
+	}
+	else
+	{
 		res.sendFile(__dirname + '/index.html');
-//		console.log("user is valid");
-//	}
-//	else
-//	{
-//		res.sendFile(__dirname + '/index.html');
-//		console.log("user is invalid");
-//	}
+		console.log("user is invalid");
+	}
 });
 
 app.get('/index.css', function(req, res){ 
@@ -80,7 +82,7 @@ app.get('/favicon.ico', function(req, res){
 });
 
 //********************************* Global variables for chat data
-var thisgmail = "";
+var loggedInUsers = new Array();
 var	Departments = new Object();	// array of dept ids and dept name objects
 var	DepartmentsByName = new Object();	// array of dept names and ids
 var	Folders = new Object();	// array of folder ids and folder name objects
@@ -463,7 +465,7 @@ function validateToken(response) {
 		if(jwt.aud == Auth_Client_Id)		// valid token response
 		{
 			VALIDUSER = true;
-			console.log("User authenticated:"+ thisgmail);
+			console.log("User authenticated:"+ loggedInUsers[]);
 			updateChatStats();	
 		}
 		else
@@ -482,29 +484,28 @@ io.sockets.on('connection', function(socket){
 	if(VALIDUSER === false)		// user not authenticated
 		io.sockets.emit('authRequest', {});
 	else
-		console.log("User already authenticated:"+thisgmail);
+		console.log("User already authenticated:"+loggedInUsers[]);
 	
 	//  authenticate the user email with valid emails in list and google signed token
 	socket.on('authenticate', function(data){
 		console.log("authentication request received: "+data.email);
-		thisgmail = data.email;
-		if(GMAILS[thisgmail] === 'undefined')
-			console.log("This gmail is invalid: "+thisgmail);
+		if(GMAILS[data.email] === 'undefined')
+			console.log("This gmail is invalid: "+data.email);
 		else
 		{
-			console.log("Valid gmail: "+thisgmail);
+			console.log("Valid gmail: "+data.email);
 			Google_Oauth_Request(data.idtoken, validateToken);			
 		}
 	});
 	
 	socket.on('un-authenticate', function(data){
 		console.log("un-authentication request received: "+data.email);
-		thisgmail = data.email;
-		if(GMAILS[thisgmail] === 'undefined')
-			console.log("This gmail is invalid: "+thisgmail);
+		loggedInUsers[] = data.email;
+		if(GMAILS[loggedInUsers[]] === 'undefined')
+			console.log("This gmail is invalid: "+loggedInUsers[]);
 		else
 		{
-			console.log("Valid gmail: "+thisgmail);
+			console.log("Valid gmail: "+loggedInUsers[]);
 			VALIDUSER = false;
 		}
 	});
