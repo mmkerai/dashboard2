@@ -1,4 +1,6 @@
 // acronyms used
+// ciq - chats in queue
+// lwt - longest waiting time
 // tcaban - total chats abandoned
 // cns - chats not started
 // tca - total chats answered
