@@ -78,7 +78,7 @@ app.get('/favicon.ico', function(req, res){
 });
 
 //********************************* Global variables for chat data
-var LoggedInUsers = new Object();
+var LoggedInUsers = new Array();
 var	Departments = new Object();	// array of dept ids and dept name objects
 var	DepartmentsByName = new Object();	// array of dept names and ids
 var	Folders = new Object();	// array of folder ids and folder name objects
@@ -467,7 +467,7 @@ io.sockets.on('connection', function(socket){
 				if(jwt.aud == GOOGLE_CLIENT_ID)		// valid token response
 				{
 					console.log("User authenticated:");
-					LoggedInUsers[socket.id] = true;
+					LoggedInUsers.push(socket.id);
 					socket.emit('authResponse',"success");
 				}
 				else
@@ -487,22 +487,25 @@ io.sockets.on('connection', function(socket){
 		else
 		{
 			console.log("Valid gmail: "+data.email);
-			LoggedInUsers[socket.id] = false;
+			var index = LoggedInUsers.indexOf(socket.id);
+			if(index > -1) LoggedInUsers.splice(index, 1);
 		}
 	});
 });
 
 function updateChatStats() {
-//		io.sockets.connected[ThisSocketId].emit();
-		io.sockets.emit('statusResponse', "Total no. of chats: "+(Overall.tca + Overall.tcu + Overall.tcaban));
-		io.sockets.emit('overallStats', Overall);
-		io.sockets.emit('departmentStats', Departments);
-	//	debugLog(Overall);
-		setTimeout(updateChatStats, 3000);	// send update every second
+	for(var socket in LoggedInUsers)
+	{
+		io.sockets.connected[socket].emit('statusResponse', "Total no. of chats: "+(Overall.tca + Overall.tcu + Overall.tcaban));
+		io.sockets.connected[socket].emit('overallStats', Overall);
+		io.sockets.connected[socket].emit('departmentStats', Departments);
+	}
+//	debugLog(Overall);
+	setTimeout(updateChatStats, 3000);	// send update every second
 }
 
-doStartOfDay();
-setTimeout(getInactiveChatData, 2000);
-getActiveChatData();
+//doStartOfDay();
+//setTimeout(getInactiveChatData, 2000);
+//getActiveChatData();
 getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
 setTimeout(updateChatStats,3000);
