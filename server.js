@@ -62,8 +62,6 @@ app.get(PAGEPATH, function(req, res){
 		console.log("IP Address: "+ip+" was NOT on the white list.");
 	}
 	
-//	if(req.cookies.gtoken)
-//		console.log("gtoken is: "+gtoken);
 	console.log("Cookies :  ", req.cookies);
 	
 	res.sendFile(__dirname + '/dashboard.html');

@@ -21,11 +21,12 @@
 <h2>Overall Chat Status</h2>
 <div class="wrapper col-xs-12">
 <div class="form-horizontal col-xs-9 col-xs-offset-3">
-    <div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark"></div>
+    <div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark">
+	<span id="gname">Name</span></div>
 </div>
 <div class="container">
-	<p class="text-center" id="error"></p>
-	<p class="text-center" id="chatcount"></p>
+	<p id="error"></p>
+	<p id="status"></p>
 </div>
 <table id="topTable" class="table">
   <thead>

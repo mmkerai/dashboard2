@@ -10,6 +10,7 @@ function onSignIn(googleUser) {
 	console.log("Name: " + profile.getName());
 	console.log("Image URL: " + profile.getImageUrl());
 	console.log("Email: " + profile.getEmail());
+	$("#gname").text(profile.getName()+" Logged in");
 
 	// The ID token you need to pass to your backend:
 	id_token = googleUser.getAuthResponse().id_token;
@@ -22,7 +23,7 @@ $(document).ready(function() {
 // 	socket.emit('authenticate', {idtoken: id_token, email: profile.getEmail()});
 //	}
   
-	socket.on('authRequest', function(data){
+	socket.on('authResponse', function(data){
 		$("#error").text("Please authenticate yourself first");
 	});
 
@@ -30,9 +31,8 @@ $(document).ready(function() {
 		$("#error").text(data);
 	});
 	
-	socket.on('chatcountResponse', function(data){
-		console.log("Data received");
-		$("#chatcount").text(data);
+	socket.on('statusResponse', function(data){
+		$("#status").text(data);
 	});
 	socket.on('overallStats', function(data){
 		$("#otca").text(data.tca);
