@@ -441,7 +441,6 @@ function getInactiveChatData() {
 	}	
 }
 
-
 // Set up callbacks
 io.sockets.on('connection', function(socket){
 	
@@ -496,9 +495,10 @@ io.sockets.on('connection', function(socket){
 function updateChatStats() {
 	for(var socket in LoggedInUsers)
 	{
-		io.sockets.connected[socket].emit('statusResponse', "Total no. of chats: "+(Overall.tca + Overall.tcu + Overall.tcaban));
-		io.sockets.connected[socket].emit('overallStats', Overall);
-		io.sockets.connected[socket].emit('departmentStats', Departments);
+		console.log("Socket id is: "+socket);
+//		io.sockets.connected[socket].emit('statusResponse', "Total no. of chats: "+(Overall.tca + Overall.tcu + Overall.tcaban));
+		io.sockets.emit('overallStats', Overall);
+//		io.sockets.connected[socket].emit('departmentStats', Departments);
 	}
 //	debugLog(Overall);
 	setTimeout(updateChatStats, 3000);	// send update every second
