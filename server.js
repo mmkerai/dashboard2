@@ -491,11 +491,10 @@ io.sockets.on('connection', function(socket){
 		}
 	});
 	
-		socket.on('end', function(data){
-			console.log("connection ended");
-			var index = LoggedInUsers.indexOf(socket.id);	
-			if(index > -1) LoggedInUsers.splice(index, 1);	// remove from list of valid users
-		}
+	socket.on('end', function(data){
+		console.log("connection ended");
+		var index = LoggedInUsers.indexOf(socket.id);	
+		if(index > -1) LoggedInUsers.splice(index, 1);	// remove from list of valid users
 	});
 });
 
