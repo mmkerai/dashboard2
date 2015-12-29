@@ -155,43 +155,7 @@ function Google_Oauth_Request(token,callBackFunction) {
 	};
 	https.request(options, callBackFunction).end();
 }
-/*
-function validateCredentials(token, email, res) {
-	if(token === 'undefined' || email === 'undefined')
-		return false;
-	
-	if(GMAILS[email] === 'undefined')
-	{
-		console.log("This gmail is invalid: "+email);
-		return false;
-	}
 
-	Google_Oauth_Request(token, function (response) {
-		var str = '';
-		//another chunk of data has been received, so append it to `str`
-		response.on('data', function (chunk) {
-			str += chunk;
-		});
-		//the whole response has been received, take final action.
-		response.on('end', function () {
-			var jwt = JSON.parse(str);
-	//			console.log("Response received: "+str);
-			if(jwt.aud == Auth_Client_Id)		// valid token response
-			{
-				console.log("User authenticated:");
-				res.sendFile(__dirname + '/dashboard.html');	
-			}
-			else
-				res.sendFile(__dirname + '/index.html');			
-		});
-		// in case there is a html error
-		response.on('error', function(err) {
-		// handle errors with the request itself
-		console.error("Error with the request: ", err.message);
-		});
-	});
-}				
-*/
 function debugLog(dataobj) {
 	console.log("object");
 	for(key in dataobj) {
@@ -499,7 +463,7 @@ io.sockets.on('connection', function(socket){
 			//the whole response has been received, take final action.
 			response.on('end', function () {
 				var jwt = JSON.parse(str);
-		//			console.log("Response received: "+str);
+					console.log("Response received: "+str);
 				if(jwt.aud == GOOGLE_CLIENT_ID)		// valid token response
 				{
 					console.log("User authenticated:");
@@ -530,15 +494,15 @@ io.sockets.on('connection', function(socket){
 
 function updateChatStats() {
 //		io.sockets.connected[ThisSocketId].emit();
-		io.sockets.emit('chatcountResponse', "Total no. of chats: "+(Overall.tca + Overall.tcu + Overall.tcaban));
+		io.sockets.emit('statusResponse', "Total no. of chats: "+(Overall.tca + Overall.tcu + Overall.tcaban));
 		io.sockets.emit('overallStats', Overall);
 		io.sockets.emit('departmentStats', Departments);
 	//	debugLog(Overall);
 		setTimeout(updateChatStats, 3000);	// send update every second
 }
 
-doStartOfDay();
+//doStartOfDay();
 //setTimeout(getInactiveChatData, 2000);
-getActiveChatData();
-getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
+//getActiveChatData();
+//getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
 setTimeout(updateChatStats,3000);
