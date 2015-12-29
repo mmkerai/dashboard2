@@ -10,7 +10,6 @@ function onSignIn(googleUser) {
 	console.log("Name: " + profile.getName());
 	console.log("Image URL: " + profile.getImageUrl());
 	console.log("Email: " + profile.getEmail());
-	$("#gname").text(profile.getName()+" Logged in");
 
 	// The ID token you need to pass to your backend:
 	Gid_token = googleUser.getAuthResponse().id_token;
@@ -24,7 +23,8 @@ $(document).ready(function() {
 //	}
   
 	socket.on('authResponse', function(data){
-		$("#error").text("Please authenticate yourself first");
+		$("#gname").text(profile.getName()+" Logged in");
+		$("#error").text("");
 	});
 
 	socket.on('errorResponse', function(data){
