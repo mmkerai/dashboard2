@@ -29,8 +29,8 @@ app.use( bodyParser.json() );       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
   extended: true
 })); 
-var cookieParser = require('cookie-parser');
-app.use(cookieParser());
+//var cookieParser = require('cookie-parser');
+app.use(express.cookieParser());
 
 //********************************* Get port used by Heroku
 var PORT = Number(process.env.PORT || 3000);
