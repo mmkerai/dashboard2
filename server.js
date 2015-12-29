@@ -20,7 +20,6 @@
 //********************************* Set up Express Server 
 http = require('http');
 var express = require('express'),
-var cookieParser = require('cookie-parser');
 	app = express(),
 	server = require('http').createServer(app),
 	io = require('socket.io').listen(server);
@@ -30,6 +29,7 @@ app.use( bodyParser.json() );       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
   extended: true
 })); 
+var cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
 //********************************* Get port used by Heroku
