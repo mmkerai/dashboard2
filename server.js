@@ -20,6 +20,7 @@
 //********************************* Set up Express Server 
 http = require('http');
 var express = require('express'),
+var cookieParser = require('cookie-parser');
 	app = express(),
 	server = require('http').createServer(app),
 	io = require('socket.io').listen(server);
@@ -29,6 +30,7 @@ app.use( bodyParser.json() );       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
   extended: true
 })); 
+app.use(cookieParser());
 
 //********************************* Get port used by Heroku
 var PORT = Number(process.env.PORT || 3000);
@@ -39,8 +41,8 @@ var AID = process.env.AID || 0;
 var APISETTINGSID = process.env.APISETTINGSID || 0;
 var KEY = process.env.KEY || 0;
 var PAGEPATH = process.env.PAGEPATH || "/"; //  Obsecur page path such as /bthCn2HYe0qPlcfZkp1t
-var GMAILS = process.env.GMAILS || "tropicalfnv@gmail.com"; // list of valid emails
-var Auth_Client_Id = process.env.GOOGLE_CLIENT_ID;
+var GMAILS = process.env.GMAILS; // list of valid emails
+var GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 var VALIDACCESSNETWORKS = JSON.parse(process.env.VALIDACCESSNETWORKS) || {};  // JSON string with valid public ISP addresses { "83.83.95.62": "Mark Troyer (LMI) Home Office", "10.10.10.1": "LogMeIn UK Office", "10.10": "H3G internal Network"};
 if (AID == 0 || APISETTINGSID == 0 || KEY == 0) {
 	console.log("AID = "+AID+", APISETTINGSID = "+APISETTINGSID+", KEY = "+KEY);
@@ -51,28 +53,24 @@ if (AID == 0 || APISETTINGSID == 0 || KEY == 0) {
 //********************************* Callbacks for all URL requests
 app.get(PAGEPATH, function(req, res){
 	var ip = req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0] : req.connection.remoteAddress;
-	if (VALIDACCESSNETWORKS[ip])	{  // TODO:  Add in Access Control via White List
+	if (VALIDACCESSNETWORKS[ip])  // TODO:  Add in Access Control via White List
+	{
 		console.log("IP Addrees: "+ip+" was on the white list.");
-	} else {
+	}
+	else 
+	{
 		console.log("IP Address: "+ip+" was NOT on the white list.");
 	}
 	
-/*	if(validateCredentials(req.query.idtoken,req.query.email,res))
-	{
-		console.log("user is valid");
-	}
-//	else if(req.query.idtoken === 'undefined' || req.query.email === 'undefined')
-	else
-	{*/
-		res.sendFile(__dirname + '/dashboard.html');
-//	}
+	if(req.cookie.gtoken)
+		console.log("gtoken is: "+gtoken);
+	console.log("Cookies :  ", req.cookies);
+	
+	res.sendFile(__dirname + '/dashboard.html');
 });
 
 app.get('/index.css', function(req, res){ 
 	res.sendFile(__dirname + '/index.css');
-});
-app.get('/index.js', function(req, res){
-	res.sendFile(__dirname + '/index.js');
 });
 app.get('/dashboard.js', function(req, res){
 	res.sendFile(__dirname + '/dashboard.js');
@@ -82,7 +80,7 @@ app.get('/favicon.ico', function(req, res){
 });
 
 //********************************* Global variables for chat data
-var loggedInUsers = new Array();
+var LoggedInUsers = new Object();
 var	Departments = new Object();	// array of dept ids and dept name objects
 var	DepartmentsByName = new Object();	// array of dept names and ids
 var	Folders = new Object();	// array of folder ids and folder name objects
@@ -262,13 +260,6 @@ function getFolderNameFromID(id) {
 
 function getOperatorNameFromID(id) {
 	return(Operators[id].name);
-}
-
-// cleans text field of tags and newlines using regex
-function cleanText(mytext) {
-	var clean = mytext.replace(/<\/?[^>]+(>|$)/g, "");	// take out html tags
-	var clean2 = clean.replace(/(\r\n|\n|\r)/g,"");	// take out new lines
-	return(clean2);
 }
 
 // setup all globals TODO: add teams
@@ -492,19 +483,55 @@ function getInactiveChatData() {
 // Set up callbacks
 io.sockets.on('connection', function(socket){
 	
+	socket.on('authenticate', function(data){
+		console.log("authentication request received for: "+data.email);
+		if(GMAILS[data.email] === 'undefined')
+		{
+			console.log("This gmail is invalid: "+data.email);
+			socket.emit('errorResponse',"Invalid email");
+		}
+		else
+		{
+			Google_Oauth_Request(data.token, function (response) {
+			var str = '';
+			//another chunk of data has been received, so append it to `str`
+			response.on('data', function (chunk) {
+				str += chunk;
+			});
+			//the whole response has been received, take final action.
+			response.on('end', function () {
+				var jwt = JSON.parse(str);
+		//			console.log("Response received: "+str);
+				if(jwt.aud == GOOGLE_CLIENT_ID)		// valid token response
+				{
+					console.log("User authenticated:");
+					LoggedInUsers[socket.id] = true;
+					socket.emit('authResponse',"success");
+				}
+				else
+					socket.emit('errorResponse',"Invalid token");
+				});
+			});
+		}
+	});
+
 	socket.on('un-authenticate', function(data){
 		console.log("un-authentication request received: "+data.email);
 		if(GMAILS[data.email] === 'undefined')
+		{
 			console.log("This gmail is invalid: "+data.email);
+			socket.emit('errorResponse',"Invalid email");
+		}
 		else
 		{
 			console.log("Valid gmail: "+data.email);
-			loggedInUsers[data.email] = false;
+			LoggedInUsers[socket.id] = false;
 		}
 	});
 });
 
 function updateChatStats() {
+//		io.sockets.connected[ThisSocketId].emit();
 		io.sockets.emit('chatcountResponse', "Total no. of chats: "+(Overall.tca + Overall.tcu + Overall.tcaban));
 		io.sockets.emit('overallStats', Overall);
 		io.sockets.emit('departmentStats', Departments);
