@@ -465,8 +465,8 @@ io.sockets.on('connection', function(socket){
 //				console.log("Response received: "+str);
 				if(jwt.aud == GOOGLE_CLIENT_ID)		// valid token response
 				{
-					console.log("User authenticated, socket id: "+socket.id);
-					LoggedInUsers.push(socket.id);
+//					console.log("User authenticated, socket id: "+socket.id);
+					LoggedInUsers.push(socket.id);		// save the socket id so that updates can be sent
 					socket.emit('authResponse',"success");
 				}
 				else
@@ -488,6 +488,13 @@ io.sockets.on('connection', function(socket){
 			console.log("Valid gmail: "+data.email);
 			var index = LoggedInUsers.indexOf(socket.id);
 			if(index > -1) LoggedInUsers.splice(index, 1);
+		}
+	});
+	
+		socket.on('end', function(data){
+			console.log("connection ended");
+			var index = LoggedInUsers.indexOf(socket.id);	
+			if(index > -1) LoggedInUsers.splice(index, 1);	// remove from list of valid users
 		}
 	});
 });
