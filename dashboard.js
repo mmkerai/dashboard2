@@ -95,7 +95,9 @@ function signOut() {
 	
 	auth2.signOut().then(function () {
 		console.log('User signed out.');
-		
-	socket.emit('un-authenticate', {token: Gid_token, email: profile.getEmail()});
+		$("#gname").text("Not Logged in");
+
+	if(profile !== 'undefined')
+		socket.emit('un-authenticate', {token: Gid_token, email: profile.getEmail()});
 	});
 }

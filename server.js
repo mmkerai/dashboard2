@@ -493,8 +493,9 @@ io.sockets.on('connection', function(socket){
 });
 
 function updateChatStats() {
-	for(var socket in LoggedInUsers)
+	for(var i in LoggedInUsers)
 	{
+		socket = LoggedInUsers[i];
 		console.log("Socket id is: "+socket);
 //		io.sockets.connected[socket].emit('statusResponse', "Total no. of chats: "+(Overall.tca + Overall.tcu + Overall.tcaban));
 		io.sockets.emit('overallStats', Overall);
