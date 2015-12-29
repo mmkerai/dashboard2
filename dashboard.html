@@ -20,9 +20,13 @@
 
 <h2>Overall Chat Status</h2>
 <div class="wrapper col-xs-12">
-    <div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark"></div>
-	<a href="#" class="btn btn-primary" onClick="signOut();">Sign Out</a>
-	<span id="gname">Name</span>
+	<div class="col-xs-6">    
+		<div class="g-signin2" data-onsuccess="onSignIn" data-theme="light" longtitle="true"></div>
+		</div>
+	<div class="col-xs-4">
+		<a href="#" class="btn btn-primary" onClick="signOut();">Sign Out</a>
+		<span id="gname">Name</span>
+	</div>
 	<p id="error"></p>
 	<p id="status"></p>
 <!--	<div class="form-horizontal col-xs-9 col-xs-offset-3">-->
