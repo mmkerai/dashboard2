@@ -97,7 +97,7 @@ function signOut() {
 		console.log('User signed out.');
 		$("#gname").text("Not Logged in");
 
-	if(profile !== 'undefined')
+	if(Gid_token !== 'undefined')
 		socket.emit('un-authenticate', {token: Gid_token, email: profile.getEmail()});
 	});
 }

@@ -496,17 +496,17 @@ function updateChatStats() {
 	for(var i in LoggedInUsers)
 	{
 		socket = LoggedInUsers[i];
-		console.log("Socket id is: "+socket);
-//		io.sockets.connected[socket].emit('statusResponse', "Total no. of chats: "+(Overall.tca + Overall.tcu + Overall.tcaban));
-		io.sockets.emit('overallStats', Overall);
-//		io.sockets.connected[socket].emit('departmentStats', Departments);
+//		console.log("Socket id is: "+socket);
+		io.sockets.connected[socket].emit('statusResponse', "Total no. of chats: "+(Overall.tca + Overall.tcu + Overall.tcaban));
+		io.sockets.connected[socket].emit('overallStats', Overall);
+		io.sockets.connected[socket].emit('departmentStats', Departments);
 	}
 //	debugLog(Overall);
 	setTimeout(updateChatStats, 3000);	// send update every second
 }
 
-//doStartOfDay();
+doStartOfDay();
 //setTimeout(getInactiveChatData, 2000);
 //getActiveChatData();
-//getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
+getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
 setTimeout(updateChatStats,3000);
