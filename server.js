@@ -465,7 +465,7 @@ io.sockets.on('connection', function(socket){
 //				console.log("Response received: "+str);
 				if(jwt.aud == GOOGLE_CLIENT_ID)		// valid token response
 				{
-					console.log("User authenticated:");
+					console.log("User authenticated, socket id: "+socket.id);
 					LoggedInUsers.push(socket.id);
 					socket.emit('authResponse',"success");
 				}
