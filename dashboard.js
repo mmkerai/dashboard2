@@ -18,10 +18,8 @@ function onSignIn(googleUser) {
 
 $(document).ready(function() {
 
-//	if(auth2.GoogleAuth.isSignedIn.get() == true) {
-// 	socket.emit('authenticate', {token: Gid_token, email: profile.getEmail()});
-//	}
-  
+  	$("#g-signout").hide();
+
 	socket.on('authResponse', function(data){
 		$("#g-signout").show();
 		$("#gname").text(profile.getName());
@@ -97,7 +95,7 @@ function signOut() {
 	
 	auth2.signOut().then(function () {
 		console.log('User signed out.');
-		$("#gname").text("Not Logged in");
+		$("#g-signout").hide();
 
 	if(Gid_token !== 'undefined')
 		socket.emit('un-authenticate', {token: Gid_token, email: profile.getEmail()});
