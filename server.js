@@ -507,5 +507,5 @@ function updateChatStats() {
 //doStartOfDay();
 //setTimeout(getInactiveChatData, 2000);
 //getActiveChatData();
-getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
+//getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
 setTimeout(updateChatStats,3000);
