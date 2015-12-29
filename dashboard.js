@@ -90,8 +90,12 @@ $(document).ready(function() {
 
 function signOut() {
 	auth2 = gapi.auth2.getAuthInstance();
+	if(auth2 === 'undefined')
+		console.log("auth2 is undefined");
+	
 	auth2.signOut().then(function () {
-	  console.log('User signed out.');
+		console.log('User signed out.');
+		
 	socket.emit('un-authenticate', {token: Gid_token, email: profile.getEmail()});
 	});
 }
