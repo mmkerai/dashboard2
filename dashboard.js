@@ -23,7 +23,9 @@ $(document).ready(function() {
 //	}
   
 	socket.on('authResponse', function(data){
-		$("#gname").text(profile.getName()+" Logged in");
+		$("#g-signout").show();
+		$("#gname").text(profile.getName());
+		$("#gprofile-image").attr({src: profile.getImageUrl()});
 		$("#error").text("");
 	});
 
