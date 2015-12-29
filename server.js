@@ -24,8 +24,8 @@ var express = require('express'),
 	server = require('http').createServer(app),
 	io = require('socket.io').listen(server);
 	users = {};
-var cookieParser = require('cookie-parser');
-app.use(cookieParser());
+//var cookieParser = require('cookie-parser');
+//app.use(cookieParser());
 var bodyParser = require('body-parser');
 app.use( bodyParser.json() );       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
@@ -62,7 +62,7 @@ app.get(PAGEPATH, function(req, res){
 		console.log("IP Address: "+ip+" was NOT on the white list.");
 	}
 	
-	if(req.cookie.gtoken)
+	if(req.cookies.gtoken)
 		console.log("gtoken is: "+gtoken);
 	console.log("Cookies :  ", req.cookies);
 	
