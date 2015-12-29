@@ -463,7 +463,7 @@ io.sockets.on('connection', function(socket){
 			//the whole response has been received, take final action.
 			response.on('end', function () {
 				var jwt = JSON.parse(str);
-					console.log("Response received: "+str);
+				console.log("Response received: "+str);
 				if(jwt.aud == GOOGLE_CLIENT_ID)		// valid token response
 				{
 					console.log("User authenticated:");

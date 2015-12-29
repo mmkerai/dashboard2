@@ -1,6 +1,6 @@
 var socket = io.connect();
 var auth2;
-var id_token;
+var Gid_token;
 var profile;
 
 function onSignIn(googleUser) {
@@ -13,14 +13,14 @@ function onSignIn(googleUser) {
 	$("#gname").text(profile.getName()+" Logged in");
 
 	// The ID token you need to pass to your backend:
-	id_token = googleUser.getAuthResponse().id_token;
-	socket.emit('authenticate', {idtoken: id_token, email: profile.getEmail()});
+	Gid_token = googleUser.getAuthResponse().id_token;
+	socket.emit('authenticate', {token: Gid_token, email: profile.getEmail()});
 };
 
 $(document).ready(function() {
 
 //	if(auth2.GoogleAuth.isSignedIn.get() == true) {
-// 	socket.emit('authenticate', {idtoken: id_token, email: profile.getEmail()});
+// 	socket.emit('authenticate', {token: Gid_token, email: profile.getEmail()});
 //	}
   
 	socket.on('authResponse', function(data){
