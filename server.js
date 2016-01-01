@@ -27,8 +27,8 @@ var express = require('express'),
 	server = require('http').createServer(app),
 	io = require('socket.io').listen(server);
 	users = {};
-var cookieParser = require('cookie-parser');
-app.use(cookieParser());
+//var cookieParser = require('cookie-parser');
+//app.use(cookieParser());
 var bodyParser = require('body-parser');
 app.use( bodyParser.json() );       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
