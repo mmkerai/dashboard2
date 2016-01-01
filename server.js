@@ -1,9 +1,10 @@
 // acronyms used
 // ciq - chats in queue
 // lwt - longest waiting time
+// offered = 
 // tcaban - total chats abandoned
 // cns - chats not started
-// tca - total chats answered
+// tca-q - total chats answered in queue
 // tcu - total chats unanswered
 // tac - total active chats
 // cwait - no of chats waiting
@@ -53,7 +54,7 @@ if (AID == 0 || APISETTINGSID == 0 || KEY == 0) {
 }
 
 //********************************* Callbacks for all URL requests
-app.get(PAGEPATH, function(req, res){
+app.get('/dashboard.html', function(req, res){
 	var ip = req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0] : req.connection.remoteAddress;
 	if (VALIDACCESSNETWORKS[ip])  // TODO:  Add in Access Control via White List
 	{
@@ -69,6 +70,9 @@ app.get(PAGEPATH, function(req, res){
 	res.sendFile(__dirname + '/dashboard.html');
 });
 
+app.get('/agents.html', function(req, res){ 
+	res.sendFile(__dirname + '/agents.html');
+});
 app.get('/index.css', function(req, res){ 
 	res.sendFile(__dirname + '/index.css');
 });
