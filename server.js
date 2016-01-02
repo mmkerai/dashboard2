@@ -34,6 +34,8 @@ app.use( bodyParser.json() );       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
   extended: true
 })); 
+app.use(express.cookieParser());
+app.use(express.session({secret: 'LMIDashboardCodebyMMK'}));
 
 //********************************* Get port used by Heroku
 var PORT = Number(process.env.PORT || 3000);
@@ -70,7 +72,8 @@ app.get('/dashboard.html', function(req, res){
 	res.sendFile(__dirname + '/dashboard.html');
 });
 
-app.get('/agents.html', function(req, res){ 
+app.get('/agents.html', function(req, res){
+	console.log("Session id: "+req.session);
 	res.sendFile(__dirname + '/agents.html');
 });
 app.get('/index.css', function(req, res){ 
