@@ -31,12 +31,11 @@ var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var session = require("express-session");
 app.use(cookieParser());
-app.use(session({secret: 'LMIDashboardCodebyMMK'}));
+app.use(session({resave: true, saveUninitialized: true, secret: 'LMIDashboardCodebyMMK', cookie: { maxAge: 600000 }}));
 app.use( bodyParser.json() );       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
   extended: true
 })); 
-//app.use(express.cookieParser());
 
 //********************************* Get port used by Heroku
 var PORT = Number(process.env.PORT || 3000);
@@ -496,10 +495,15 @@ io.sockets.on('connection', function(socket){
 	});
 	
 	socket.on('disconnect', function(data){
-		console.log("connection ended");
+		console.log("connection disconnect");
 		var index = LoggedInUsers.indexOf(socket.id);	
 		if(index > -1) LoggedInUsers.splice(index, 1);	// remove from list of valid users
 	});
+	
+		socket.on('end', function(data){
+		console.log("connection ended");
+	});
+
 });
 
 function updateChatStats() {
