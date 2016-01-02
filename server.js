@@ -68,8 +68,8 @@ app.get(PAGEPATH, function(req, res){
 		console.log("IP Address: "+ip+" was NOT on the white list.");
 	}
 	
-	console.log("Cookies :  "+req.cookies);
-	console.log("Session id: "+req.session);
+	debugLog("Cookies",req.cookies);
+	debugLog("Session",req.session);
 	res.sendFile(__dirname + '/dashboard.html');
 });
 
@@ -115,26 +115,21 @@ var Overall = new Object({tcaban: 0,
 
 // Get all of the incoming Boldchat triggered chat data
 app.post('/chat-answer', function(req, res){
-//	io.sockets.emit('errorResponse', req.body);
-	console.log("Event: Chat answered");
-	debugLog(req.body);
+	debugLog("Chat-answer",req.body);
 	processActiveChat(req.body);
 	res.send({ "result": "success" });
 });
 
 // Get all of the incoming Boldchat triggered chat data
 app.post('/chat-ended', function(req, res){
-//	io.sockets.emit('errorResponse', req.body);
-	console.log("Event: Chat closed");
-	debugLog(req.body);
+	debugLog("Chat ended", req.body);
 	processEndedChat(req.body);
 	res.send({ "result": "success" });
 });
 
 // Get all of the incoming Boldchat triggered operator data
 app.post('/operator-status-changed', function(req, res){
-//	console.log("Event: Operator Status Changed: " +req.body);
-	debugLog(req.body);
+	debugLog("operator-status-changed",req.body);
 	res.send({ "result": "success" });
 });
 
@@ -165,8 +160,8 @@ function Google_Oauth_Request(token,callBackFunction) {
 	https.request(options, callBackFunction).end();
 }
 
-function debugLog(dataobj) {
-	console.log("object");
+function debugLog(name, dataobj) {
+	console.log(name+": ");
 	for(key in dataobj) {
 		if(dataobj.hasOwnProperty(key))
 			console.log(key +":"+dataobj[key]);
@@ -516,7 +511,7 @@ function updateChatStats() {
 		io.sockets.connected[socket].emit('overallStats', Overall);
 		io.sockets.connected[socket].emit('departmentStats', Departments);
 	}
-//	debugLog(Overall);
+//	debugLog("Overall", Overall);
 	setTimeout(updateChatStats, 3000);	// send update every second
 }
 
