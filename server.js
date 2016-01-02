@@ -35,7 +35,7 @@ app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
   extended: true
 })); 
 //app.use(express.cookieParser());
-//app.use(express.session({secret: 'LMIDashboardCodebyMMK'}));
+app.use(express.session({secret: 'LMIDashboardCodebyMMK'}));
 
 //********************************* Get port used by Heroku
 var PORT = Number(process.env.PORT || 3000);
