@@ -26,12 +26,11 @@ var express = require('express'),
 	app = express(),
 	server = require('http').createServer(app),
 	io = require('socket.io').listen(server);
-	users = {};
 var bodyParser = require('body-parser');
-var cookieParser = require('cookie-parser');
-var session = require("express-session");
-app.use(cookieParser());
-app.use(session({resave: true, saveUninitialized: true, secret: 'LMIDashboardCodebyMMK', cookie: { maxAge: 600000 }}));
+//var cookieParser = require('cookie-parser');
+//var session = require("express-session");
+//app.use(cookieParser());
+//app.use(session({resave: true, saveUninitialized: true, secret: 'LMIDashboardCodebyMMK', cookie: { maxAge: 600000 }}));
 app.use( bodyParser.json() );       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
   extended: true
