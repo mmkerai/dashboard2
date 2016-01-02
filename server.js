@@ -29,13 +29,14 @@ var express = require('express'),
 	users = {};
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
+var session = require("express-session");
 app.use(cookieParser());
+app.use(session({secret: 'LMIDashboardCodebyMMK'}));
 app.use( bodyParser.json() );       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
   extended: true
 })); 
 //app.use(express.cookieParser());
-app.use(express.session({secret: 'LMIDashboardCodebyMMK'}));
 
 //********************************* Get port used by Heroku
 var PORT = Number(process.env.PORT || 3000);
