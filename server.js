@@ -618,8 +618,8 @@ function updateChatStats() {
 	setTimeout(updateChatStats, 3000);	// send update every second
 }
 
-//doStartOfDay();
+doStartOfDay();
 //setTimeout(getInactiveChatData, 2000);
 getActiveChatData();
-//getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
+getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
 setTimeout(updateChatStats,3000);
