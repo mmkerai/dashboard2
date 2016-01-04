@@ -21,11 +21,11 @@
 <h2>Overall Status</h2>
 <div class="wrapper col-xs-12">
 	<div class="col-xs-3">    
-		<div class="g-signin2" width="300" data-onsuccess="onSignIn" data-theme="dark" data-longtitle="true"></div>
+		<div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark" data-longtitle="false"></div>
 	</div>
 	<div id="g-signout" class="col-xs-4">
 		<a href="#" class="btn btn-success" onClick="signOut();">Sign Out</a>
-		<img id="gprofile-image" class="img-circle" width="48" height="48" alt="Profile Image">
+		<img id="gprofile-image" class="img-circle" width="56" height="56" alt="Profile Image">
 		<span id="gname">Name</span>
 	</div>
 	<div id="g-signout" class="col-xs-4">
@@ -53,9 +53,9 @@
 		  <th>Unavailable</th>
 		  <th>ASA</th>
 		  <th>ACT</th>
+		  <th>Available Chat Capacity</th>
 		  <th>Agents Away</th>
 		  <th>Agents Available</th>
-		  <th>Available Chat Capacity</th>
 		  </tr></thead>
 		<tbody>
 		<tr>
@@ -73,9 +73,9 @@
 		  <td id="ocunavail">n/a</td>
 		  <td id="oasa">n/a</td>
 		  <td id="oact">n/a</td>
+		  <td id="oaccap">n/a</td>
 		  <td id="oaway">n/a</td>
 		  <td id="oavail">n/a</td>
-		  <td id="oaccap">n/a</td>
 		</tr>
 	  </tbody>
 	</table>

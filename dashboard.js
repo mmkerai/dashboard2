@@ -30,21 +30,24 @@ $(document).ready(function() {
 	socket.on('errorResponse', function(data){
 		$("#error").text(data);
 	});
-	
-	socket.on('statusResponse', function(data){
-		$("#status").text(data);
-	});
+
 	socket.on('overallStats', function(data){
-		$("#otca").text(data.tca);
-		$("#otcu").text(data.tcu);
-		$("#otcaban").text(data.tcaban);
+		$("#ocon").text(data.conc);
+		$("#osla").text(data.sla);
+		$("#ocph").text(data.cph);
+		$("#ociq").text(data.ciq);
+		$("#olwt").text(data.lwt);
+		$("#ooff").text(data.tco);
 		$("#otac").text(data.tac);
-		$("#ocwait").text(data.cwait);
-		$("#oasa").text(Math.round(data.asa));
-		$("#oact").text(Math.round(data.act));
-		$("#oamc").text(Math.round(data.amc));
-		$("#oaway").text(data.oaway);
-		$("#oavail").text(data.oavail);
+		$("#oacom").text(data.tca);
+		$("#ouiq").text(data.tcuq);
+		$("#ouas").text(data.tcua);
+		$("#ocunavail").text(data.tcun);
+		$("#oasa").text(data.asa);
+		$("#oact").text(data.act);
+		$("#oaccap").text(data.acc);
+		$("#oaway").text(data.aaway);
+		$("#oavail").text(data.aavail);
 	});
 	socket.on('departmentStats', function(ddata){
 		var ttable = document.getElementById("topTable");
@@ -59,29 +62,41 @@ $(document).ready(function() {
 				col = row.insertCell(0);
 				row.id = ddata[i].name;
 				col.outerHTML = "<th scope='row'>Dept "+ddata[i].name+"</th>";
-				col = row.insertCell(1).innerHTML = ddata[i].tca;
-				col = row.insertCell(2).innerHTML = ddata[i].tcu;
-				col = row.insertCell(3).innerHTML = "n/a";
-				col = row.insertCell(4).innerHTML = ddata[i].tac;
-				col = row.insertCell(5).innerHTML = ddata[i].cwait;
-				col = row.insertCell(6).innerHTML = ddata[i].asa;
-				col = row.insertCell(7).innerHTML = ddata[i].act;
-				col = row.insertCell(8).innerHTML = ddata[i].amc;
-				col = row.insertCell(9).innerHTML = ddata[i].oaway;
-				col = row.insertCell(10).innerHTML = ddata[i].oavail;
+				col = row.insertCell(1).innerHTML = ddata[i].conc;
+				col = row.insertCell(2).innerHTML = ddata[i].sla;
+				col = row.insertCell(3).innerHTML = ddata[i].cph;
+				col = row.insertCell(4).innerHTML = ddata[i].ciq;
+				col = row.insertCell(5).innerHTML = ddata[i].lwt;
+				col = row.insertCell(6).innerHTML = ddata[i].tco;
+				col = row.insertCell(7).innerHTML = ddata[i].tac;
+				col = row.insertCell(8).innerHTML = ddata[i].tca;
+				col = row.insertCell(9).innerHTML = ddata[i].tcuq;
+				col = row.insertCell(10).innerHTML = ddata[i].tcua;
+				col = row.insertCell(11).innerHTML = ddata[i].tcun;
+				col = row.insertCell(12).innerHTML = ddata[i].asa;
+				col = row.insertCell(13).innerHTML = ddata[i].act;
+				col = row.insertCell(14).innerHTML = ddata[i].acc;
+				col = row.insertCell(15).innerHTML = ddata[i].aaway;
+				col = row.insertCell(16).innerHTML = ddata[i].aavail;
 			}
 			else
 			{
-				rowid.cells[1].innerHTML = ddata[i].tca;
-				rowid.cells[2].innerHTML = ddata[i].tcu;
-				rowid.cells[3].innerHTML = "n/a";
-				rowid.cells[4].innerHTML = ddata[i].tac;
-				rowid.cells[5].innerHTML = ddata[i].cwait;
-				rowid.cells[6].innerHTML = ddata[i].asa;
-				rowid.cells[7].innerHTML = ddata[i].act;
-				rowid.cells[8].innerHTML = ddata[i].amc;
-				rowid.cells[9].innerHTML = ddata[i].oaway;
-				rowid.cells[10].innerHTML = ddata[i].oavail;
+				rowid.cells[1].innerHTML = ddata[i].conc;
+				rowid.cells[2].innerHTML = ddata[i].sla;
+				rowid.cells[3].innerHTML = ddata[i].cph;
+				rowid.cells[4].innerHTML = ddata[i].ciq;
+				rowid.cells[5].innerHTML = ddata[i].lwt;
+				rowid.cells[6].innerHTML = ddata[i].tco;
+				rowid.cells[7].innerHTML = ddata[i].tac;
+				rowid.cells[8].innerHTML = ddata[i].tca;
+				rowid.cells[9].innerHTML = ddata[i].tcuq;
+				rowid.cells[10].innerHTML = ddata[i].tcua;
+				rowid.cells[11].innerHTML = ddata[i].tcun;
+				rowid.cells[12].innerHTML = ddata[i].asa;
+				rowid.cells[13].innerHTML = ddata[i].act;
+				rowid.cells[14].innerHTML = ddata[i].acc;
+				rowid.cells[15].innerHTML = ddata[i].aaway;
+				rowid.cells[16].innerHTML = ddata[i].aavail;
 			}
 		}
 	});
