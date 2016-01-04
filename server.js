@@ -223,7 +223,7 @@ function operatorsCallback(dlist) {
 		Operators[dlist[i].LoginID] = {name: dlist[i].Name,
 											tca: 0,
 											status: 0,
-											achats: new Array(),
+											activeChats: new Array(),
 											tcs: 0};	// time in current status																				
 	}
 	console.log("No of Operators: "+Object.keys(Operators).length);
@@ -386,7 +386,7 @@ function processActiveChat(achat) {
 	
 	opobj = Operators[achat.OperatorID];
 //		console.log("opobj is "+achat.OperatorID);
-	opact = opobj.active;
+	opact = opobj.activeChats;
 	opact.push({chatid: achat.ChatID, 
 						deptname: getDepartmentNameFromID(achat.DepartmentID),
 						ctime: chattime,
