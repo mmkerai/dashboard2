@@ -104,7 +104,7 @@ var	Operators = new Object();	// array of operator ids and name objects
 var	OperatorsByName = new Object();	// array of operator ids and name objects
 var	WaitingTimes = new Object();	// array of chat waiting times objects
 var	Teams = new Object();	// array of team names
-var ApiDataNotReady = 0;	// Flag to show when data has been received from API so that data can be processed
+var ApiDataNotReady;	// Flag to show when data has been received from API so that data can be processed
 var Overall = new Object({conc: 0,
 							sla: 0,
 							cph: 0,
@@ -497,9 +497,9 @@ function getApiData(method, params, fcallback) {
 		});
 		// in case there is a html error
 		response.on('error', function(err) {
-		// handle errors with the request itself
-		console.error("Error with the request: ", err.message);
-		ApiDataNotReady--;
+			// handle errors with the request itself
+			console.error("Error with the request: ", err.message);
+			ApiDataNotReady--;
 		});
 	});
 }
@@ -618,6 +618,7 @@ function updateChatStats() {
 	setTimeout(updateChatStats, 3000);	// send update every second
 }
 
+ApiDataNotReady = 0;	// reset flag
 doStartOfDay();
 //setTimeout(getInactiveChatData, 2000);
 getActiveChatData();
