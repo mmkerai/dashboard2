@@ -4,9 +4,9 @@
 // ciq - chats in queue
 // lwt - longest waiting time
 // tco - chats offered (chats answered plus chats unanswered)
-// tca - total chats answered
-// tcuq - total chats unanswered in queue
-// tcua - total chats unanswered assigned
+// tcan - total chats answered
+// tcuq - total chats unanswered/abandoned in queue
+// tcua - total chats unanswered/abandoned after assigned
 // tcun - total chats unavailable
 // tac - total active chats
 // asa - average speed to answer
@@ -112,7 +112,7 @@ var Overall = new Object({conc: 0,
 							lwt: 0,
 							tco: 0,
 							tac: 0,
-							tca: 0,
+							tcan: 0,
 							tcuq: 0,
 							tcua: 0,
 							tcun: 0,
@@ -128,18 +128,18 @@ app.post('/chat-started', function(req, res){
 	processStartedChat(req.body);
 	res.send({ "result": "success" });
 });
-
+/*
 // Process incoming Boldchat triggered chat data
 app.post('/chat-assigned', function(req, res){
 	debugLog("Chat-assigned",req.body);
 	processAssignedChat(req.body);
 	res.send({ "result": "success" });
 });
-
+*/
 // Process incoming Boldchat triggered chat data
 app.post('/chat-answered', function(req, res){
 	debugLog("Chat-answered",req.body);
-	processAnsweredChat(req.body);
+	processActiveChat(req.body);
 	res.send({ "result": "success" });
 });
 
@@ -203,7 +203,7 @@ function deptsCallback(dlist) {
 													lwt: 0,
 													tco: 0,
 													tac: 0,
-													tca: 0,
+													tcan: 0,
 													tcuq: 0,
 													tcua: 0,
 													tcun: 0,
@@ -221,7 +221,7 @@ function operatorsCallback(dlist) {
 	{
 		OperatorsByName[dlist[i].Name] = {name: dlist[i].LoginID};
 		Operators[dlist[i].LoginID] = {name: dlist[i].Name,
-											tca: 0,
+											tcan: 0,		// total chats answered
 											status: 0,
 											activeChats: new Array(),
 											tcs: 0};	// time in current status																				
@@ -271,7 +271,7 @@ function processStartedChat(chat) {
 	AllLiveChats[chat.ChatID] = tchat;		// save this chat details
 }
 
-// process assigned chat object and update all relevat dept, operator and global metrics
+/*// process assigned chat object and update all relevat dept, operator and global metrics
 function processAssignedChat(chat) {
 	// analyse each chat and keep track of global metrics
 	if(chat.DepartmentID === null) return;		// should never be null at this stage but I have seen it
@@ -286,63 +286,40 @@ function processAssignedChat(chat) {
 	tchat.operator = chat.OperatorID;
 	AllLiveChats[chat.ChatID] = tchat;		// update the chat data object
 }
-
-// process answered chat object and update all relevat dept, operator and global metrics
-function processAnsweredChat(chat) {
-	// analyse each chat and keep track of global metrics
-	if(chat.DepartmentID === null) return;		// should never be null at this stage but I have seen it
-	deptobj = Departments[chat.DepartmentID];
-	Overall.tcua--;
-	Overall.tac++;
-	deptobj.tcua--;
-	deptobj.tac++;
-	var tchat = AllLiveChats[chat.ChatID];
-	if(tchat === 'undefined')		// if this chat did not exist 
-		tchat = new ChatData(chat.ChatID, chat.DepartmentID, chat.Started);	// then create it
-
-	//operator stats
-	if(chat.OperatorID === null) return;		// operator id not set for some strange reason
-	opobj = Operators[chat.OperatorID];
-	opobj.tac++;	// chat active
-	tchat.operator = chat.OperatorID;
-	tchat.answered = chat.Answered;
-	AllLiveChats[chat.ChatID] = tchat;		// update the chat data object
-}
-
+*/
 // process ended chat object and update all relevat dept, operator and global metrics
+// closed chat will contain started, answered, ended and closed time values
 function processClosedChat(chat) {
-	// analyse each chat and keep track of global metrics
-	//department stats
+	var deptobj, opobj;
 	if(chat.DepartmentID === null) return;		// should never be null at this stage but I have seen it
+	if(chat.OperatorID === null) return;		// operator id not set for some strange reason
+
 	deptobj = Departments[chat.DepartmentID];
-	// chat ended so no longer active
-	Overall.tca++;
-	deptobj.tca++;
-	if(chat.Answered != null)	// chat was previously answered and not just closed
-	{
-		Overall.tac--;
-		deptobj.tac--;
-	}
-	// asa and act and amc calculations
+	opobj = Operators[chat.OperatorID];
+	var timenow = new Date();
+
+	// act calculations
 	var starttime = new Date(chat.Started);
 	var anstime = new Date(chat.Answered);
 	var endtime = new Date(chat.Ended);
 	var messagecount = chat.OperatorMessageCount + chat.VisitorMessageCount
-	var asa = (anstime - starttime)/1000;
 	var act = (endtime - anstime)/1000;		// in seconds
-	Overall.asa = Math.round(((Overall.asa * (Overall.tca - 1)) + asa)/Overall.tca);
-	Overall.act = Math.round(((Overall.act * (Overall.tca - 1)) + act)/Overall.tca);
-	deptobj.asa = Math.round(((deptobj.asa * (deptobj.tca - 1)) + asa)/deptobj.tca);
-	deptobj.act = Math.round(((deptobj.act * (deptobj.tca - 1)) + act)/deptobj.tca);
+	Overall.act = Math.round(((Overall.act * Overall.tcan) + act)/(Overall.tcan +1));
+	deptobj.act = Math.round(((deptobj.act * deptobj.tcan) + act)/(deptobj.tcan +1));
+	Overall.tcan++;
+	deptobj.tcan++;
 	
 	//operator stats
 	if(chat.OperatorID === null) return;		// operator id not set for some strange reason
 	opobj = Operators[chat.OperatorID];
-	opobj.tca++;	// chats answered
-	opobj.asa = Math.round(((opobj.asa * (opobj.tca - 1)) + asa)/opobj.tca);
-	opobj.act = Math.round(((opobj.act * (opobj.tca - 1)) + act)/opobj.tca);
+	opobj.tcan++;	// chats answered
+	opobj.act = Math.round(((opobj.act * opobj.tcan) + act)/(opobj.tcan +1));
 	if(AllLiveChats[chat.ChatID] !== 'undefined')
+	{
+		Overall.tac--;		// chat was previously active so decrement
+		deptobj.tac--;
 		delete AllLiveChats[chat.ChatID];		// remove from live list as this has now closed
+	}
 }
 
 // process all inactive (ended) chat objects
@@ -364,34 +341,42 @@ function allInactiveChats(chats) {
 	}
 }
 
-// process active chat object and update all relevat dept, operator and global metrics
+// update active chat object and update all relevat dept, operator and global metrics
+// active chats mean they have been answered so ASA can be calculated
 function processActiveChat(achat) {
 	var deptobj, opobj;
+	if(chat.DepartmentID === null) return;		// should never be null at this stage but I have seen it
+	if(chat.OperatorID === null) return;		// operator id not set for some strange reason
+
+	deptobj = Departments[chat.DepartmentID];
+	opobj = Operators[chat.OperatorID];
 	var timenow = new Date();
-	var opact = [];
-	var atime = new Date(achat.Answered);
-	var chattime = Math.round((timenow - atime )/1000);		// convert to seconds and round it
+	var anstime = new Date(achat.Answered);
+	var starttime = new Date(achat.Started);
+	var chattime = Math.round((timenow - anstime)/1000);		// convert to seconds and round it
+	// update ASA value
+	var asa = (anstime - starttime)/1000;
+	Overall.asa = Math.round(((Overall.asa * Overall.tcan) + asa)/(Overall.tcan +1));
+	deptobj.asa = Math.round(((deptobj.asa * deptobj.tcan) + asa)/(deptobj.tca +1));
 
 	Overall.tac++;		// total number of active chats
-	if(achat.DepartmentID === null) return;	// not sure why this would ever be the case but it occurs
+	deptobj.tac++;		// dept chats active
+	opobj.tac++;		// operator active chats
 
-	deptobj = Departments[achat.DepartmentID];
-	deptobj.tac++;	// chats active
-	if(achat.OperatorID === null) return;		// not sure why this would ever be the case but it occurs
-
-	var tchat = new ChatData(achat.ChatID, achat.DepartmentID, achat.Started);
+	var tchat = AllLiveChats[chat.ChatID];
+	if(tchat === 'undefined')		// if this chat did not exist 
+		tchat = new ChatData(achat.ChatID, achat.DepartmentID, achat.Started);
 	tchat.answered = achat.Answered;
 	tchat.operator = achat.OperatorID;
 	AllLiveChats[achat.ChatID] = tchat;		// save this chat info until closed
 	
-	opobj = Operators[achat.OperatorID];
 //		console.log("opobj is "+achat.OperatorID);
-//	opact = opobj.activeChats;
 	opobj.activeChats.push({chatid: achat.ChatID, 
-						deptname: getDepartmentNameFromID(achat.DepartmentID),
+						deptname: deptobj.name),
 						ctime: chattime,
 						messages: achat.OperatorMessageCount + achat.VisitorMessageCount
 						});
+	
 }
 
 // process all active chat objects 
@@ -413,7 +398,7 @@ function getOperatorAvailability(dlist) {
 		if(Operators[operator] !== 'undefined')		// check operator id is valid
 		{
 			Operators[operator].status = dlist[i].StatusType;
-			Operators[operator].tcs = (timenow - new Date(dlist[i].Created))/1000;
+			Operators[operator].tcs = Math.round((timenow - new Date(dlist[i].Created))/1000);
 			if(dlist[i].StatusType == 1)
 			{
 				Overall.oaway++;			

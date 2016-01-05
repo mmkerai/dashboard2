@@ -39,7 +39,7 @@ $(document).ready(function() {
 		$("#olwt").text(data.lwt);
 		$("#ooff").text(data.tco);
 		$("#otac").text(data.tac);
-		$("#oacom").text(data.tca);
+		$("#otcan").text(data.tcan);
 		$("#ouiq").text(data.tcuq);
 		$("#ouas").text(data.tcua);
 		$("#ocunavail").text(data.tcun);
@@ -69,7 +69,7 @@ $(document).ready(function() {
 				col = row.insertCell(5).innerHTML = ddata[i].lwt;
 				col = row.insertCell(6).innerHTML = ddata[i].tco;
 				col = row.insertCell(7).innerHTML = ddata[i].tac;
-				col = row.insertCell(8).innerHTML = ddata[i].tca;
+				col = row.insertCell(8).innerHTML = ddata[i].tcan;
 				col = row.insertCell(9).innerHTML = ddata[i].tcuq;
 				col = row.insertCell(10).innerHTML = ddata[i].tcua;
 				col = row.insertCell(11).innerHTML = ddata[i].tcun;
@@ -88,7 +88,7 @@ $(document).ready(function() {
 				rowid.cells[5].innerHTML = ddata[i].lwt;
 				rowid.cells[6].innerHTML = ddata[i].tco;
 				rowid.cells[7].innerHTML = ddata[i].tac;
-				rowid.cells[8].innerHTML = ddata[i].tca;
+				rowid.cells[8].innerHTML = ddata[i].tcan;
 				rowid.cells[9].innerHTML = ddata[i].tcuq;
 				rowid.cells[10].innerHTML = ddata[i].tcua;
 				rowid.cells[11].innerHTML = ddata[i].tcun;
