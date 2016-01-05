@@ -345,11 +345,11 @@ function allInactiveChats(chats) {
 // active chats mean they have been answered so ASA can be calculated
 function processActiveChat(achat) {
 	var deptobj, opobj;
-	if(chat.DepartmentID === null) return;		// should never be null at this stage but I have seen it
-	if(chat.OperatorID === null) return;		// operator id not set for some strange reason
+	if(achat.DepartmentID === null) return;		// should never be null at this stage but I have seen it
+	if(achat.OperatorID === null) return;		// operator id not set for some strange reason
 
-	deptobj = Departments[chat.DepartmentID];
-	opobj = Operators[chat.OperatorID];
+	deptobj = Departments[achat.DepartmentID];
+	opobj = Operators[achat.OperatorID];
 	var timenow = new Date();
 	var anstime = new Date(achat.Answered);
 	var starttime = new Date(achat.Started);
@@ -363,7 +363,7 @@ function processActiveChat(achat) {
 	deptobj.tac++;		// dept chats active
 	opobj.tac++;		// operator active chats
 
-	var tchat = AllLiveChats[chat.ChatID];
+	var tchat = AllLiveChats[achat.ChatID];
 	if(tchat === 'undefined')		// if this chat did not exist 
 		tchat = new ChatData(achat.ChatID, achat.DepartmentID, achat.Started);
 	tchat.answered = achat.Answered;
