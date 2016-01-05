@@ -365,12 +365,7 @@ function processActiveChat(achat) {
 
 	var tchat = AllLiveChats[achat.ChatID];
 	if(typeof(tchat) == 'undefined')		// if this chat did not exist 
-	{
 		tchat = new ChatData(achat.ChatID, achat.DepartmentID, achat.Started);
-		console.log("New tchat: "+tchat);
-	}
-	else		
-		console.log("existing tchat: "+tchat);
 
 	tchat.answered = achat.Answered;
 	tchat.operator = achat.OperatorID;
