@@ -372,7 +372,7 @@ function processActiveChat(achat) {
 	
 //		console.log("opobj is "+achat.OperatorID);
 	opobj.activeChats.push({chatid: achat.ChatID, 
-						deptname: deptobj.name),
+						deptname: deptobj.name,
 						ctime: chattime,
 						messages: achat.OperatorMessageCount + achat.VisitorMessageCount
 						});
