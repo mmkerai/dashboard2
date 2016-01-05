@@ -88,15 +88,15 @@ var ChatData = function(chatid, dept, started) {
 		this.chatID = chatid;
 		this.dept = dept;
 		this.started = started;
-		this.answered = null;
-		this.ended = null;
-		this.closed = null;
-		this.operator = null;		
+		this.answered = 0;
+		this.ended = 0;
+		this.closed = 0;
+		this.operator = 0;		
 };
 	
 //********************************* Global variables for chat data
 var LoggedInUsers = new Array();
-var AllLiveChats = new Array();
+var AllLiveChats = new Object();
 var	Departments = new Object();	// array of dept ids and dept name objects
 var	DepartmentsByName = new Object();	// array of dept names and ids
 var	Folders = new Object();	// array of folder ids and folder name objects
