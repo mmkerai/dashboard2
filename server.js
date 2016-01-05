@@ -364,7 +364,7 @@ function processActiveChat(achat) {
 	opobj.tac++;		// operator active chats
 
 	var tchat = AllLiveChats[achat.ChatID];
-	if(tchat == 'undefined')		// if this chat did not exist 
+	if(typeof(tchat) == 'undefined')		// if this chat did not exist 
 	{
 		tchat = new ChatData(achat.ChatID, achat.DepartmentID, achat.Started);
 		console.log("New tchat: "+tchat);
