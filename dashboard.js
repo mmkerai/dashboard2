@@ -46,8 +46,8 @@ $(document).ready(function() {
 		$("#oasa").text(data.asa);
 		$("#oact").text(data.act);
 		$("#oaccap").text(data.acc);
-		$("#oaway").text(data.aaway);
-		$("#oavail").text(data.aavail);
+		$("#oaway").text(data.oaway);
+		$("#oavail").text(data.oavail);
 	});
 	socket.on('departmentStats', function(ddata){
 		var ttable = document.getElementById("topTable");
@@ -76,8 +76,8 @@ $(document).ready(function() {
 				col = row.insertCell(12).innerHTML = ddata[i].asa;
 				col = row.insertCell(13).innerHTML = ddata[i].act;
 				col = row.insertCell(14).innerHTML = ddata[i].acc;
-				col = row.insertCell(15).innerHTML = ddata[i].aaway;
-				col = row.insertCell(16).innerHTML = ddata[i].aavail;
+				col = row.insertCell(15).innerHTML = ddata[i].oaway;
+				col = row.insertCell(16).innerHTML = ddata[i].oavail;
 			}
 			else
 			{
@@ -95,8 +95,8 @@ $(document).ready(function() {
 				rowid.cells[12].innerHTML = ddata[i].asa;
 				rowid.cells[13].innerHTML = ddata[i].act;
 				rowid.cells[14].innerHTML = ddata[i].acc;
-				rowid.cells[15].innerHTML = ddata[i].aaway;
-				rowid.cells[16].innerHTML = ddata[i].aavail;
+				rowid.cells[15].innerHTML = ddata[i].oaway;
+				rowid.cells[16].innerHTML = ddata[i].oavail;
 			}
 		}
 	});

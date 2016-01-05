@@ -15,7 +15,6 @@
 // aaway - total number of agents away
 // aavail - total number of agents available
 // status - current status 0 - logged out, 1 - away, 2 - available
-// achats - active chats
 // tcs - time in current status
 
 
@@ -119,8 +118,8 @@ var Overall = new Object({conc: 0,
 							asa: 0,
 							act: 0,
 							acc: 0,
-							aaway: 0,
-							aavail: 0});		// top level stats
+							oaway: 0,
+							oavail: 0});		// top level stats
 
 // Process incoming Boldchat triggered chat data
 app.post('/chat-started', function(req, res){
@@ -128,14 +127,14 @@ app.post('/chat-started', function(req, res){
 	processStartedChat(req.body);
 	res.send({ "result": "success" });
 });
-/*
+
 // Process incoming Boldchat triggered chat data
-app.post('/chat-assigned', function(req, res){
-	debugLog("Chat-assigned",req.body);
-	processAssignedChat(req.body);
+app.post('/chat-unavailable', function(req, res){
+	debugLog("Chat-unavailable",req.body);
+	processUnavailableChat(req.body);
 	res.send({ "result": "success" });
 });
-*/
+
 // Process incoming Boldchat triggered chat data
 app.post('/chat-answered', function(req, res){
 	debugLog("Chat-answered",req.body);
@@ -210,8 +209,8 @@ function deptsCallback(dlist) {
 													asa: 0,
 													act: 0,
 													acc: 0,
-													aaway: 0,
-													aavail: 0};
+													oaway: 0,
+													oavail: 0};
 	}
 	console.log("No of Depts: "+Object.keys(Departments).length);
 }
@@ -271,22 +270,15 @@ function processStartedChat(chat) {
 	AllLiveChats[chat.ChatID] = tchat;		// save this chat details
 }
 
-/*// process assigned chat object and update all relevat dept, operator and global metrics
-function processAssignedChat(chat) {
+// process unavailable chat object and update all relevat dept, operator and global metrics
+function processUnavailableChat(chat) {
 	// analyse each chat and keep track of global metrics
-	if(chat.DepartmentID === null) return;		// should never be null at this stage but I have seen it
+	if(chat.DepartmentID === null) return;	
 	deptobj = Departments[chat.DepartmentID];
-	Overall.tcua++;
-	Overall.tcuq--;
-	deptobj.tcua++;
-	deptobj.tcuq--;
-	var tchat = AllLiveChats[chat.ChatID];
-	if(tchat === 'undefined')		// if this chat did not exist 
-		tchat = new ChatData(chat.ChatID, chat.DepartmentID, chat.Started);	// then create it
-	tchat.operator = chat.OperatorID;
-	AllLiveChats[chat.ChatID] = tchat;		// update the chat data object
+	Overall.tcun++;
+	deptobj.tcun++;
 }
-*/
+
 // process ended chat object and update all relevat dept, operator and global metrics
 // closed chat will contain started, answered, ended and closed time values
 function processClosedChat(chat) {
