@@ -370,7 +370,7 @@ function processActiveChat(achat) {
 	var timenow = new Date();
 	var opact = [];
 	var atime = new Date(achat.Answered);
-	var chattime = (timenow - atime )/1000;
+	var chattime = Math.round((timenow - atime )/1000);		// convert to seconds and round it
 
 	Overall.tac++;		// total number of active chats
 	if(achat.DepartmentID === null) return;	// not sure why this would ever be the case but it occurs
@@ -386,8 +386,8 @@ function processActiveChat(achat) {
 	
 	opobj = Operators[achat.OperatorID];
 //		console.log("opobj is "+achat.OperatorID);
-	opact = opobj.activeChats;
-	opact.push({chatid: achat.ChatID, 
+//	opact = opobj.activeChats;
+	opobj.activeChats.push({chatid: achat.ChatID, 
 						deptname: getDepartmentNameFromID(achat.DepartmentID),
 						ctime: chattime,
 						messages: achat.OperatorMessageCount + achat.VisitorMessageCount
@@ -444,7 +444,7 @@ function calculateLwt() {
 		if(tchat.answered == null)		// chat not answered yet
 		{
 			stime = new Date(tchat.started);
-			waittime = (timenow - stime)/1000;
+			waittime = Math.round((timenow - stime)/1000);
 			if(Departments[tchat.dept].lwt < waittime)
 				Departments[tchat.dept].lwt = waittime;
 			
@@ -508,7 +508,7 @@ function getApiData(method, params, fcallback) {
 function getActiveChatData() {
 	if(ApiDataNotReady)
 	{
-		console.log("Static data not ready");
+		console.log("Static data not ready: "+ApiDataNotReady);
 		setTimeout(getActiveChatData, 1000);
 		return;
 	}
