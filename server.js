@@ -126,34 +126,38 @@ var Overall = new Object({conc: 0,
 // Process incoming Boldchat triggered chat data
 app.post('/chat-started', function(req, res){
 	debugLog("Chat-started",req.body);
-	processStartedChat(req.body);
+	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
+		processStartedChat(req.body);
 	res.send({ "result": "success" });
 });
 
 // Process incoming Boldchat triggered chat data
 app.post('/chat-unavailable', function(req, res){
-	debugLog("Chat-unavailable",req.body);
-	processUnavailableChat(req.body);
+//	debugLog("Chat-unavailable",req.body);
+	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
+		processUnavailableChat(req.body);
 	res.send({ "result": "success" });
 });
 
 // Process incoming Boldchat triggered chat data
 app.post('/chat-answered', function(req, res){
-	debugLog("Chat-answered",req.body);
-	processActiveChat(req.body);
+//	debugLog("Chat-answered",req.body);
+	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
+		processActiveChat(req.body);
 	res.send({ "result": "success" });
 });
 
 // Process incoming Boldchat triggered chat data
 app.post('/chat-closed', function(req, res){
-	debugLog("Chat-closed", req.body);
-	processClosedChat(req.body);
+//	debugLog("Chat-closed", req.body);
+	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
+		processClosedChat(req.body);
 	res.send({ "result": "success" });
 });
 
 // Process incoming Boldchat triggered operator data
 app.post('/operator-status-changed', function(req, res){
-	debugLog("operator-status-changed",req.body);
+//	debugLog("operator-status-changed",req.body);
 	res.send({ "result": "success" });
 });
 
@@ -353,20 +357,22 @@ function allInactiveChats(chats) {
 // update active chat object and update all relevat dept, operator and global metrics
 // active chats mean they have been answered so ASA can be calculated
 function processActiveChat(achat) {
-	var deptobj, opobj;
+	var deptobj, opobj, asa;
 	if(achat.DepartmentID === null) return;		// should never be null at this stage but I have seen it
 	if(achat.OperatorID === null) return;		// operator id not set for some strange reason
 
 	deptobj = Departments[achat.DepartmentID];
 	opobj = Operators[achat.OperatorID];
 	var anstime = new Date(achat.Answered);
-	if(achat.Answered === null) console.log("Answered time is null");
 	var starttime = new Date(achat.Started);
 	var chattime = Math.round((Timenow - anstime)/1000);		// convert to seconds and round it
+	if(achat.Answered !== null)
+	{
 	// update ASA value
-	var asa = (anstime - starttime)/1000;
-	Overall.asa = Math.round(((Overall.asa * Overall.tcan) + asa)/(Overall.tcan +1));
-	deptobj.asa = Math.round(((deptobj.asa * deptobj.tcan) + asa)/(deptobj.tca +1));
+		asa = (anstime - starttime)/1000;
+		Overall.asa = Math.round(((Overall.asa * Overall.tcan) + asa)/(Overall.tcan +1));
+		deptobj.asa = Math.round(((deptobj.asa * deptobj.tcan) + asa)/(deptobj.tca +1));		
+	}
 
 	Overall.tac++;		// total number of active chats
 	deptobj.tac++;		// dept chats active
