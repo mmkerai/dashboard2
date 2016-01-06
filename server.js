@@ -125,7 +125,7 @@ var Overall = new Object({conc: 0,
 
 // Process incoming Boldchat triggered chat data
 app.post('/chat-started', function(req, res){
-	debugLog("Chat-started",req.body);
+//	debugLog("Chat-started",req.body);
 	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
 		processStartedChat(req.body);
 	res.send({ "result": "success" });
@@ -133,7 +133,7 @@ app.post('/chat-started', function(req, res){
 
 // Process incoming Boldchat triggered chat data
 app.post('/chat-unavailable', function(req, res){
-//	debugLog("Chat-unavailable",req.body);
+	debugLog("Chat-unavailable",req.body);
 	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
 		processUnavailableChat(req.body);
 	res.send({ "result": "success" });
@@ -141,7 +141,7 @@ app.post('/chat-unavailable', function(req, res){
 
 // Process incoming Boldchat triggered chat data
 app.post('/chat-answered', function(req, res){
-//	debugLog("Chat-answered",req.body);
+	debugLog("Chat-answered",req.body);
 	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
 		processActiveChat(req.body);
 	res.send({ "result": "success" });
@@ -279,9 +279,9 @@ function processStartedChat(chat) {
 // process unavailable chat object and update all relevat dept, operator and global metrics
 function processUnavailableChat(chat) {
 	// analyse each chat and keep track of global metrics
+	Overall.tcun++;
 	if(chat.DepartmentID === null) return;	
 	deptobj = Departments[chat.DepartmentID];
-	Overall.tcun++;
 	deptobj.tcun++;
 }
 
@@ -381,6 +381,11 @@ function processActiveChat(achat) {
 	var tchat = AllLiveChats[achat.ChatID];
 	if(typeof(tchat) == 'undefined')		// if this chat did not exist 
 		tchat = new ChatData(achat.ChatID, achat.DepartmentID, achat.Started);
+	else	// already in queue so update stats
+	{
+		Overall.ciq--;
+		deptobj.ciq--;		
+	}
 
 	tchat.answered = achat.Answered;
 	tchat.operator = achat.OperatorID;
