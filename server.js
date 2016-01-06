@@ -328,7 +328,7 @@ function processClosedChat(chat) {
 	opobj = Operators[chat.OperatorID];
 	opobj.tcan++;	// chats answered
 	opobj.act = Math.round(((opobj.act * opobj.tcan) + act)/(opobj.tcan +1));
-	if(AllLiveChats[chat.ChatID] !== 'undefined')
+	if(AllLiveChats[chat.ChatID] !== null)
 	{
 		console.log("exisitng chat");
 		Overall.tac--;		// chat was previously active so decrement
