@@ -320,21 +320,26 @@ function processClosedChat(chat) {
 	var act = (endtime - anstime)/1000;		// in seconds
 	Overall.act = Math.round(((Overall.act * Overall.tcan) + act)/(Overall.tcan +1));
 	deptobj.act = Math.round(((deptobj.act * deptobj.tcan) + act)/(deptobj.tcan +1));
-	Overall.tcan++;
-	deptobj.tcan++;
 	
 	//operator stats
 	if(chat.OperatorID === null) return;		// operator id not set for some strange reason
 	opobj = Operators[chat.OperatorID];
-	opobj.tcan++;	// chats answered
 	opobj.act = Math.round(((opobj.act * opobj.tcan) + act)/(opobj.tcan +1));
 	if(typeof(AllLiveChats[chat.ChatID]) !== 'undefined')	// not in live chat list
 	{
-		console.log("existing chat: "+AllLiveChats[chat.ChatID]);
 		Overall.tac--;		// chat was previously active so decrement
 		deptobj.tac--;
 		delete AllLiveChats[chat.ChatID];		// remove from live list as this has now closed
 	}
+	else	// must be an inactive chat so update asa
+	{
+		var asa = (anstime - starttime)/1000;
+		Overall.asa = Math.round(((Overall.asa * Overall.tcan) + asa)/(Overall.tcan +1));
+		deptobj.asa = Math.round(((deptobj.asa * deptobj.tcan) + asa)/(deptobj.tca +1));		
+	}
+	Overall.tcan++;
+	deptobj.tcan++;
+	opobj.tcan++;	// chats answered
 }
 
 // process all inactive (closed) chat objects
@@ -355,6 +360,7 @@ function processActiveChat(achat) {
 	deptobj = Departments[achat.DepartmentID];
 	opobj = Operators[achat.OperatorID];
 	var anstime = new Date(achat.Answered);
+	if(achat.Answered === null) console.log("Answered time is null");
 	var starttime = new Date(achat.Started);
 	var chattime = Math.round((Timenow - anstime)/1000);		// convert to seconds and round it
 	// update ASA value
