@@ -328,7 +328,7 @@ function processClosedChat(chat) {
 	//operator stats
 	if(chat.OperatorID === null) return;		// operator id not set for some strange reason
 	opobj = Operators[chat.OperatorID];
-	opobj.act = Math.round(((opobj.act * opobj.tcan) + act)/(opobj.tcan +1));
+	// TODO: remove this chat from opobj.activeChats list
 	if(typeof(AllLiveChats[chat.ChatID]) !== 'undefined')	// not in live chat list
 	{
 		Overall.tac--;		// chat was previously active so decrement
