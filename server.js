@@ -445,9 +445,9 @@ function calculateLwt() {
 	for(var i in AllLiveChats)
 	{
 		tchat = AllLiveChats[i];
-		console.log("Waiting time for chat id: "+i);
 		if(tchat.answered == null)		// chat not answered yet
 		{
+		console.log("Waiting time for chat id: "+i);
 			stime = new Date(tchat.started);
 			waittime = Math.round((Timenow - stime)/1000);
 			if(Departments[tchat.dept].lwt < waittime)
