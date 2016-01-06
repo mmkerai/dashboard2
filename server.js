@@ -286,7 +286,7 @@ function processUnavailableChat(chat) {
 function processClosedChat(chat) {
 	var deptobj, opobj;
 
-	if(chats.Started === null)		// started not set
+	if(chat.Started === null)		// started not set
 	{
 		Overall.tcaban++;		// it must be abandoned
 		return;
