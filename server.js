@@ -104,6 +104,7 @@ var	OperatorsByName = new Object();	// array of operator ids and name objects
 var	WaitingTimes = new Object();	// array of chat waiting times objects
 var	Teams = new Object();	// array of team names
 var ApiDataNotReady;	// Flag to show when data has been received from API so that data can be processed
+var Timenow;			// global for current time
 var Overall = new Object({conc: 0,
 							sla: 0,
 							cph: 0,
@@ -115,6 +116,7 @@ var Overall = new Object({conc: 0,
 							tcuq: 0,
 							tcua: 0,
 							tcun: 0,
+							tcaban: 0,
 							asa: 0,
 							act: 0,
 							acc: 0,
@@ -264,8 +266,8 @@ function processStartedChat(chat) {
 	// analyse each chat and keep track of global metrics
 	if(chat.DepartmentID === null) return;		// should never be null at this stage but I have seen it
 	deptobj = Departments[chat.DepartmentID];
-	Overall.tcuq++;
-	deptobj.tcuq++;
+	Overall.ciq++;
+	deptobj.ciq++;
 	var tchat = new ChatData(chat.ChatID, chat.DepartmentID, chat.Started);
 	AllLiveChats[chat.ChatID] = tchat;		// save this chat details
 }
@@ -280,21 +282,41 @@ function processUnavailableChat(chat) {
 }
 
 // process ended chat object and update all relevat dept, operator and global metrics
-// closed chat will contain started, answered, ended and closed time values
+// closed chat may not be started or answered but it usually is
 function processClosedChat(chat) {
 	var deptobj, opobj;
+
+	if(chats.Started === null)		// started not set
+	{
+		Overall.tcaban++;		// it must be abandoned
+		return;
+	}
+
 	if(chat.DepartmentID === null) return;		// should never be null at this stage but I have seen it
-	if(chat.OperatorID === null) return;		// operator id not set for some strange reason
-
 	deptobj = Departments[chat.DepartmentID];
-	opobj = Operators[chat.OperatorID];
-	var timenow = new Date();
 
-	// act calculations
+	if(chat.Answered === null)		// chat unanswered
+	{
+		if(chat.OperatorID === null)	// operator unassigned
+		{
+			Overall.tcuq++;
+			deptobj.tcuq++;
+		}
+		else
+		{
+			Overall.tcua++;
+			deptobj.tcua++;			
+		}
+		return;	// all done 
+	}
+
+	opobj = Operators[chat.OperatorID];		// if answered there will always be a operator assigned
+
 	var starttime = new Date(chat.Started);
 	var anstime = new Date(chat.Answered);
 	var endtime = new Date(chat.Ended);
 	var messagecount = chat.OperatorMessageCount + chat.VisitorMessageCount
+	// act calculations
 	var act = (endtime - anstime)/1000;		// in seconds
 	Overall.act = Math.round(((Overall.act * Overall.tcan) + act)/(Overall.tcan +1));
 	deptobj.act = Math.round(((deptobj.act * deptobj.tcan) + act)/(deptobj.tcan +1));
@@ -314,22 +336,11 @@ function processClosedChat(chat) {
 	}
 }
 
-// process all inactive (ended) chat objects
+// process all inactive (closed) chat objects
 function allInactiveChats(chats) {
-	// analyse each chat and keep track of global metrics
 	for(var i in chats)
 	{
-		if(chats[i].Started === null)		// started not set
-			Overall.tcun++;
-			
-		if(chats[i].Answered === null)		// answered not set
-		{
-			Overall.tcu++;
-			continue;
-		}
-		Overall.tac++;
-		if(chats[i].Ended !== null)		// chat has ended
-			processClosedChat(chats[i]);
+		processClosedChat(chats[i]);
 	}
 }
 
@@ -342,10 +353,9 @@ function processActiveChat(achat) {
 
 	deptobj = Departments[achat.DepartmentID];
 	opobj = Operators[achat.OperatorID];
-	var timenow = new Date();
 	var anstime = new Date(achat.Answered);
 	var starttime = new Date(achat.Started);
-	var chattime = Math.round((timenow - anstime)/1000);		// convert to seconds and round it
+	var chattime = Math.round((Timenow - anstime)/1000);		// convert to seconds and round it
 	// update ASA value
 	var asa = (anstime - starttime)/1000;
 	Overall.asa = Math.round(((Overall.asa * Overall.tcan) + asa)/(Overall.tcan +1));
@@ -383,7 +393,6 @@ function allActiveChats(achats) {
 function getOperatorAvailability(dlist) {
 	// StatusType 0, 1 and 2 is Logged out, logged in as away, logged in as available respectively
 	var operator;
-	var timenow = new Date();
 	for(var i in dlist)
 	{
 		operator = dlist[i].LoginID;
@@ -391,7 +400,7 @@ function getOperatorAvailability(dlist) {
 		if(Operators[operator] !== 'undefined')		// check operator id is valid
 		{
 			Operators[operator].status = dlist[i].StatusType;
-			Operators[operator].tcs = Math.round((timenow - new Date(dlist[i].Created))/1000);
+			Operators[operator].tcs = Math.round((Timenow - new Date(dlist[i].Created))/1000);
 			if(dlist[i].StatusType == 1)
 			{
 				Overall.oaway++;			
@@ -407,7 +416,6 @@ function getOperatorAvailability(dlist) {
 function calculateLwt() {
 	var tchat, stime, waittime;
 	var maxwait = 0;
-	var timenow = new Date();
 	
 	// first zero out the lwt for all dept
 	for(var i in Departments)
@@ -422,7 +430,7 @@ function calculateLwt() {
 		if(tchat.answered == null)		// chat not answered yet
 		{
 			stime = new Date(tchat.started);
-			waittime = Math.round((timenow - stime)/1000);
+			waittime = Math.round((Timenow - stime)/1000);
 			if(Departments[tchat.dept].lwt < waittime)
 				Departments[tchat.dept].lwt = waittime;
 			
@@ -584,6 +592,7 @@ io.sockets.on('connection', function(socket){
 });
 
 function updateChatStats() {
+	Timenow = new Date();		// update the time for all calculations
 	calculateLwt();
 	for(var i in LoggedInUsers)
 	{
@@ -598,7 +607,7 @@ function updateChatStats() {
 
 ApiDataNotReady = 0;	// reset flag
 doStartOfDay();
-//setTimeout(getInactiveChatData, 2000);
+setTimeout(getInactiveChatData, 2000);
 getActiveChatData();
 getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
 setTimeout(updateChatStats,3000);
