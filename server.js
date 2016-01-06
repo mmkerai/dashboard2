@@ -383,8 +383,8 @@ function processActiveChat(achat) {
 		tchat = new ChatData(achat.ChatID, achat.DepartmentID, achat.Started);
 	else	// already in queue so update stats
 	{
-		if(Overall.ciq > 1) Overall.ciq--;
-		if(deptobj.ciq > 1) deptobj.ciq--;	
+		if(Overall.ciq > 0) Overall.ciq--;
+		if(deptobj.ciq > 0) deptobj.ciq--;	
 	}
 
 	tchat.answered = achat.Answered;
