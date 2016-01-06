@@ -330,6 +330,7 @@ function processClosedChat(chat) {
 	opobj.act = Math.round(((opobj.act * opobj.tcan) + act)/(opobj.tcan +1));
 	if(AllLiveChats[chat.ChatID] !== 'undefined')
 	{
+		console.log("exisitng chat");
 		Overall.tac--;		// chat was previously active so decrement
 		deptobj.tac--;
 		delete AllLiveChats[chat.ChatID];		// remove from live list as this has now closed
