@@ -133,7 +133,7 @@ app.post('/chat-started', function(req, res){
 
 // Process incoming Boldchat triggered chat data
 app.post('/chat-unavailable', function(req, res){
-	debugLog("Chat-unavailable",req.body);
+//	debugLog("Chat-unavailable",req.body);
 	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
 		processUnavailableChat(req.body);
 	res.send({ "result": "success" });
@@ -141,7 +141,7 @@ app.post('/chat-unavailable', function(req, res){
 
 // Process incoming Boldchat triggered chat data
 app.post('/chat-answered', function(req, res){
-	debugLog("Chat-answered",req.body);
+//	debugLog("Chat-answered",req.body);
 	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
 		processActiveChat(req.body);
 	res.send({ "result": "success" });
@@ -149,7 +149,7 @@ app.post('/chat-answered', function(req, res){
 
 // Process incoming Boldchat triggered chat data
 app.post('/chat-closed', function(req, res){
-//	debugLog("Chat-closed", req.body);
+	debugLog("Chat-closed", req.body);
 	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
 		processClosedChat(req.body);
 	res.send({ "result": "success" });
