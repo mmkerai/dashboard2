@@ -321,7 +321,7 @@ function processClosedChat(chat) {
 	var endtime = new Date(chat.Ended);
 	var messagecount = chat.OperatorMessageCount + chat.VisitorMessageCount
 	// act calculations
-	var act = (endtime - anstime)/1000;		// in seconds
+	var act = Math.round((endtime - anstime)/1000);		// in seconds
 	Overall.act = Math.round(((Overall.act * Overall.tcan) + act)/(Overall.tcan +1));
 	deptobj.act = Math.round(((deptobj.act * deptobj.tcan) + act)/(deptobj.tcan +1));
 	
