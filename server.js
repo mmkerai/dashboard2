@@ -149,7 +149,7 @@ app.post('/chat-answered', function(req, res){
 
 // Process incoming Boldchat triggered chat data
 app.post('/chat-closed', function(req, res){
-	debugLog("Chat-closed", req.body);
+//	debugLog("Chat-closed", req.body);
 	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
 		processClosedChat(req.body);
 	res.send({ "result": "success" });
@@ -157,7 +157,7 @@ app.post('/chat-closed', function(req, res){
 
 // Process incoming Boldchat triggered operator data
 app.post('/operator-status-changed', function(req, res){
-//	debugLog("operator-status-changed",req.body);
+	debugLog("operator-status-changed",req.body);
 	res.send({ "result": "success" });
 });
 
@@ -355,7 +355,7 @@ function allInactiveChats(chats) {
 }
 
 // update active chat object and update all relevat dept, operator and global metrics
-// active chats mean they have been answered so ASA can be calculated
+// active chats mean they have been answered so it is no longer in the queue and ASA can be calculated
 function processActiveChat(achat) {
 	var deptobj, opobj, asa;
 	if(achat.DepartmentID === null) return;		// should never be null at this stage but I have seen it
@@ -366,20 +366,22 @@ function processActiveChat(achat) {
 	var anstime = new Date(achat.Answered);
 	var starttime = new Date(achat.Started);
 	var chattime = Math.round((Timenow - anstime)/1000);		// convert to seconds and round it
-	if(achat.Answered !== null)
+	if(achat.Answered !== null)		// should never be null
 	{
 	// update ASA value
 		asa = (anstime - starttime)/1000;
 		Overall.asa = Math.round(((Overall.asa * Overall.tcan) + asa)/(Overall.tcan +1));
 		deptobj.asa = Math.round(((deptobj.asa * deptobj.tcan) + asa)/(deptobj.tca +1));		
 	}
+	else
+		console.log("Error: Chat answered is null");
 
 	Overall.tac++;		// total number of active chats
 	deptobj.tac++;		// dept chats active
 	opobj.tac++;		// operator active chats
 
 	var tchat = AllLiveChats[achat.ChatID];
-	if(typeof(tchat) == 'undefined')		// if this chat did not exist 
+	if(typeof(tchat) === 'undefined')		// if this chat did not exist 
 		tchat = new ChatData(achat.ChatID, achat.DepartmentID, achat.Started);
 	else	// already in queue so update stats
 	{
