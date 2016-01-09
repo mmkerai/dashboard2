@@ -171,7 +171,8 @@ app.post('/chat-closed', function(req, res){
 });
 
 // Process incoming Boldchat triggered operator data
-app.post('/operator-status-changed', function(req, res){
+//app.post('/operator-status-changed', function(req, res){ 
+app.post('/operator', function(req, res){ 
 	debugLog("operator-status-changed",req.body);
 	res.send({ "result": "success" });
 });
@@ -212,12 +213,15 @@ function debugLog(name, dataobj) {
 }
 
 function deptsCallback(dlist) {
+	var dname;
 	for(var i in dlist) 
 	{
-		DepartmentsByName[dlist[i].Name] = {name: dlist[i].DepartmentID};
-		Departments[dlist[i].DepartmentID] = new DashMetrics(dlist[i].Name);
+		dname = dlist[i].Name;
+		if(dname.indexOf("PROD") == -1)	return;		// if this is not a PROD dept
+		DepartmentsByName[dname] = {name: dlist[i].DepartmentID};
+		Departments[dlist[i].DepartmentID] = new DashMetrics(dname);
 	}
-	console.log("No of Depts: "+Object.keys(Departments).length);
+	console.log("No of PROD Depts: "+Object.keys(Departments).length);
 }
 
 function operatorsCallback(dlist) {
@@ -265,6 +269,8 @@ function processStartedChat(chat) {
 	// analyse each chat and keep track of global metrics
 	if(chat.DepartmentID === null) return;		// should never be null at this stage but I have seen it
 	deptobj = Departments[chat.DepartmentID];
+	if(typeof(deptobj) === 'undefined') return;		// a non PROD dept we are not interested in
+
 	Overall.ciq++;
 	deptobj.ciq++;
 	var tchat = new ChatData(chat.ChatID, chat.DepartmentID, chat.Started);
@@ -277,6 +283,7 @@ function processUnavailableChat(chat) {
 	Overall.tcun++;
 	if(chat.DepartmentID === null) return;	
 	deptobj = Departments[chat.DepartmentID];
+	if(typeof(deptobj) === 'undefined') return;		// a non PROD dept we are not interested in
 	deptobj.tcun++;
 }
 
@@ -293,6 +300,7 @@ function processClosedChat(chat) {
 
 	if(chat.DepartmentID === null) return;		// should never be null at this stage but I have seen it
 	deptobj = Departments[chat.DepartmentID];
+	if(typeof(deptobj) === 'undefined') return;		// a non PROD dept we are not interested in
 
 	if(chat.Answered === null)		// chat unanswered
 	{
@@ -359,6 +367,7 @@ function processActiveChat(achat) {
 	if(achat.OperatorID === null) return;		// operator id not set for some strange reason
 
 	deptobj = Departments[achat.DepartmentID];
+	if(typeof(deptobj) === 'undefined') return;		// a non PROD dept we are not interested in
 	opobj = Operators[achat.OperatorID];
 	var anstime = new Date(achat.Answered);
 	var starttime = new Date(achat.Started);
