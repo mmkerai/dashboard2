@@ -318,6 +318,8 @@ function processClosedChat(chat) {
 	}
 
 	opobj = Operators[chat.OperatorID];		// if answered there will always be a operator assigned
+	if(typeof(opobj) === 'undefined') 		// in case there isnt
+		debugLog("Error: Operator is null",chat);
 
 	var starttime = new Date(chat.Started);
 	var anstime = new Date(chat.Answered);
@@ -380,7 +382,7 @@ function processActiveChat(achat) {
 		deptobj.asa = Math.round(((deptobj.asa * deptobj.tcan) + asa)/(deptobj.tca +1));		
 	}
 	else
-		console.log("Error: Chat answered is null");
+		debugLog("Error: Chat answered is null",achat);
 
 	Overall.tac++;		// total number of active chats
 	deptobj.tac++;		// dept chats active
@@ -520,7 +522,7 @@ function getApiData(method, params, fcallback) {
 function getActiveChatData() {
 	if(ApiDataNotReady)
 	{
-		console.log("Static data not ready: "+ApiDataNotReady);
+		console.log("Static data not ready (AC): "+ApiDataNotReady);
 		setTimeout(getActiveChatData, 1000);
 		return;
 	}
@@ -537,7 +539,7 @@ function getActiveChatData() {
 function getInactiveChatData() {
 	if(ApiDataNotReady)
 	{
-		console.log("Static data not ready");
+		console.log("Static data not ready (IC): "+ApiDataNotReady);
 		setTimeout(getInactiveChatData, 1000);
 		return;
 	}
