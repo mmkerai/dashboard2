@@ -73,8 +73,8 @@ $(document).ready(function() {
 				col = row.insertCell(9).innerHTML = ddata[i].tcuq;
 				col = row.insertCell(10).innerHTML = ddata[i].tcua;
 				col = row.insertCell(11).innerHTML = ddata[i].tcun;
-				col = row.insertCell(12).innerHTML = ddata[i].asa;
-				col = row.insertCell(13).innerHTML = ddata[i].act;
+				col = row.insertCell(12).innerHTML = toHHMMSS(ddata[i].asa);
+				col = row.insertCell(13).innerHTML = toHHMMSS(ddata[i].act);
 				col = row.insertCell(14).innerHTML = ddata[i].acc;
 				col = row.insertCell(15).innerHTML = ddata[i].oaway;
 				col = row.insertCell(16).innerHTML = ddata[i].oavail;
@@ -92,8 +92,8 @@ $(document).ready(function() {
 				rowid.cells[9].innerHTML = ddata[i].tcuq;
 				rowid.cells[10].innerHTML = ddata[i].tcua;
 				rowid.cells[11].innerHTML = ddata[i].tcun;
-				rowid.cells[12].innerHTML = ddata[i].asa;
-				rowid.cells[13].innerHTML = ddata[i].act;
+				rowid.cells[12].innerHTML = toHHMMSS(ddata[i].asa);
+				rowid.cells[13].innerHTML = toHHMMSS(ddata[i].act);
 				rowid.cells[14].innerHTML = ddata[i].acc;
 				rowid.cells[15].innerHTML = ddata[i].oaway;
 				rowid.cells[16].innerHTML = ddata[i].oavail;

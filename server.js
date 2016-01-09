@@ -171,8 +171,7 @@ app.post('/chat-closed', function(req, res){
 });
 
 // Process incoming Boldchat triggered operator data
-//app.post('/operator-status-changed', function(req, res){ 
-app.post('/operator', function(req, res){ 
+app.get('/operator-status-changed', function(req, res){ 
 	debugLog("operator-status-changed",req.body);
 	res.send({ "result": "success" });
 });
@@ -622,6 +621,8 @@ io.sockets.on('connection', function(socket){
 function updateChatStats() {
 	Timenow = new Date();		// update the time for all calculations
 	calculateLwt();
+	Overall.tco = Overall.tcan + Overall.tcuq + Overall.tcua;
+//	calculateSla();
 	for(var i in LoggedInUsers)
 	{
 		socket = LoggedInUsers[i];
