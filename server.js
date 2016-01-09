@@ -92,7 +92,38 @@ var ChatData = function(chatid, dept, started) {
 		this.closed = 0;
 		this.operator = 0;		
 };
-	
+
+//******************* Global class for dashboard metrics
+var DashMetrics = function(name) {
+		this.name = name;
+		this.conc = 0;
+		this.sla = 0;
+		this.cph = 0;
+		this.ciq = 0;
+		this.lwt = 0;
+		this.tco = 0;
+		this.tac = 0;
+		this.tcan = 0;
+		this.tcuq = 0;
+		this.tcua = 0;
+		this.tcun = 0;
+		this.tcaban = 0;
+		this.asa = 0;
+		this.act = 0;
+		this.acc = 0;
+		this.oaway = 0;
+		this.oavail = 0;	
+};
+
+//**************** Global class for operator metrics
+var OpMetrics  = function(name) {
+		this.name = name;
+		this.tcan = 0;		// total chats answered
+		this.status = 0;
+		this.activeChats = new Array();
+		this.tcs = 0;	// time in current status	
+};																				
+
 //********************************* Global variables for chat data
 var LoggedInUsers = new Array();
 var AllLiveChats = new Object();
@@ -105,23 +136,7 @@ var	WaitingTimes = new Object();	// array of chat waiting times objects
 var	Teams = new Object();	// array of team names
 var ApiDataNotReady;	// Flag to show when data has been received from API so that data can be processed
 var Timenow;			// global for current time
-var Overall = new Object({conc: 0,
-							sla: 0,
-							cph: 0,
-							ciq: 0,
-							lwt: 0,
-							tco: 0,
-							tac: 0,
-							tcan: 0,
-							tcuq: 0,
-							tcua: 0,
-							tcun: 0,
-							tcaban: 0,
-							asa: 0,
-							act: 0,
-							acc: 0,
-							oaway: 0,
-							oavail: 0});		// top level stats
+var Overall = new DashMetrics("Overall");		// top level stats
 
 // Process incoming Boldchat triggered chat data
 app.post('/chat-started', function(req, res){
@@ -200,23 +215,7 @@ function deptsCallback(dlist) {
 	for(var i in dlist) 
 	{
 		DepartmentsByName[dlist[i].Name] = {name: dlist[i].DepartmentID};
-		Departments[dlist[i].DepartmentID] = {name: dlist[i].Name, 
-													conc: 0,
-													sla: 0,
-													cph: 0,
-													ciq: 0,
-													lwt: 0,
-													tco: 0,
-													tac: 0,
-													tcan: 0,
-													tcuq: 0,
-													tcua: 0,
-													tcun: 0,
-													asa: 0,
-													act: 0,
-													acc: 0,
-													oaway: 0,
-													oavail: 0};
+		Departments[dlist[i].DepartmentID] = new DashMetrics(dlist[i].Name);
 	}
 	console.log("No of Depts: "+Object.keys(Departments).length);
 }
@@ -225,11 +224,7 @@ function operatorsCallback(dlist) {
 	for(var i in dlist) 
 	{
 		OperatorsByName[dlist[i].Name] = {name: dlist[i].LoginID};
-		Operators[dlist[i].LoginID] = {name: dlist[i].Name,
-											tcan: 0,		// total chats answered
-											status: 0,
-											activeChats: new Array(),
-											tcs: 0};	// time in current status																				
+		Operators[dlist[i].LoginID] = new OpMetrics(dlist[i].Name);																			
 	}
 	console.log("No of Operators: "+Object.keys(Operators).length);
 }
@@ -324,6 +319,8 @@ function processClosedChat(chat) {
 	var act = Math.round((endtime - anstime)/1000);		// in seconds
 	Overall.act = Math.round(((Overall.act * Overall.tcan) + act)/(Overall.tcan +1));
 	deptobj.act = Math.round(((deptobj.act * deptobj.tcan) + act)/(deptobj.tcan +1));
+	if(Overall.act == 'NaN')
+		console.log("Act is NaN: "+Overall.act);
 	
 	//operator stats
 	if(chat.OperatorID === null) return;		// operator id not set for some strange reason
