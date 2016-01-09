@@ -302,7 +302,7 @@ function processClosedChat(chat) {
 	deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return;		// a non PROD dept we are not interested in
 
-	if(chat.Answered === null)		// chat unanswered
+	if(chat.Answered === null || chat.Answered == "")		// chat unanswered
 	{
 		if(chat.OperatorID === null)	// operator unassigned
 		{
