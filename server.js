@@ -148,7 +148,7 @@ app.post('/chat-started', function(req, res){
 
 // Process incoming Boldchat triggered chat data
 app.post('/chat-unavailable', function(req, res){
-//	debugLog("Chat-unavailable",req.body);
+	debugLog("Chat-unavailable",req.body);
 	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
 		processUnavailableChat(req.body);
 	res.send({ "result": "success" });
@@ -265,10 +265,9 @@ function doStartOfDay() {
 
 // process started chat object and update all relevat dept, operator and global metrics
 function processStartedChat(chat) {
-	// analyse each chat and keep track of global metrics
 	if(chat.DepartmentID === null) return;		// should never be null at this stage but I have seen it
 	deptobj = Departments[chat.DepartmentID];
-	if(typeof(deptobj) === 'undefined') return;		// a non PROD dept we are not interested in
+	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
 
 	Overall.ciq++;
 	deptobj.ciq++;
@@ -276,13 +275,12 @@ function processStartedChat(chat) {
 	AllLiveChats[chat.ChatID] = tchat;		// save this chat details
 }
 
-// process unavailable chat object and update all relevat dept, operator and global metrics
+// process unavailable chat object. Occurs when visitor gets the unavailable message as ACD queue is full or nobody available
 function processUnavailableChat(chat) {
-	// analyse each chat and keep track of global metrics
 	Overall.tcun++;
 	if(chat.DepartmentID === null) return;	
 	deptobj = Departments[chat.DepartmentID];
-	if(typeof(deptobj) === 'undefined') return;		// a non PROD dept we are not interested in
+	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
 	deptobj.tcun++;
 }
 
