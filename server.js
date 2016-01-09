@@ -624,7 +624,7 @@ function updateChatStats() {
 
 ApiDataNotReady = 0;	// reset flag
 doStartOfDay();
-setTimeout(getInactiveChatData, 2000);
+setTimeout(getInactiveChatData, 3000);
 getActiveChatData();
 getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
 setTimeout(updateChatStats,3000);
