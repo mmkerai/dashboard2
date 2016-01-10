@@ -462,7 +462,7 @@ function calculateACT() {
 	}
 }
 
-function calculateChatStats() {
+function calculateASA() {
 	var tchat, count = 0, anstime = 0;
 	var danstime = new Object();
 	var dcount = new Object();
@@ -470,7 +470,6 @@ function calculateChatStats() {
 	for(var i in Departments)
 	{
 		Departments[i].asa = 0;
-		Departments[i].act = 0;
 		Departments[i].sla = 0;
 	}
 	
@@ -679,7 +678,8 @@ io.sockets.on('connection', function(socket){
 function updateChatStats() {
 	Timenow = new Date();		// update the time for all calculations
 	calculateLwt();
-	calculateChatStats();
+	calculateASA();
+	calculateACT();
 	Overall.tco = Overall.tcan + Overall.tcuq + Overall.tcua;
 //	calculateSla();
 	for(var i in LoggedInUsers)
