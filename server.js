@@ -142,8 +142,8 @@ var Overall = new DashMetrics("Overall");		// top level stats
 // Process incoming Boldchat triggered chat data
 app.post('/chat-started', function(req, res){
 //	debugLog("Chat-started",req.body);
-	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
-		processStartedChat(req.body);
+//	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
+//		processStartedChat(req.body);
 	res.send({ "result": "success" });
 });
 
@@ -158,16 +158,16 @@ app.post('/chat-unavailable', function(req, res){
 // Process incoming Boldchat triggered chat data
 app.post('/chat-answered', function(req, res){
 //	debugLog("Chat-answered",req.body);
-	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
-		processActiveChat(req.body);
+//	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
+//		processActiveChat(req.body);
 	res.send({ "result": "success" });
 });
 
 // Process incoming Boldchat triggered chat data
 app.post('/chat-closed', function(req, res){
 //	debugLog("Chat-closed", req.body);
-	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
-		processClosedChat(req.body);
+//	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
+//		processClosedChat(req.body);
 	res.send({ "result": "success" });
 });
 
@@ -289,10 +289,10 @@ function processUnavailableChat(chat) {
 	}
 }
 
-// update active chat object and update all relevat dept, operator and global metrics
-// active chats mean they have been answered so it is no longer in the queue and ASA can be calculated
+// active chat means a started chat has been answered by an operator so it is no longer in the queue
 function processActiveChat(achat) {
-	var deptobj, opobj, asa;
+	var deptobj, opobj, tchat, anstime, starttime;
+	
 	if(achat.DepartmentID === null) return;		// should never be null at this stage but I have seen it
 	if(achat.OperatorID === null) return;		// operator id not set for some strange reason
 
@@ -300,29 +300,23 @@ function processActiveChat(achat) {
 	if(typeof(deptobj) === 'undefined') return;		// a non PROD dept we are not interested in
 	opobj = Operators[achat.OperatorID];
 	
-	var anstime = new Date(achat.Answered);
-	var starttime = new Date(achat.Started);
-	var chattime = Math.round((Timenow - anstime)/1000);		// convert to seconds and round it
+	anstime = new Date(achat.Answered);
+	starttime = new Date(achat.Started);
 
-	Overall.tac++;		// total number of active chats
-	deptobj.tac++;		// dept chats active
-	opobj.tac++;		// operator active chats
-
-	var tchat = AllChats[achat.ChatID];
-	if(typeof(tchat) === 'undefined')		// if this chat did not exist 
+	tchat = AllChats[achat.ChatID];
+	if(typeof(tchat) === 'undefined')	// if this chat did not exist (only true if processing at startup not triggers)
 		tchat = new ChatData(achat.ChatID, achat.DepartmentID, starttime);
 
 	tchat.answered = anstime;
 	tchat.operator = achat.OperatorID;
 	tchat.status = 2;		// active chat
-	AllChats[achat.ChatID] = tchat;		// save this chat info until closed
+	AllChats[achat.ChatID] = tchat;		// save this chat info
 	
 //		console.log("opobj is "+achat.OperatorID);
 	opobj.activeChats.push({chatid: achat.ChatID, 
 						deptname: deptobj.name,
 						messages: achat.OperatorMessageCount + achat.VisitorMessageCount
 						});
-	
 }
 
 // process all active chat objects 
@@ -333,8 +327,7 @@ function allActiveChats(achats) {
 	}
 }
 
-// process ended chat object and update all relevat dept, operator and global metrics
-// closed chat may not be started or answered if it was abandoned or unavailable
+// process closed chat object. closed chat may not be started or answered if it was abandoned or unavailable
 function processClosedChat(chat) {
 	var deptobj, opobj;
 
@@ -373,7 +366,7 @@ function processClosedChat(chat) {
 	var anstime = new Date(chat.Answered);
 	var endtime = new Date(chat.Ended);
 	var closetime = new Date(chat.Closed);
-	var messagecount = chat.OperatorMessageCount + chat.VisitorMessageCount
+//	var messagecount = chat.OperatorMessageCount + chat.VisitorMessageCount
 	var tchat = AllChats[chat.ChatID];
 	if(typeof(tchat) === 'undefined')		// if this chat did not exist 
 		tchat = new ChatData(chat.ChatID, chat.DepartmentID, chat.starttime);
@@ -386,12 +379,6 @@ function processClosedChat(chat) {
 	opobj = Operators[chat.OperatorID];		// if answered there will always be a operator assigned
 	if(typeof(opobj) === 'undefined') 		// in case there isnt
 		debugLog("Error: Operator is null",chat);
-
-	if(tchat.status == 2)		// if chat was active
-	{
-		Overall.tac--;		// chat was previously active so decrement
-		deptobj.tac--;
-	}
 
 	tchat.status = 0;		// chat is now closed
 	AllChats[chat.ChatID] = tchat;	// update chat
@@ -442,7 +429,6 @@ function calculateACT() {
 		Departments[i].sla = 0;
 	}
 	
-	// now recalculate the lwt by dept and save the overall
 	for(var i in AllChats)
 	{
 		tchat = AllChats[i];
@@ -463,33 +449,41 @@ function calculateACT() {
 }
 
 function calculateASA() {
-	var tchat, count = 0, anstime = 0;
+	var tchat, count = 0, tac = 0, anstime = 0;
 	var danstime = new Object();
 	var dcount = new Object();
+	var dtac = new Object();
 
 	for(var i in Departments)
 	{
 		Departments[i].asa = 0;
+		Departments[i].tac = 0;
 		Departments[i].sla = 0;
 	}
 	
-	// now recalculate the lwt by dept and save the overall
 	for(var i in AllChats)
 	{
 		tchat = AllChats[i];
-		if(tchat.status == 2 && tchat.answered != 0)		// chat answered
+		if((tchat.status == 2 || tchat.status == 0) && tchat.answered != 0)		// chat answered
 		{
 			count++;
 			dcount[tchat.department] = dcount[tchat.department] + 1;
 			speed = tchat.answered - tchat.started;
 			anstime = anstime + speed;
-			danstime[tchat.department] = danstime[tchat.department] + speed;			
+			danstime[tchat.department] = danstime[tchat.department] + speed;
+			if(tchat.status == 2)
+			{
+				tac++;
+				dtac[tchat.department] = dtac[tchat.department] +1;
+			}
 		}
 	}
 	Overall.asa = Math.round((anstime / count)/1000);
+	Overall.tac = tac;
 	for(var i in dcount)
 	{
 		Departments[i].asa = Math.round((danstime[i] / dcount[i])/1000);
+		Departments[i].tac = dtac[i];
 	}
 }
 
