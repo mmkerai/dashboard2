@@ -469,7 +469,7 @@ function calculateASA() {
 	for(var i in AllChats)
 	{
 		tchat = AllChats[i];
-		if((tchat.status == 2 || tchat.status == 0) && tchat.answered != 0)		// chat answered
+		if((tchat.status == 2 || tchat.status == 0) && tchat.answered != 0 && tchat.started != 0)
 		{
 			count++;
 			dcount[tchat.department] = dcount[tchat.department] + 1;
@@ -696,7 +696,7 @@ function updateChatStats() {
 
 ApiDataNotReady = 0;	// reset flag
 doStartOfDay();
-setTimeout(getInactiveChatData, 3000);
+//setTimeout(getInactiveChatData, 3000);
 getActiveChatData();
-getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
+//getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
 setTimeout(updateChatStats,3000);
