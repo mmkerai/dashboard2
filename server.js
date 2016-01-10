@@ -296,7 +296,7 @@ function processClosedChat(chat) {
 	if(chat.ChatStatusType >= 7 && chat.ChatStatusType <= 15)		// unavailable chat
 	{
 		Overall.tcun++;
-		console.log("Chat Unavailable. Dept id: "+chat.DepartmentID);
+		console.log("Chat Unavailable: "+chat.ChatStatusType+",Chat ID: "+chat.ChatID+" Dept id: "+chat.DepartmentID);
 		return;
 	}
 
