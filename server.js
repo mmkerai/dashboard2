@@ -509,11 +509,11 @@ function calculateLwt() {
 	for(var i in AllChats)
 	{
 		tchat = AllChats[i];
-		if(tchat.status == 1 && tchat.answered == 0)		// chat not answered yet
+		if(tchat.status == 1 && tchat.answered == 0 && tchat.started != 0)		// chat not answered yet
 		{
 			tciq++;
 			Departments[tchat.department].ciq++;
-			waittime = Math.round((Timenow - tchat.starttime)/1000);
+			waittime = Math.round((Timenow - tchat.started)/1000);
 			if(Departments[tchat.department].lwt < waittime)
 				Departments[tchat.department].lwt = waittime;
 			
