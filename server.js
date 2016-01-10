@@ -343,7 +343,7 @@ function processClosedChat(chat) {
 	{
 		Overall.tcun++;
 		deptobj.tcun++;
-		console.log("Chat Unavailable: "+chat.ChatStatusType+",Chat ID: "+chat.ChatID+" Dept id: "+chat.DepartmentID);
+//		console.log("Chat Unavailable: "+chat.ChatStatusType+",Chat ID: "+chat.ChatID+" Dept id: "+chat.DepartmentID);
 		return;
 	}
 
@@ -427,12 +427,14 @@ function calculateACT() {
 	{
 		Departments[i].act = 0;
 		Departments[i].sla = 0;
+		dcount[i] = 0;
+		dchattime[i] = 0;	
 	}
 	
 	for(var i in AllChats)
 	{
 		tchat = AllChats[i];
-		if(tchat.status == 0 && tchat.ended != 0)		// chat ended
+		if(tchat.status == 0 && tchat.ended != 0 && tchat.answered != 0)		// chat ended
 		{
 			count++;
 			dcount[tchat.department] = dcount[tchat.department] + 1;
@@ -441,7 +443,7 @@ function calculateACT() {
 			dchattime[tchat.department] = dchattime[tchat.department] + ctime;			
 		}
 	}
-	Overall.asa = Math.round((chattime / count)/1000);
+	Overall.act = Math.round((chattime / count)/1000);
 	for(var i in dcount)
 	{
 		Departments[i].act = Math.round((dchattime[i] / dcount[i])/1000);
@@ -459,6 +461,9 @@ function calculateASA() {
 		Departments[i].asa = 0;
 		Departments[i].tac = 0;
 		Departments[i].sla = 0;
+		dcount[i] = 0;
+		danstime[i] = 0;
+		dtac[i] = 0;
 	}
 	
 	for(var i in AllChats)
