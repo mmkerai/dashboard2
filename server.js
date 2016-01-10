@@ -475,8 +475,10 @@ function calculateASA() {
 			dcount[tchat.department] = dcount[tchat.department] + 1;
 			speed = tchat.answered - tchat.started;
 			anstime = anstime + speed;
+			if(NaN(anstime))
+				debugLog("anstime not a number: ",tchat);
 			danstime[tchat.department] = danstime[tchat.department] + speed;
-			if(tchat.status == 2)
+			if(tchat.status == 2)	// active chat
 			{
 				tac++;
 				dtac[tchat.department] = dtac[tchat.department] +1;
