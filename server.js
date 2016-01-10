@@ -469,10 +469,9 @@ function calculateLwt() {
 		tchat = AllChats[i];
 		if(tchat.status == 1 && tchat.answered == 0)		// chat not answered yet
 		{
-			stime = new Date(tchat.started);
-			waittime = Math.round((Timenow - stime)/1000);
-			if(Departments[tchat.dept].lwt < waittime)
-				Departments[tchat.dept].lwt = waittime;
+			waittime = Math.round((Timenow - tchat.starttime)/1000);
+			if(Departments[tchat.department].lwt < waittime)
+				Departments[tchat.department].lwt = waittime;
 			
 			if(maxwait < waittime)
 				maxwait = waittime;
