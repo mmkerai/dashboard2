@@ -83,10 +83,10 @@ app.get('/favicon.ico', function(req, res){
 });
 
 //********************************* Global class for chat data
-var ChatData = function(chatid, dept, started) {
+var ChatData = function(chatid, dept, start) {
 		this.chatID = chatid;
 		this.department = dept;
-		this.started = started;		// times ISO times must be converted to epoch (milliseconds since 1 Jan 1970)
+		this.started = start;		// times ISO times must be converted to epoch (milliseconds since 1 Jan 1970)
 		this.answered = 0;			// so it is easy to do the calculations
 		this.ended = 0;
 		this.closed = 0;
@@ -369,7 +369,7 @@ function processClosedChat(chat) {
 //	var messagecount = chat.OperatorMessageCount + chat.VisitorMessageCount
 	var tchat = AllChats[chat.ChatID];
 	if(typeof(tchat) === 'undefined')		// if this chat did not exist 
-		tchat = new ChatData(chat.ChatID, chat.DepartmentID, chat.starttime);
+		tchat = new ChatData(chat.ChatID, chat.DepartmentID, starttime);
 	tchat.answered = anstime;
 	tchat.ended = endtime;
 	tchat.closed = closetime;
@@ -697,6 +697,6 @@ function updateChatStats() {
 ApiDataNotReady = 0;	// reset flag
 doStartOfDay();
 setTimeout(getInactiveChatData, 3000);
-//getActiveChatData();
+getActiveChatData();
 //getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
 setTimeout(updateChatStats,3000);
