@@ -91,7 +91,7 @@ var ChatData = function(chatid, dept, started) {
 		this.ended = 0;
 		this.closed = 0;
 		this.operator = 0;	
-		this.status = 0;	// 0 is closed, 1 is active
+		this.status = 0;	// 0 is closed, 1 is waiting (started), 2 is active (answered)
 };
 
 //******************* Global class for dashboard metrics
@@ -274,6 +274,7 @@ function processStartedChat(chat) {
 	Overall.ciq++;
 	deptobj.ciq++;
 	var tchat = new ChatData(chat.ChatID, chat.DepartmentID, starttime);
+	tchat.status = 1;	// waiting to be answered
 	AllChats[chat.ChatID] = tchat;		// save this chat details
 }
 
@@ -410,7 +411,7 @@ function processActiveChat(achat) {
 
 	tchat.answered = anstime;
 	tchat.operator = achat.OperatorID;
-	tchat.status = 1;		// active chat
+	tchat.status = 2;		// active chat
 	AllChats[achat.ChatID] = tchat;		// save this chat info until closed
 	
 //		console.log("opobj is "+achat.OperatorID);
@@ -463,10 +464,10 @@ function calculateLwt() {
 	}
 	
 	// now recalculate the lwt by dept and save the overall
-	for(var i in AllLiveChats)
+	for(var i in AllChats)
 	{
-		tchat = AllLiveChats[i];
-		if(tchat.answered == 0)		// chat not answered yet
+		tchat = AllChats[i];
+		if(tchat.status == 1 && tchat.answered == 0)		// chat not answered yet
 		{
 			stime = new Date(tchat.started);
 			waittime = Math.round((Timenow - stime)/1000);
