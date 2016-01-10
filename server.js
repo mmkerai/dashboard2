@@ -371,8 +371,8 @@ function processClosedChat(chat) {
 	if(typeof(tchat) === 'undefined')		// if this chat did not exist 
 		tchat = new ChatData(chat.ChatID, chat.DepartmentID, chat.starttime);
 	tchat.answered = anstime;
-	tchat.endtime = endtime;
-	tchat.closetime = closetime;
+	tchat.ended = endtime;
+	tchat.closed = closetime;
 	tchat.operator = chat.OperatorID;
 
 	if(chat.OperatorID === null) return;		// operator id not set for some strange reason
