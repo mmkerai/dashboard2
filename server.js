@@ -446,7 +446,8 @@ function calculateACT() {
 	Overall.act = Math.round((chattime / count)/1000);
 	for(var i in dcount)
 	{
-		Departments[i].act = Math.round((dchattime[i] / dcount[i])/1000);
+		if(dcount[i] != 0)	// musnt divide by 0
+			Departments[i].act = Math.round((dchattime[i] / dcount[i])/1000);
 	}
 }
 
@@ -487,9 +488,8 @@ function calculateASA() {
 	Overall.tac = tac;
 	for(var i in dcount)
 	{
-		Departments[i].asa = Math.round((danstime[i] / dcount[i])/1000);
-		if(isNaN(Departments[i].asa))
-			debugLog("asa not a number: ",dcount);
+		if(dcount[i] != 0)	// musnt divide by 0
+			Departments[i].asa = Math.round((danstime[i] / dcount[i])/1000);
 		Departments[i].tac = dtac[i];
 	}
 }
