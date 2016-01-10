@@ -300,11 +300,11 @@ function processClosedChat(chat) {
 		return;
 	}
 
-	if(chat.DepartmentID === null)
+	if(chat.DepartmentID === null)		// should never be null at this stage but I have seen it
 	{
 		debugLog("Closed Chat, Dept null", chat);
 		return;
-	}		// should never be null at this stage but I have seen it
+	}
 	deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return;		// a non PROD dept we are not interested in
 
