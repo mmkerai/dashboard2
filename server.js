@@ -142,8 +142,8 @@ var Overall = new DashMetrics("Overall");		// top level stats
 // Process incoming Boldchat triggered chat data
 app.post('/chat-started', function(req, res){
 //	debugLog("Chat-started",req.body);
-//	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
-//		processStartedChat(req.body);
+	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
+		processStartedChat(req.body);
 	res.send({ "result": "success" });
 });
 
@@ -158,16 +158,16 @@ app.post('/chat-unavailable', function(req, res){
 // Process incoming Boldchat triggered chat data
 app.post('/chat-answered', function(req, res){
 //	debugLog("Chat-answered",req.body);
-//	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
-//		processActiveChat(req.body);
+	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
+		processActiveChat(req.body);
 	res.send({ "result": "success" });
 });
 
 // Process incoming Boldchat triggered chat data
 app.post('/chat-closed', function(req, res){
 //	debugLog("Chat-closed", req.body);
-//	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
-//		processClosedChat(req.body);
+	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
+		processClosedChat(req.body);
 	res.send({ "result": "success" });
 });
 
@@ -475,8 +475,6 @@ function calculateASA() {
 			dcount[tchat.department] = dcount[tchat.department] + 1;
 			speed = tchat.answered - tchat.started;
 			anstime = anstime + speed;
-			if(isNaN(anstime))
-				debugLog("anstime not a number: ",tchat);
 			danstime[tchat.department] = danstime[tchat.department] + speed;
 			if(tchat.status == 2)	// active chat
 			{
@@ -490,6 +488,8 @@ function calculateASA() {
 	for(var i in dcount)
 	{
 		Departments[i].asa = Math.round((danstime[i] / dcount[i])/1000);
+		if(isNaN(Departments[i].asa))
+			debugLog("asa not a number: ",dcount);
 		Departments[i].tac = dtac[i];
 	}
 }
