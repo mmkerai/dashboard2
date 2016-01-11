@@ -364,7 +364,7 @@ function processClosedChat(chat) {
 		closetime = new Date(chat.Closed);
 
 	if(chat.OperatorID != null && chat.OperatorID != "")
-		opid = new Date(chat.OperatorID);
+		opid = chat.OperatorID;
 
 //	var messagecount = chat.OperatorMessageCount + chat.VisitorMessageCount
 	tchat = AllChats[chat.ChatID];
