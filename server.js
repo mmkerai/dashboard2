@@ -417,18 +417,21 @@ function getOperatorAvailability(dlist) {
 		}
 	}			
 }
-
-function calculateACT() {
-	var tchat, count = 0, chattime = 0;
+// calculate ACT and Chat per hour - both are done after chats are complete (ended)
+function calculateACT_CPH() {
+	var tchat,count=0,chattime=0,cph=0;
 	var dchattime = new Object();
 	var dcount = new Object();
+	var dcph = new Object();
+	var pastHour = Timenow - (60*60*1000);	// Epoch time for past hour
 
 	for(var i in Departments)
 	{
 		Departments[i].act = 0;
 		Departments[i].sla = 0;
 		dcount[i] = 0;
-		dchattime[i] = 0;	
+		dchattime[i] = 0;
+		dcph[i] = 0;
 	}
 	
 	for(var i in AllChats)
@@ -440,14 +443,24 @@ function calculateACT() {
 			dcount[tchat.department] = dcount[tchat.department] + 1;
 			ctime = tchat.ended - tchat.answered;
 			chattime = chattime + ctime;
-			dchattime[tchat.department] = dchattime[tchat.department] + ctime;			
+			dchattime[tchat.department] = dchattime[tchat.department] + ctime;	
+			if(tchat.ended >= pastHour)
+			{
+				cph++;
+				dcph[tchat.department]++;
+			}
 		}
 	}
-	Overall.act = Math.round((chattime / count)/1000);
+	
+	Overall.cph = cph;
+	if(count != 0)	// dont divide by 0
+		Overall.act = Math.round((chattime / count)/1000);
 	for(var i in dcount)
 	{
 		if(dcount[i] != 0)	// musnt divide by 0
 			Departments[i].act = Math.round((dchattime[i] / dcount[i])/1000);
+			
+		Departments[i].cph = dcph[i];
 	}
 }
 
