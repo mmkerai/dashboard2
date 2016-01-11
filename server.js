@@ -507,7 +507,7 @@ function calculateASA() {
 	}
 }
 
-function calculateLwt() {
+function calculateLWT_CIQ() {
 	var tchat, waittime, tciq = 0;
 	var maxwait = 0;
 	
@@ -522,7 +522,7 @@ function calculateLwt() {
 	for(var i in AllChats)
 	{
 		tchat = AllChats[i];
-		if(tchat.status == 1 && tchat.answered == 0 && tchat.started != 0 && tchat.ended != 0)		// chat not answered yet
+		if(tchat.status == 1 && tchat.answered == 0 && tchat.started != 0 && tchat.ended == 0)		// chat not answered yet
 		{
 			tciq++;
 			Departments[tchat.department].ciq++;
@@ -691,7 +691,7 @@ io.sockets.on('connection', function(socket){
 
 function updateChatStats() {
 	Timenow = new Date();		// update the time for all calculations
-	calculateLwt();
+	calculateLWT_CIQ();
 	calculateASA();
 	calculateACT_CPH();
 	Overall.tco = Overall.tcan + Overall.tcuq + Overall.tcua;
