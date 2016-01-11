@@ -290,16 +290,16 @@ function processUnavailableChat(chat) {
 }
 
 // active chat means a started chat has been answered by an operator so it is no longer in the queue
-function processAnsweredChat(achat) {
+function processAnsweredChat(chat) {
 	var deptobj, opobj, tchat;
 	var anstime=0, starttime=0;
 	
-	if(achat.DepartmentID == null || achat.DepartmentID == "") return;	// should never be null at this stage but I have seen it
-	if(achat.OperatorID == null || achat.OperatorID == "") return;		// operator id not set for some strange reason
+	if(chat.DepartmentID == null || chat.DepartmentID == "") return;	// should never be null at this stage but I have seen it
+	if(chat.OperatorID == null || chat.OperatorID == "") return;		// operator id not set for some strange reason
 
-	deptobj = Departments[achat.DepartmentID];
+	deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return;		// a non PROD dept we are not interested in
-	opobj = Operators[achat.OperatorID];
+	opobj = Operators[chat.OperatorID];
 	
 	if(chat.Started != null && chat.Started != "")
 		starttime = new Date(chat.Started);
@@ -307,19 +307,19 @@ function processAnsweredChat(achat) {
 	if(chat.Answered != null && chat.Answered != "")
 		anstime = new Date(chat.Answered);
 
-	tchat = AllChats[achat.ChatID];
+	tchat = AllChats[chat.ChatID];
 	if(typeof(tchat) === 'undefined')	// if this chat did not exist (only true if processing at startup not triggers)
-		tchat = new ChatData(achat.ChatID, achat.DepartmentID, starttime);
+		tchat = new ChatData(chat.ChatID, chat.DepartmentID, starttime);
 
 	tchat.answered = anstime;
-	tchat.operator = achat.OperatorID;
+	tchat.operator = chat.OperatorID;
 	tchat.status = 2;		// active chat
-	AllChats[achat.ChatID] = tchat;		// save this chat info
+	AllChats[chat.ChatID] = tchat;		// save this chat info
 	
-//		console.log("opobj is "+achat.OperatorID);
-	opobj.activeChats.push({chatid: achat.ChatID, 
+//		console.log("opobj is "+chat.OperatorID);
+	opobj.activeChats.push({chatid: chat.ChatID, 
 						deptname: deptobj.name,
-						messages: achat.OperatorMessageCount + achat.VisitorMessageCount
+						messages: chat.OperatorMessageCount + chat.VisitorMessageCount
 						});
 }
 
