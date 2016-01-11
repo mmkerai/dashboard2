@@ -330,6 +330,7 @@ function allActiveChats(achats) {
 // process closed chat object. closed chat may not be started or answered if it was abandoned or unavailable
 function processClosedChat(chat) {
 	var deptobj, opobj;
+	var starttime=0,anstime=0,endtime=0,closetime=0;
 
 	if(chat.DepartmentID === null)		// should never be null at this stage but I have seen it
 	{									// perhaps it is an abandoned chat
@@ -346,9 +347,10 @@ function processClosedChat(chat) {
 		return;
 	}
 
-	var starttime = new Date(chat.Started);
+	if(chat.Ended != null && chat.Ended != "")
+		endtime = new Date(chat.Ended);
+
 	var anstime = new Date(chat.Answered);
-	var endtime = new Date(chat.Ended);
 	var closetime = new Date(chat.Closed);
 //	var messagecount = chat.OperatorMessageCount + chat.VisitorMessageCount
 	var tchat = AllChats[chat.ChatID];
