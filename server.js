@@ -159,7 +159,7 @@ app.post('/chat-unavailable', function(req, res){
 app.post('/chat-answered', function(req, res){
 //	debugLog("Chat-answered",req.body);
 	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
-		processActiveChat(req.body);
+		processAnsweredChat(req.body);
 	res.send({ "result": "success" });
 });
 
@@ -266,7 +266,7 @@ function doStartOfDay() {
 
 // process started chat object and update all relevat dept, operator and global metrics
 function processStartedChat(chat) {
-	if(chat.DepartmentID === null) return;		// should never be null at this stage but I have seen it
+	if(chat.DepartmentID == null || chat.DepartmentID == "") return;// should never be null at this stage but I have seen it
 	deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
 
@@ -290,18 +290,22 @@ function processUnavailableChat(chat) {
 }
 
 // active chat means a started chat has been answered by an operator so it is no longer in the queue
-function processActiveChat(achat) {
-	var deptobj, opobj, tchat, anstime, starttime;
+function processAnsweredChat(achat) {
+	var deptobj, opobj, tchat;
+	var anstime=0, starttime=0;
 	
-	if(achat.DepartmentID === null) return;		// should never be null at this stage but I have seen it
-	if(achat.OperatorID === null) return;		// operator id not set for some strange reason
+	if(achat.DepartmentID == null || achat.DepartmentID == "") return;	// should never be null at this stage but I have seen it
+	if(achat.OperatorID == null || achat.OperatorID == "") return;		// operator id not set for some strange reason
 
 	deptobj = Departments[achat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return;		// a non PROD dept we are not interested in
 	opobj = Operators[achat.OperatorID];
 	
-	anstime = new Date(achat.Answered);
-	starttime = new Date(achat.Started);
+	if(chat.Started != null && chat.Started != "")
+		starttime = new Date(chat.Started);
+
+	if(chat.Answered != null && chat.Answered != "")
+		anstime = new Date(chat.Answered);
 
 	tchat = AllChats[achat.ChatID];
 	if(typeof(tchat) === 'undefined')	// if this chat did not exist (only true if processing at startup not triggers)
@@ -323,14 +327,14 @@ function processActiveChat(achat) {
 function allActiveChats(achats) {
 	for(var i in achats) 
 	{
-		processActiveChat(achats[i]);
+		processAnsweredChat(achats[i]);
 	}
 }
 
 // process closed chat object. closed chat may not be started or answered if it was abandoned or unavailable
 function processClosedChat(chat) {
-	var deptobj, opobj;
-	var starttime=0,anstime=0,endtime=0,closetime=0;
+	var deptobj,opobj,tchat;
+	var starttime=0,anstime=0,endtime=0,closetime=0,opid=0;
 
 	if(chat.DepartmentID === null)		// should never be null at this stage but I have seen it
 	{									// perhaps it is an abandoned chat
@@ -347,20 +351,30 @@ function processClosedChat(chat) {
 		return;
 	}
 
+	if(chat.Started != null && chat.Started != "")
+		starttime = new Date(chat.Started);
+
+	if(chat.Answered != null && chat.Answered != "")
+		anstime = new Date(chat.Answered);
+
 	if(chat.Ended != null && chat.Ended != "")
 		endtime = new Date(chat.Ended);
 
-	var anstime = new Date(chat.Answered);
-	var closetime = new Date(chat.Closed);
+	if(chat.Closed != null && chat.Closed != "")
+		closetime = new Date(chat.Closed);
+
+	if(chat.OperatorID != null && chat.OperatorID != "")
+		opid = new Date(chat.OperatorID);
+
 //	var messagecount = chat.OperatorMessageCount + chat.VisitorMessageCount
-	var tchat = AllChats[chat.ChatID];
+	tchat = AllChats[chat.ChatID];
 	if(typeof(tchat) === 'undefined')		// if this chat did not exist 
 		tchat = new ChatData(chat.ChatID, chat.DepartmentID, starttime);
 
 	tchat.status = 0;		// inactive/complete/cancelled/closed
-	if(chat.Answered === null || chat.Answered == "")		// chat unanswered
+	if(anstime == 0)		// chat unanswered
 	{
-		if(chat.OperatorID == null || chat.OperatorID == "")	// operator unassigned
+		if(opid == 0)	// operator unassigned
 		{
 			Overall.tcuq++;
 			deptobj.tcuq++;
@@ -376,13 +390,13 @@ function processClosedChat(chat) {
 	tchat.answered = anstime;
 	tchat.ended = endtime;
 	tchat.closed = closetime;
-	tchat.operator = chat.OperatorID;
+	tchat.operator = opid;
 	AllChats[chat.ChatID] = tchat;	// update chat
 	Overall.tcan++;
 	deptobj.tcan++;
 	
-	if(chat.OperatorID === null) return;		// operator id not set for some strange reason
-	opobj = Operators[chat.OperatorID];		// if answered there will always be a operator assigned
+	if(opid == 0) return;		// operator id not set if chat abandoned before answering
+	opobj = Operators[opid];		// if answered there will always be a operator assigned
 	if(typeof(opobj) === 'undefined') 		// in case there isnt
 		debugLog("Error: Operator is null",chat);
 
@@ -499,7 +513,8 @@ function calculateASA() {
 			}
 		}
 	}
-	Overall.asa = Math.round((anstime / count)/1000);
+	if(count != 0)	// dont divide by 0
+		Overall.asa = Math.round((anstime / count)/1000);
 	Overall.tac = tac;
 	for(var i in dcount)
 	{
