@@ -693,7 +693,7 @@ function updateChatStats() {
 	Timenow = new Date();		// update the time for all calculations
 	calculateLwt();
 	calculateASA();
-	calculateACT();
+	calculateACT_CPH();
 	Overall.tco = Overall.tcan + Overall.tcuq + Overall.tcua;
 //	calculateSla();
 	for(var i in LoggedInUsers)
