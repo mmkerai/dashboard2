@@ -397,8 +397,11 @@ function processClosedChat(chat) {
 	
 	if(opid == 0) return;		// operator id not set if chat abandoned before answering
 	opobj = Operators[opid];		// if answered there will always be a operator assigned
-	if(typeof(opobj) === 'undefined') 		// in case there isnt
+	if(typeof(opobj) === 'undefined') 	
+	{									// in case there isnt
 		debugLog("Error: Operator is null",chat);
+		return;
+	}
 
 	opobj.tcan++;	// chats answered and complete
 }
