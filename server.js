@@ -349,7 +349,7 @@ function processClosedChat(chat) {
 
 	if(chat.Answered === null || chat.Answered == "")		// chat unanswered
 	{
-		if(chat.OperatorID === null)	// operator unassigned
+		if(chat.OperatorID == null || chat.OperatorID == "")	// operator unassigned
 		{
 			Overall.tcuq++;
 			deptobj.tcuq++;
@@ -509,7 +509,7 @@ function calculateLwt() {
 	for(var i in AllChats)
 	{
 		tchat = AllChats[i];
-		if(tchat.status == 1 && tchat.answered == 0 && tchat.started != 0)		// chat not answered yet
+		if(tchat.status == 1 && tchat.answered == 0 && tchat.started != 0 && tchat.ended != 0)		// chat not answered yet
 		{
 			tciq++;
 			Departments[tchat.department].ciq++;
@@ -698,5 +698,5 @@ ApiDataNotReady = 0;	// reset flag
 doStartOfDay();
 setTimeout(getInactiveChatData, 3000);
 getActiveChatData();
-//getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
+getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
 setTimeout(updateChatStats,3000);
