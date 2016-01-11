@@ -343,10 +343,19 @@ function processClosedChat(chat) {
 	{
 		Overall.tcun++;
 		deptobj.tcun++;
-//		console.log("Chat Unavailable: "+chat.ChatStatusType+",Chat ID: "+chat.ChatID+" Dept id: "+chat.DepartmentID);
 		return;
 	}
 
+	var starttime = new Date(chat.Started);
+	var anstime = new Date(chat.Answered);
+	var endtime = new Date(chat.Ended);
+	var closetime = new Date(chat.Closed);
+//	var messagecount = chat.OperatorMessageCount + chat.VisitorMessageCount
+	var tchat = AllChats[chat.ChatID];
+	if(typeof(tchat) === 'undefined')		// if this chat did not exist 
+		tchat = new ChatData(chat.ChatID, chat.DepartmentID, starttime);
+
+	tchat.status = 0;		// inactive/complete/cancelled/closed
 	if(chat.Answered === null || chat.Answered == "")		// chat unanswered
 	{
 		if(chat.OperatorID == null || chat.OperatorID == "")	// operator unassigned
@@ -362,28 +371,19 @@ function processClosedChat(chat) {
 		return;	// all done 
 	}
 
-	var starttime = new Date(chat.Started);
-	var anstime = new Date(chat.Answered);
-	var endtime = new Date(chat.Ended);
-	var closetime = new Date(chat.Closed);
-//	var messagecount = chat.OperatorMessageCount + chat.VisitorMessageCount
-	var tchat = AllChats[chat.ChatID];
-	if(typeof(tchat) === 'undefined')		// if this chat did not exist 
-		tchat = new ChatData(chat.ChatID, chat.DepartmentID, starttime);
 	tchat.answered = anstime;
 	tchat.ended = endtime;
 	tchat.closed = closetime;
 	tchat.operator = chat.OperatorID;
-
+	AllChats[chat.ChatID] = tchat;	// update chat
+	Overall.tcan++;
+	deptobj.tcan++;
+	
 	if(chat.OperatorID === null) return;		// operator id not set for some strange reason
 	opobj = Operators[chat.OperatorID];		// if answered there will always be a operator assigned
 	if(typeof(opobj) === 'undefined') 		// in case there isnt
 		debugLog("Error: Operator is null",chat);
 
-	tchat.status = 0;		// chat is now closed
-	AllChats[chat.ChatID] = tchat;	// update chat
-	Overall.tcan++;
-	deptobj.tcan++;
 	opobj.tcan++;	// chats answered and complete
 }
 
