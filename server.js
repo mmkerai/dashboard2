@@ -81,6 +81,9 @@ app.get('/dashboard.js', function(req, res){
 app.get('/favicon.ico', function(req, res){
 	res.sendFile(__dirname + '/favicon.ico');
 });
+app.get('/threelogo.png', function(req, res){
+	res.sendFile(__dirname + '/threelogo.png');
+});
 
 //********************************* Global class for chat data
 var ChatData = function(chatid, dept, start) {
