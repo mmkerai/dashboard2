@@ -414,6 +414,14 @@ function allInactiveChats(chats) {
 	}
 }
 
+// department operators callback
+function getDeptOperators(operators) {
+	for(var i in operators)
+	{
+		
+	}
+}
+
 function getOperatorAvailability(dlist) {
 	// StatusType 0, 1 and 2 is Logged out, logged in as away, logged in as available respectively
 	var operator;
@@ -620,7 +628,7 @@ function getActiveChatData() {
 	{
 		parameters = "DepartmentID="+did;
 		getApiData("getActiveChats",parameters,allActiveChats);
-//			getApiData("getDepartmentOperators", parameters, getDeptOperators);
+		getApiData("getDepartmentOperators", parameters, getDeptOperators);
 	}
 }
 
