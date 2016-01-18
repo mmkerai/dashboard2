@@ -668,9 +668,9 @@ function getApiData(method, params, fcallback, cbparam) {
 				console.log("No data returned: "+str);
 				return;		// exit out if error json message received
 			}
-			if(cbparam == null)
-				fcallback(data);
-			else
+//			if(cbparam == null)
+//				fcallback(data);
+//			else
 				fcallback(data, cbparam);
 
 			if(typeof next !== 'undefined') 
