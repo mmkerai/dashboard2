@@ -286,7 +286,7 @@ function deptOperatorsCallback(dlist, dept) {
 	var operators = new Array();
 	for(var i in dlist) 
 	{
-		operators.push(dlist[i].OperatorID);
+		operators.push(dlist[i].LoginID);
 	}
 	
 	DeptOperators[dept] = operators;
