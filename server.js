@@ -293,7 +293,7 @@ function deptOperatorsCallback(dlist, dept) {
 	console.log("Operators in dept: "+dept+" - "+operators.length);
 }
 
-function opAvailabilityCallback(dlist) {
+function operatorAvailabilityCallback(dlist) {
 	// StatusType 0, 1 and 2 is Logged out, logged in as away, logged in as available respectively
 	var operator;
 	for(var i in dlist)
@@ -356,7 +356,7 @@ function doStartOfDay() {
 	sleep(1000);
 	getApiData("getFolders", 0, foldersCallback);
 	sleep(1000);
-	getApiData("getOperatorAvailability", "ServiceTypeID=1", OpAvailabilityCallback);
+	getApiData("getOperatorAvailability", "ServiceTypeID=1", operatorAvailabilityCallback);
 	sleep(1000);
 	getInactiveChatData();
 	sleep(1000);
