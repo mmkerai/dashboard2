@@ -254,6 +254,11 @@ function deptsCallback(dlist) {
 		Departments[dlist[i].DepartmentID] = new DashMetrics(dname);
 	}
 	console.log("No of PROD Depts: "+Object.keys(Departments).length);
+	for(var did in Departments)
+	{
+		parameters = "DepartmentID="+did;
+		getApiData("getDepartmentOperators",parameters,deptOperatorsCallback,did);	// extra func param due to API
+	}
 }
 
 function operatorsCallback(dlist) {
