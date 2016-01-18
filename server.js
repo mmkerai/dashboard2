@@ -290,7 +290,7 @@ function deptOperatorsCallback(dlist, dept) {
 	}
 	
 	DeptOperators[dept] = operators;
-	console.log("Operators in dept: "+dept+" - "+DeptOperators[dept].length);
+	console.log("Operators in dept: "+dept+" - "+DeptOperators[dept]);
 }
 
 function operatorAvailabilityCallback(dlist) {
