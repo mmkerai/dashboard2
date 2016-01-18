@@ -488,16 +488,16 @@ function getOperatorAvailability(dlist) {
 			Operators[operator].tcs = Math.round((TimeNow - new Date(dlist[i].Created))/1000);
 			for(var j in Departments)	// department stats
 			{
-				for(var k in DeptOperators[j])
-				{			
-					if(k == operator)
-					{
+//				for(var k in DeptOperators[j])
+//				{			
+//					if(k == operator)
+//					{
 						if(dlist[i].StatusType == 1)
 							Departments[j].oaway++;	
 						else if(dlist[i].StatusType == 2)
 							Departments[j].oavail++;
-					}
-				}
+//					}
+//				}
 			}
 			// overall stats
 			if(dlist[i].StatusType == 1)
