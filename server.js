@@ -668,20 +668,18 @@ function getApiData(method, params, fcallback, cbparam) {
 				console.log("No data returned: "+str);
 				return;		// exit out if error json message received
 			}
-//			if(cbparam == null)
-//				fcallback(data);
-//			else
-				fcallback(data, cbparam);
+			fcallback(data, cbparam);
 
 			if(typeof next !== 'undefined') 
 			{
+				console.log("*****Next required: "+next);
 				loadNext(method, next, fcallback);
 			}
 		});
 		// in case there is a html error
 		response.on('error', function(err) {
 			// handle errors with the request itself
-			console.error("Error with the request: ", err.message);
+			console.error("*****Error with the request: ", err.message);
 			ApiDataNotReady--;
 		});
 	});
