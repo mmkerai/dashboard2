@@ -283,14 +283,13 @@ function foldersCallback(dlist) {
 }
 
 function deptOperatorsCallback(dlist, dept) {
-	var operators = new Array();
+	DeptOperators[dept] = new Array();
 	for(var i in dlist) 
 	{
-		operators.push(dlist[i].OperatorID);
+		DeptOperators[dept].push(dlist[i].OperatorID);
 	}
 	
-	DeptOperators[dept] = operators;
-	console.log("Operators in dept: "+dept+" - "+operators.length);
+	console.log("Operators in dept: "+dept+" - "+DeptOperators[dept].length);
 }
 
 function operatorAvailabilityCallback(dlist) {
@@ -306,16 +305,16 @@ function operatorAvailabilityCallback(dlist) {
 			Operators[operator].tcs = Math.round((TimeNow - new Date(dlist[i].Created))/1000);
 			for(var j in Departments)	// department stats
 			{
-				console.log("Dept operators", DeptOperators[j]);
+				console.log("Dept: "+j+" operators: "+ DeptOperators[j].length);
 				for(var k in DeptOperators[j])
 				{			
-//					if(k == operator)
-//					{
+					if(k == operator)
+					{
 						if(dlist[i].StatusType == 1)
 							Departments[j].oaway++;	
 						else if(dlist[i].StatusType == 2)
 							Departments[j].oavail++;
-//					}
+					}
 				}
 			}
 			// overall stats
