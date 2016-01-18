@@ -293,6 +293,44 @@ function deptOperatorsCallback(dlist, dept) {
 	console.log("Operators in dept: "+dept+" - "+operators.length);
 }
 
+function opAvailabilityCallback(dlist) {
+	// StatusType 0, 1 and 2 is Logged out, logged in as away, logged in as available respectively
+	var operator;
+	for(var i in dlist)
+	{
+		operator = dlist[i].LoginID;
+//		console.log("Operator: "+operator + " StatusType is "+dlist[i].StatusType);
+		if(Operators[operator] !== 'undefined')		// check operator id is valid
+		{
+			Operators[operator].status = dlist[i].StatusType;
+			Operators[operator].tcs = Math.round((TimeNow - new Date(dlist[i].Created))/1000);
+			for(var j in Departments)	// department stats
+			{
+			debugLog("Dept operators", DeptOperators[j]);
+				for(var k in DeptOperators[j])
+				{			
+//					if(k == operator)
+//					{
+						if(dlist[i].StatusType == 1)
+							Departments[j].oaway++;	
+						else if(dlist[i].StatusType == 2)
+							Departments[j].oavail++;
+//					}
+				}
+			}
+			// overall stats
+			if(dlist[i].StatusType == 1)
+			{
+				Overall.oaway++;
+			}
+			else if(dlist[i].StatusType == 2)
+			{
+				Overall.oavail++;
+			}
+		}
+	}			
+}
+
 function getDepartmentNameFromID(id) {
 	return(Departments[id].name);
 }
@@ -318,11 +356,11 @@ function doStartOfDay() {
 	sleep(1000);
 	getApiData("getFolders", 0, foldersCallback);
 	sleep(1000);
+	getApiData("getOperatorAvailability", "ServiceTypeID=1", OpAvailabilityCallback);
+	sleep(1000);
 	getInactiveChatData();
 	sleep(1000);
 	getActiveChatData();
-	sleep(1000);
-	getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
 }
 
 // process started chat object and update all relevat dept, operator and global metrics
@@ -475,43 +513,6 @@ function allInactiveChats(chats) {
 	}
 }
 
-function getOperatorAvailability(dlist) {
-	// StatusType 0, 1 and 2 is Logged out, logged in as away, logged in as available respectively
-	var operator;
-	for(var i in dlist)
-	{
-		operator = dlist[i].LoginID;
-//		console.log("Operator: "+operator + " StatusType is "+dlist[i].StatusType);
-		if(Operators[operator] !== 'undefined')		// check operator id is valid
-		{
-			Operators[operator].status = dlist[i].StatusType;
-			Operators[operator].tcs = Math.round((TimeNow - new Date(dlist[i].Created))/1000);
-			for(var j in Departments)	// department stats
-			{
-			debugLog("Dept operators", DeptOperators[j]);
-				for(var k in DeptOperators[j])
-				{			
-//					if(k == operator)
-//					{
-						if(dlist[i].StatusType == 1)
-							Departments[j].oaway++;	
-						else if(dlist[i].StatusType == 2)
-							Departments[j].oavail++;
-//					}
-				}
-			}
-			// overall stats
-			if(dlist[i].StatusType == 1)
-			{
-				Overall.oaway++;
-			}
-			else if(dlist[i].StatusType == 2)
-			{
-				Overall.oavail++;
-			}
-		}
-	}			
-}
 // calculate ACT and Chat per hour - both are done after chats are complete (ended)
 function calculateACT_CPH() {
 	var tchat,count=0,chattime=0,cph=0;
