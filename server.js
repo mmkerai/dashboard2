@@ -306,7 +306,7 @@ function operatorAvailabilityCallback(dlist) {
 			Operators[operator].tcs = Math.round((TimeNow - new Date(dlist[i].Created))/1000);
 			for(var j in Departments)	// department stats
 			{
-			debugLog("Dept operators", DeptOperators[j]);
+				console.log("Dept operators", DeptOperators[j]);
 				for(var k in DeptOperators[j])
 				{			
 //					if(k == operator)
