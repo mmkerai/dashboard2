@@ -283,14 +283,14 @@ function foldersCallback(dlist) {
 }
 
 function deptOperatorsCallback(dlist, dept) {
-	var operators = new Array();
+	var doperators = new Array();
 	for(var i in dlist) 
 	{
-		operators.push(dlist[i].LoginID);
+		doperators.push(dlist[i].LoginID);
 	}
 	
-	DeptOperators[dept] = operators;
-	console.log("Operators in dept: "+dept+" - "+DeptOperators[dept]);
+	DeptOperators[dept] = doperators;
+	console.log("Operators in dept: "+dept+" - "+DeptOperators[dept].length);
 }
 
 function operatorAvailabilityCallback(dlist) {
@@ -306,8 +306,8 @@ function operatorAvailabilityCallback(dlist) {
 			Operators[operator].tcs = Math.round((TimeNow - new Date(dlist[i].Created))/1000);
 			for(var j in Departments)	// department stats
 			{
-//				console.log("Dept: "+j+" operators: "+ DeptOperators[j]);
-				for(var k in DeptOperators[j])
+				console.log("Dept: "+j+" operators: "+ DeptOperators[j].doperators.length);
+				for(var k in DeptOperators[j].doperators)
 				{			
 					if(k == operator)
 					{
