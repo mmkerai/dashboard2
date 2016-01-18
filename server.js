@@ -304,17 +304,17 @@ function operatorAvailabilityCallback(dlist) {
 		{
 			Operators[operator].status = dlist[i].StatusType;
 			Operators[operator].tcs = Math.round((TimeNow - new Date(dlist[i].Created))/1000);
-			for(var j in Departments)	// department stats
+			for(var did in Departments)	// department stats
 			{
-				console.log("Dept: "+j+" operators: "+ DeptOperators[j].doperators.length);
-				for(var k in DeptOperators[j].doperators)
+				console.log("Dept: "+did+" operators: "+ DeptOperators[did].length);
+				for(var k in DeptOperators[did])
 				{			
 					if(k == operator)
 					{
 						if(dlist[i].StatusType == 1)
-							Departments[j].oaway++;	
+							Departments[did].oaway++;	
 						else if(dlist[i].StatusType == 2)
-							Departments[j].oavail++;
+							Departments[did].oavail++;
 					}
 				}
 			}
