@@ -357,10 +357,10 @@ function doStartOfDay() {
 	getApiData("getFolders", 0, foldersCallback);
 	sleep(1000);
 //	getOperatorAvailabilityData();
-	sleep(1000);
-	getInactiveChatData();
-	sleep(1000);
-	getActiveChatData();
+//	sleep(1000);
+//	getInactiveChatData();
+//	sleep(1000);
+//	getActiveChatData();
 }
 
 // process started chat object and update all relevat dept, operator and global metrics
@@ -498,7 +498,7 @@ function processClosedChat(chat) {
 	opobj = Operators[opid];		// if answered there will always be a operator assigned
 	if(typeof(opobj) === 'undefined') 	
 	{									// in case there isnt
-		debugLog("Error: Operator is null",chat);
+		debugLog("****Error Operator is null",chat);
 		return;
 	}
 
