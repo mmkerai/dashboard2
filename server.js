@@ -356,7 +356,7 @@ function doStartOfDay() {
 	sleep(1000);
 	getApiData("getFolders", 0, foldersCallback);
 	sleep(1000);
-	getOperatorAvailabilityData();
+//	getOperatorAvailabilityData();
 	sleep(1000);
 	getInactiveChatData();
 	sleep(1000);
