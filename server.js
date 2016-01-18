@@ -350,13 +350,12 @@ function getDeptOperators(dept) {
 // setup all globals TODO: add teams
 function doStartOfDay() {
 	initialiseGlobals();	// zero all memory
-	sleep(1000);
 	getApiData("getDepartments", 0, deptsCallback);
 	sleep(1000);
-	getApiData("getOperators", 0, operatorsCallback);
-	sleep(1000);
-	getApiData("getFolders", 0, foldersCallback);
-	sleep(1000);
+//	getApiData("getOperators", 0, operatorsCallback);
+//	sleep(1000);
+//	getApiData("getFolders", 0, foldersCallback);
+//	sleep(1000);
 //	getOperatorAvailabilityData();
 //	sleep(1000);
 //	getInactiveChatData();
