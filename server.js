@@ -356,7 +356,7 @@ function doStartOfDay() {
 	sleep(1000);
 	getApiData("getFolders", 0, foldersCallback);
 	sleep(1000);
-	getApiData("getOperatorAvailability", "ServiceTypeID=1", operatorAvailabilityCallback);
+	getOperatorAvailabilityData();
 	sleep(1000);
 	getInactiveChatData();
 	sleep(1000);
@@ -687,6 +687,18 @@ function getApiData(method, params, fcallback, cbparam) {
 	});
 }
 
+// gets operator availability info 
+function getOperatorAvailabilityData() {
+	if(ApiDataNotReady)
+	{
+		console.log("Static data not ready (OA): "+ApiDataNotReady);
+		setTimeout(getOperatorAvailabilityData, 1000);
+		return;
+	}
+	
+	getApiData("getOperatorAvailability", "ServiceTypeID=1", operatorAvailabilityCallback);
+}
+
 // gets current active chats 
 function getActiveChatData() {
 	if(ApiDataNotReady)
@@ -700,8 +712,6 @@ function getActiveChatData() {
 	{
 		parameters = "DepartmentID="+did;
 		getApiData("getActiveChats",parameters,allActiveChats);
-		getApiData("getDepartmentOperators",parameters,deptOperatorsCallback,did);	// extra func param due to API
-		sleep(500);
 	}
 }
 
