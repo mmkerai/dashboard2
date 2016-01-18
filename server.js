@@ -249,16 +249,16 @@ function deptsCallback(dlist) {
 	for(var i in dlist) 
 	{
 		dname = dlist[i].Name;
-		if(dname.indexOf("PROD") == -1)	return;		// if this is not a PROD dept
+		if(dname.indexOf("PROD") == -1)	continue;		// if this is not a PROD dept
 		DepartmentsByName[dname] = {name: dlist[i].DepartmentID};
 		Departments[dlist[i].DepartmentID] = new DashMetrics(dname);
 	}
 	console.log("No of PROD Depts: "+Object.keys(Departments).length);
-/*	for(var did in Departments)
+	for(var did in Departments)
 	{
 		parameters = "DepartmentID="+did;
 		getApiData("getDepartmentOperators",parameters,deptOperatorsCallback,did);	// extra func param due to API
-	}*/
+	}
 }
 
 function operatorsCallback(dlist) {
