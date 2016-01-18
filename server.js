@@ -254,11 +254,11 @@ function deptsCallback(dlist) {
 		Departments[dlist[i].DepartmentID] = new DashMetrics(dname);
 	}
 	console.log("No of PROD Depts: "+Object.keys(Departments).length);
-	for(var did in Departments)
+/*	for(var did in Departments)
 	{
 		parameters = "DepartmentID="+did;
 		getApiData("getDepartmentOperators",parameters,deptOperatorsCallback,did);	// extra func param due to API
-	}
+	}*/
 }
 
 function operatorsCallback(dlist) {
@@ -352,9 +352,9 @@ function doStartOfDay() {
 	initialiseGlobals();	// zero all memory
 	getApiData("getDepartments", 0, deptsCallback);
 	sleep(1000);
-//	getApiData("getOperators", 0, operatorsCallback);
-//	sleep(1000);
-//	getApiData("getFolders", 0, foldersCallback);
+	getApiData("getOperators", 0, operatorsCallback);
+	sleep(1000);
+	getApiData("getFolders", 0, foldersCallback);
 //	sleep(1000);
 //	getOperatorAvailabilityData();
 //	sleep(1000);
@@ -498,7 +498,7 @@ function processClosedChat(chat) {
 	opobj = Operators[opid];		// if answered there will always be a operator assigned
 	if(typeof(opobj) === 'undefined') 	
 	{									// in case there isnt
-		debugLog("****Error Operator is null",chat);
+		debugLog("*******Error Operator obj is null",chat);
 		return;
 	}
 
