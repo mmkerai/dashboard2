@@ -306,9 +306,18 @@ function operatorAvailabilityCallback(dlist) {
 			Operators[operator].tcs = Math.round((TimeNow - new Date(dlist[i].Created))/1000);
 			for(var did in Departments)	// department stats
 			{
-				console.log("Dept: "+did+" operators: "+ DeptOperators[did].length);
+				if(DeptOperators[did].length < 10)
+				{
+					console.log("Dept: "+did+" operators: "+ DeptOperators[did].length);
+					var ops = new Array();
+					ops = DeptOperators[did];
+					for(var k in DeptOperators[did])
+					{
+						console.log("DeptOperator id: "+k);
+					}
+				}
 				for(var k in DeptOperators[did])
-				{			
+				{		
 					if(k == operator)
 					{
 						if(dlist[i].StatusType == 1)
