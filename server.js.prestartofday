@@ -130,47 +130,19 @@ var OpMetrics  = function(name) {
 };																				
 
 //********************************* Global variables for chat data
-var LoggedInUsers;
-var AllChats;
-var	Departments;	// array of dept ids and dept name objects
-var	DepartmentsByName;	// array of dept names and ids
-var	DeptOperators;	// array of operators by dept id
-var	Folders;	// array of folder ids and folder name objects
-var	Operators;	// array of operator ids and name objects
-var	OperatorsByName;	// array of operator ids and name objects
-var	WaitingTimes;	// array of chat waiting times objects
-var	Teams;	// array of team names
+var LoggedInUsers = new Array();
+var AllChats = new Object();
+var	Departments = new Object();	// array of dept ids and dept name objects
+var	DepartmentsByName = new Object();	// array of dept names and ids
+var	Folders = new Object();	// array of folder ids and folder name objects
+var	Operators = new Object();	// array of operator ids and name objects
+var	OperatorsByName = new Object();	// array of operator ids and name objects
+var	WaitingTimes = new Object();	// array of chat waiting times objects
+var	Teams = new Object();	// array of team names
 var ApiDataNotReady;	// Flag to show when data has been received from API so that data can be processed
-var TimeNow;			// global for current time
-var EndOfDay;			// global time for end of the day before all stats are reset
-var Overall;		// top level stats
+var Timenow;			// global for current time
+var Overall = new DashMetrics("Overall");		// top level stats
 
-function sleep(milliseconds) {
-  var start = new Date().getTime();
-  for(var i = 0; i < 1e7; i++) {
-    if ((new Date().getTime() - start) > milliseconds){
-      break;
-    }
-  }
-}
-
-function initialiseGlobals () {
-	LoggedInUsers = new Array();
-	AllChats = new Object();
-	Departments = new Object();	
-	DepartmentsByName = new Object();
-	DeptOperators = new Object();
-	Folders = new Object();	
-	Operators = new Object();
-	OperatorsByName = new Object();	
-	WaitingTimes = new Object();
-	Teams = new Object();
-	ApiDataNotReady = 0;
-	TimeNow = new Date();
-	EndOfDay = TimeNow;
-	EndOfDay.setHours(23,59,59,0);	// last second of the day
-	Overall = new DashMetrics("Overall");	
-}
 // Process incoming Boldchat triggered chat data
 app.post('/chat-started', function(req, res){
 //	debugLog("Chat-started",req.body);
@@ -277,47 +249,23 @@ function foldersCallback(dlist) {
 	console.log("No of Chat Folders: "+Object.keys(Folders).length);
 }
 
-function deptOperatorsCallback(dlist, dept) {
-	var operators = new Array();
-	for(var i in dlist) 
-	{
-		operators.push(dlist[i].OperatorID);
-	}
-	
-	DeptOperators[dept] = operators;
-	console.log("Operators in dept: "+dept+" - "+operators.length);
-}
-
 function getDepartmentNameFromID(id) {
 	return(Departments[id].name);
+}
+
+function getFolderNameFromID(id) {
+	return(Folders[id]);
 }
 
 function getOperatorNameFromID(id) {
 	return(Operators[id].name);
 }
 
-// department operators
-function getDeptOperators(dept) {
-	var operators = new Array();
-	var operators = DeptOperators[dept];
-//	if(typeof(operators) === 'undefined') return;
-	return operators;
-}
-
 // setup all globals TODO: add teams
 function doStartOfDay() {
-	initialiseGlobals();	// zero all memory
-	getApiData("getDepartments", 0, deptsCallback);
-	sleep(1000);
+	getApiData('getDepartments', 0, deptsCallback);
 	getApiData("getOperators", 0, operatorsCallback);
-	sleep(1000);
 	getApiData("getFolders", 0, foldersCallback);
-	sleep(1000);
-	getInactiveChatData();
-	sleep(1000);
-	getActiveChatData();
-	sleep(1000);
-	getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
 }
 
 // process started chat object and update all relevat dept, operator and global metrics
@@ -470,6 +418,14 @@ function allInactiveChats(chats) {
 	}
 }
 
+// department operators callback
+function getDeptOperators(operators) {
+	for(var i in operators)
+	{
+		
+	}
+}
+
 function getOperatorAvailability(dlist) {
 	// StatusType 0, 1 and 2 is Logged out, logged in as away, logged in as available respectively
 	var operator;
@@ -480,24 +436,10 @@ function getOperatorAvailability(dlist) {
 		if(Operators[operator] !== 'undefined')		// check operator id is valid
 		{
 			Operators[operator].status = dlist[i].StatusType;
-			Operators[operator].tcs = Math.round((TimeNow - new Date(dlist[i].Created))/1000);
-			for(var j in Departments)	// department stats
-			{
-				for(var k in DeptOperators[j])
-				{			
-					if(k == operator)
-					{
-						if(dlist[i].StatusType == 1)
-							Departments[j].oaway++;	
-						else if(dlist[i].StatusType == 2)
-							Departments[j].oavail++;
-					}
-				}
-			}
-			// overall stats
+			Operators[operator].tcs = Math.round((Timenow - new Date(dlist[i].Created))/1000);
 			if(dlist[i].StatusType == 1)
 			{
-				Overall.oaway++;
+				Overall.oaway++;			
 			}
 			else if(dlist[i].StatusType == 2)
 			{
@@ -512,7 +454,7 @@ function calculateACT_CPH() {
 	var dchattime = new Object();
 	var dcount = new Object();
 	var dcph = new Object();
-	var pastHour = TimeNow - (60*60*1000);	// Epoch time for past hour
+	var pastHour = Timenow - (60*60*1000);	// Epoch time for past hour
 
 	for(var i in Departments)
 	{
@@ -616,7 +558,7 @@ function calculateLWT_CIQ() {
 		{
 			tciq++;
 			Departments[tchat.department].ciq++;
-			waittime = Math.round((TimeNow - tchat.started)/1000);
+			waittime = Math.round((Timenow - tchat.started)/1000);
 			if(Departments[tchat.department].lwt < waittime)
 				Departments[tchat.department].lwt = waittime;
 			
@@ -640,7 +582,7 @@ function loadNext(method, next, callback) {
 }
 
 // calls extraction API and receives JSON objects 
-function getApiData(method, params, fcallback, cbparam) {
+function getApiData(method, params, fcallback) {
 	ApiDataNotReady++;		// flag to track api calls
 	BC_API_Request(method, params, function (response) {
 		var str = '';
@@ -661,10 +603,7 @@ function getApiData(method, params, fcallback, cbparam) {
 				console.log("No data returned: "+str);
 				return;		// exit out if error json message received
 			}
-			if(cbparam == null)
-				fcallback(data);
-			else
-				fcallback(data, cbparam);
+			fcallback(data);
 
 			if(typeof next !== 'undefined') 
 			{
@@ -693,8 +632,7 @@ function getActiveChatData() {
 	{
 		parameters = "DepartmentID="+did;
 		getApiData("getActiveChats",parameters,allActiveChats);
-		getApiData("getDepartmentOperators",parameters,deptOperatorsCallback,did);	// extra func param due to API
-		sleep(500);
+		getApiData("getDepartmentOperators", parameters, getDeptOperators);
 	}
 }
 
@@ -709,8 +647,7 @@ function getInactiveChatData() {
 
 	// set date to start of today. Search seems to work by looking at closed time i.e. everything that closed after
 	// "FromDate" will be included even if the created datetime is before the FromDate.
-//	var startDate = new Date();
-	var startDate = TimeNow;
+	var startDate = new Date();
 	startDate.setHours(0,0,0,0);
 
 	console.log("Getting inactive chat info from "+ Object.keys(Folders).length +" folders");
@@ -785,12 +722,7 @@ io.sockets.on('connection', function(socket){
 });
 
 function updateChatStats() {
-	TimeNow = new Date();		// update the time for all calculations
-	if(TimeNow > EndOfDay)		// we have skipped to a new day
-	{
-		doStartOfDay();
-		console.log("New day started, stats reset");
-	}
+	Timenow = new Date();		// update the time for all calculations
 	calculateLWT_CIQ();
 	calculateASA();
 	calculateACT_CPH();
@@ -807,5 +739,9 @@ function updateChatStats() {
 	setTimeout(updateChatStats, 3000);	// send update every second
 }
 
-doStartOfDay();		// initialise everything
-setTimeout(updateChatStats,3000);	// updates socket io data at infinitum
+ApiDataNotReady = 0;	// reset flag
+doStartOfDay();
+setTimeout(getInactiveChatData, 3000);
+getActiveChatData();
+getApiData("getOperatorAvailability", "ServiceTypeID=1", getOperatorAvailability);
+setTimeout(updateChatStats,3000);
