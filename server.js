@@ -362,7 +362,7 @@ function setOperatorDepts() {
 		{		
 			depts = OperatorDepts[ops[k]];
 			console.log("*****Dept: "+did+" ops: "+ops[k]+" Dept: "+depts);
-			if(depts === 'undefined')
+			if(typeof(depts) === 'undefined')
 				depts = new Array();
 
 			depts.push(did);	// add dept to list of operators
