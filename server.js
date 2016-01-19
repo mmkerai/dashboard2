@@ -361,7 +361,7 @@ function setOperatorDepts() {
 		for(var k in ops)
 		{		
 			depts = OperatorDepts[ops[k]];
-			console.log("*****Dept: "+did+" ops: "+ops[k]);
+			console.log("*****Dept: "+did+" ops: "+ops[k]+" Dept: "+depts);
 			if(depts === 'undefined')
 				depts = new Array();
 
