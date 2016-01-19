@@ -353,14 +353,17 @@ function getOperatorNameFromID(id) {
 
 // set up operator depts from department operators for easier indexing
 function setOperatorDepts() {
-	var ops;
-	for(var did in Departments)	// department stats
+	var ops, depts;
+	for(var did in Departments)
 	{
 		ops = new Array();
 		ops = DeptOperators[did];
 		for(var k in ops)
 		{		
-			OperatorDepts[ops[k]].push(did);	// add dept to list of operators
+			depts = new Array();
+			depts = OperatorDepts[ops[k]];
+			depts.push(did);	// add dept to list of operators
+			OperatorDepts[ops[k]] = depts;
 		}
 	}
 }
