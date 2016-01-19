@@ -360,8 +360,10 @@ function setOperatorDepts() {
 		ops = DeptOperators[did];
 		for(var k in ops)
 		{		
-			depts = new Array();
 			depts = OperatorDepts[ops[k]];
+			if(depts === 'undefined')
+				depts = new Array();
+
 			depts.push(did);	// add dept to list of operators
 			OperatorDepts[ops[k]] = depts;
 		}
