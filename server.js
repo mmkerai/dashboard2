@@ -135,6 +135,7 @@ var AllChats;
 var	Departments;	// array of dept ids and dept name objects
 var	DepartmentsByName;	// array of dept names and ids
 var	DeptOperators;	// array of operators by dept id
+var	OperatorDepts;	// array of depts for each operator
 var	Folders;	// array of folder ids and folder name objects
 var	Operators;	// array of operator ids and name objects
 var	OperatorsByName;	// array of operator ids and name objects
@@ -160,6 +161,7 @@ function initialiseGlobals () {
 	Departments = new Object();	
 	DepartmentsByName = new Object();
 	DeptOperators = new Object();
+	OperatorDepts = new Object();
 	Folders = new Object();	
 	Operators = new Object();
 	OperatorsByName = new Object();	
@@ -205,7 +207,8 @@ app.post('/chat-closed', function(req, res){
 
 // Process incoming Boldchat triggered operator data
 app.get('/operator-status-changed', function(req, res){ 
-	debugLog("operator-status-changed",req.body);
+	debugLog("*****operator-status-changed",req.body);
+	processOperatorStatusChanged(req.body);
 	res.send({ "result": "success" });
 });
 
@@ -276,7 +279,6 @@ function foldersCallback(dlist) {
 		if(dlist[i].FolderType == 5)		// select only chat folder types
 		{
 			Folders[dlist[i].FolderID] = dlist[i].Name;
-//			console.log("folder id: "+dlist[i].FolderID + " name: "+dlist[i].Name);
 		}
 	}
 	console.log("No of Chat Folders: "+Object.keys(Folders).length);
@@ -296,6 +298,7 @@ function deptOperatorsCallback(dlist, dept) {
 function operatorAvailabilityCallback(dlist) {
 	// StatusType 0, 1 and 2 is Logged out, logged in as away, logged in as available respectively
 	var operator;
+	var depts;
 	for(var i in dlist)
 	{
 		operator = dlist[i].LoginID;
@@ -304,18 +307,10 @@ function operatorAvailabilityCallback(dlist) {
 		{
 			Operators[operator].status = dlist[i].StatusType;
 			Operators[operator].tcs = Math.round((TimeNow - new Date(dlist[i].Created))/1000);
-			for(var did in Departments)	// department stats
+/*			for(var did in Departments)	// department stats
 			{
 				var ops = new Array();
 				ops = DeptOperators[did];
-				if(DeptOperators[did].length < 10)
-				{
-					console.log("Dept: "+did+" operators: "+ DeptOperators[did].length);
-					for(var k in ops)
-					{
-						console.log("DeptOperator id: "+ops[k]);
-					}
-				}
 				for(var k in ops)
 				{		
 					if(ops[k] == operator)
@@ -326,15 +321,23 @@ function operatorAvailabilityCallback(dlist) {
 							Departments[did].oavail++;
 					}
 				}
-			}
-			// overall stats
+			}*/
+			// update metrics
 			if(dlist[i].StatusType == 1)
 			{
 				Overall.oaway++;
+				depts = new Array();
+				depts = OperatorDepts[operator];
+				for(var did in depts)
+					Departments[depts[did]].oaway++;
 			}
 			else if(dlist[i].StatusType == 2)
 			{
 				Overall.oavail++;
+				depts = new Array();
+				depts = OperatorDepts[operator];
+				for(var did in depts)
+					Departments[depts[did]].oavail++;
 			}
 		}
 	}			
@@ -348,12 +351,18 @@ function getOperatorNameFromID(id) {
 	return(Operators[id].name);
 }
 
-// department operators
-function getDeptOperators(dept) {
-	var operators = new Array();
-	var operators = DeptOperators[dept];
-//	if(typeof(operators) === 'undefined') return;
-	return operators;
+// set up operator depts from department operators for easier indexing
+function setOperatorDepts() {
+	var ops;
+	for(var did in Departments)	// department stats
+	{
+		ops = new Array();
+		ops = DeptOperators[did];
+		for(var k in ops)
+		{		
+			OperatorDepts[ops[k]].push(did);	// add dept to list of operators
+		}
+	}
 }
 
 // setup all globals TODO: add teams
@@ -507,11 +516,20 @@ function processClosedChat(chat) {
 	opobj = Operators[opid];		// if answered there will always be a operator assigned
 	if(typeof(opobj) === 'undefined') 	
 	{									// in case there isnt
-		debugLog("*******Error Operator obj is null",chat);
+		debugLog("*****Error Operator obj is null",chat);
 		return;
 	}
 
 	opobj.tcan++;	// chats answered and complete
+}
+
+// process operator status changed. or unavailable
+function processOperatorStatusChanged(chat) {
+	var opobj;
+	var starttime=0,anstime=0,endtime=0,closetime=0,opid=0;
+
+	deptobj = Departments[chat.DepartmentID];
+	if(typeof(deptobj) === 'undefined') return;		// a non PROD dept we are not interested in
 }
 
 // process all inactive (closed) chat objects
@@ -702,7 +720,7 @@ function getOperatorAvailabilityData() {
 		setTimeout(getOperatorAvailabilityData, 1000);
 		return;
 	}
-	
+	setOperatorDepts();			// convert dept operators to operator depts for easier updating
 	getApiData("getOperatorAvailability", "ServiceTypeID=1", operatorAvailabilityCallback);
 }
 
