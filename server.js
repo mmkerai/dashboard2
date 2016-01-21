@@ -579,7 +579,6 @@ function processOperatorStatusChanged(ostatus) {
 	
 	for(var x in depts)
 	{
-		did = ;
 		deptobj = Departments[depts[x]];
 		if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
 		deptobj.oaway++;	
