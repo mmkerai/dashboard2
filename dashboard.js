@@ -32,8 +32,8 @@ $(document).ready(function() {
 	});
 
 	socket.on('overallStats', function(data){
-		$("#ocon").text(data.conc);
-		$("#osla").text(data.sla);
+		$("#ocon").text(data.cconc);
+		$("#osla").text(data.csla);
 		$("#ocph").text(data.cph);
 		$("#ociq").text(data.ciq);
 		$("#olwt").text(data.lwt);
@@ -62,8 +62,8 @@ $(document).ready(function() {
 				col = row.insertCell(0);
 				row.id = ddata[i].name;
 				col.outerHTML = "<th scope='row'>"+ddata[i].name+"</th>";
-				col = row.insertCell(1).innerHTML = ddata[i].conc;
-				col = row.insertCell(2).innerHTML = ddata[i].sla;
+				col = row.insertCell(1).innerHTML = ddata[i].cconc;
+				col = row.insertCell(2).innerHTML = ddata[i].csla;
 				col = row.insertCell(3).innerHTML = ddata[i].cph;
 				col = row.insertCell(4).innerHTML = ddata[i].ciq;
 				col = row.insertCell(5).innerHTML = ddata[i].lwt;
@@ -81,8 +81,8 @@ $(document).ready(function() {
 			}
 			else
 			{
-				rowid.cells[1].innerHTML = ddata[i].conc;
-				rowid.cells[2].innerHTML = ddata[i].sla;
+				rowid.cells[1].innerHTML = ddata[i].cconc;
+				rowid.cells[2].innerHTML = ddata[i].csla;
 				rowid.cells[3].innerHTML = ddata[i].cph;
 				rowid.cells[4].innerHTML = ddata[i].ciq;
 				rowid.cells[5].innerHTML = ddata[i].lwt;

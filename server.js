@@ -45,6 +45,7 @@ var KEY = process.env.KEY || 0;
 var PAGEPATH = process.env.PAGEPATH || "/"; //  Obsecur page path such as /bthCn2HYe0qPlcfZkp1t
 var GMAILS = process.env.GMAILS; // list of valid emails
 var GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+var SLATHRESHOLD = process.env.SLATHRESHOLDS;
 var VALIDACCESSNETWORKS = JSON.parse(process.env.VALIDACCESSNETWORKS) || {};  // JSON string with valid public ISP addresses { "83.83.95.62": "Mark Troyer (LMI) Home Office", "10.10.10.1": "LogMeIn UK Office", "10.10": "H3G internal Network"};
 if (AID == 0 || APISETTINGSID == 0 || KEY == 0) {
 	console.log("AID = "+AID+", APISETTINGSID = "+APISETTINGSID+", KEY = "+KEY);
@@ -100,8 +101,8 @@ var ChatData = function(chatid, dept, start) {
 //******************* Global class for dashboard metrics
 var DashMetrics = function(name) {
 		this.name = name;
-		this.conc = 0;
-		this.sla = 0;
+		this.cconc = 0;
+		this.csla = 0;
 		this.cph = 0;
 		this.ciq = 0;
 		this.lwt = 0;
@@ -122,11 +123,14 @@ var DashMetrics = function(name) {
 //**************** Global class for operator metrics
 var OpMetrics  = function(name) {
 		this.name = name;
-		this.conc = 0;		// concurrency
+		this.cconc = 0;		// chat concurrency
 		this.tcan = 0;		// total chats answered
+		this.csla = 0;		// chats answered within SLA
 		this.status = 0;	// 0 - logged out, 1 - away, 2 - available
 		this.activeChats = new Array();
 		this.tcs = 0;	// time in current status	
+		this.tct = 0;	// total chat time with atleast one chat
+		this.mct = 0;	// multi chat time i.e. more than 1 chat
 };																				
 
 //********************************* Global variables for chat data
@@ -352,7 +356,7 @@ function getOperatorNameFromID(id) {
 }
 
 // set up operator depts from department operators for easier indexing
-function setOperatorDepts() {
+function setupOperatorDepts() {
 	var ops, depts;
 	for(var did in Departments)
 	{
@@ -438,8 +442,12 @@ function processAnsweredChat(chat) {
 	tchat.status = 2;		// active chat
 	AllChats[chat.ChatID] = tchat;		// save this chat info
 	
-//		console.log("opobj is "+chat.OperatorID);
-	opobj.activeChats.push({chatid: chat.ChatID, 
+	mcstime = anstime;
+	if(opobj.activeChats.length == 1) 	// already one chat so this is a multichat
+		opobj.activeChats[0].mcstarttime = mcstime;
+		
+	opobj.activeChats.push({chatid: chat.ChatID,
+						mcstarttime: mcstime,			// start time for a multichat
 						deptname: deptobj.name,
 						messages: chat.OperatorMessageCount + chat.VisitorMessageCount
 						});
@@ -514,9 +522,7 @@ function processClosedChat(chat) {
 	tchat.closed = closetime;
 	tchat.operator = opid;
 	AllChats[chat.ChatID] = tchat;	// update chat
-	Overall.tcan++;
-	deptobj.tcan++;
-	
+
 	if(opid == 0) return;		// operator id not set if chat abandoned before answering
 	opobj = Operators[opid];		// if answered there will always be a operator assigned
 	if(typeof(opobj) === 'undefined') 	
@@ -525,16 +531,59 @@ function processClosedChat(chat) {
 		return;
 	}
 
+	Overall.tcan++;
+	deptobj.tcan++;
+	var speed = anstime - starttime;
+	if(speed < (SLATHRESHOLD*1000))		// sla threshold in milliseconds
+	{
+		Overall.csla++;
+		deptobj.csla++;
+		opobj.csla++;
+	}
+	
+	opobj.tct = opobj.tct + (closetime - anstime);
 	opobj.tcan++;	// chats answered and complete
+	// now remove from active chat list and update stats
+	var achats = new Array();
+	achats = opobj.activeChats;
+	if(achats.length == 1)		// single chat
+	{
+		opobj.activeChats == new Array();		// remove from list
+	}
+	else				// must be multi chat
+	{
+		for(var x in achats) // go through each multichat
+		{
+			if(achats[x].chatid == chat.ChatID)
+			{
+				opobj.mct = opobj.mct +(achats[x].mcstarttime - closetime);
+				achats.splice(x,1);
+				opobj.activeChats = achats;		// save back after removing
+			}
+		}
+	}
 }
 
 // process operator status changed. or unavailable
-function processOperatorStatusChanged(chat) {
-	var opobj;
-	var starttime=0,anstime=0,endtime=0,closetime=0,opid=0;
+function processOperatorStatusChanged(ostatus) {
+	var did;
+	var depts = new Array();
 
-	deptobj = Departments[chat.DepartmentID];
-	if(typeof(deptobj) === 'undefined') return;		// a non PROD dept we are not interested in
+	opobj = Operators[ostatus.LoginID];		// if answered there will always be a operator assigned
+	if(typeof(opobj) === 'undefined') return;
+	opobj.status = ostatus.StatusType;
+	console.log("*****Status is "+ostatus.StatusType);
+	
+	depts = OperatorDepts[ostatus.LoginID];
+	if(typeof(depts) === 'undefined') return;	// operator not recognised
+	
+	for(var x in depts)
+	{
+		did = ;
+		deptobj = Departments[depts[x]];
+		if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
+		deptobj.oaway++;	
+	}
 }
 
 // process all inactive (closed) chat objects
@@ -556,7 +605,6 @@ function calculateACT_CPH() {
 	for(var i in Departments)
 	{
 		Departments[i].act = 0;
-		Departments[i].sla = 0;
 		dcount[i] = 0;
 		dchattime[i] = 0;
 		dcph[i] = 0;
@@ -602,7 +650,6 @@ function calculateASA() {
 	{
 		Departments[i].asa = 0;
 		Departments[i].tac = 0;
-		Departments[i].sla = 0;
 		dcount[i] = 0;
 		danstime[i] = 0;
 		dtac[i] = 0;
@@ -616,6 +663,9 @@ function calculateASA() {
 			count++;
 			dcount[tchat.department] = dcount[tchat.department] + 1;
 			speed = tchat.answered - tchat.started;
+//			if(speed < SLATHRESHOLD)	// asa is within threshold
+//				Overall.sla++;
+				
 			anstime = anstime + speed;
 			danstime[tchat.department] = danstime[tchat.department] + speed;
 			if(tchat.status == 2)	// active chat
@@ -661,7 +711,7 @@ function calculateLWT_CIQ() {
 			
 			if(maxwait < waittime)
 				maxwait = waittime;
-		}
+			}
 	}
 	Overall.lwt = maxwait;
 	Overall.ciq = tciq;
@@ -725,7 +775,7 @@ function getOperatorAvailabilityData() {
 		setTimeout(getOperatorAvailabilityData, 1000);
 		return;
 	}
-	setOperatorDepts();			// convert dept operators to operator depts for easier updating
+	setupOperatorDepts();			// convert dept operators to operator depts for easier updating
 	getApiData("getOperatorAvailability", "ServiceTypeID=1", operatorAvailabilityCallback);
 }
 
