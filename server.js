@@ -577,7 +577,7 @@ function processOperatorStatusChanged(ostatus) {
 	depts = OperatorDepts[ostatus.LoginID];
 	if(typeof(depts) === 'undefined') return;	// operator not recognised
 	
-	for(var x in depts)
+	for(var x in depts) 
 	{
 		deptobj = Departments[depts[x]];
 		if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
