@@ -757,9 +757,9 @@ function calculateACC_CCONC() {
 			dtct[depts[x]] = dtct[depts[x]] + opobj.tct;
 			dmct[depts[x]] = dmct[depts[x]] + opobj.mct;
 			if(Operators[i].status == 2)
-				dcap[depts[x]] = dcap[depts[x]] + (opobj.ccap - opobj.activeChats.length);
-			if(typeof(dcap[depts[x]]) === 'undefined')
-				console.log("*****dacc undefined: "+opobj.ccap+","+opobj.activeChats.length);
+				Departments[depts[x]].acc = Departments[depts[x]].acc + (opobj.ccap - opobj.activeChats.length);
+//			if(typeof(dcap[depts[x]]) === 'undefined')
+//				console.log("*****dacc undefined: "+opobj.ccap+","+opobj.activeChats.length);
 		}
 	}
 	console.log("****tct and mct is " +otct+","+omct);
@@ -770,9 +770,9 @@ function calculateACC_CCONC() {
 		Departments[did].cconc = Math.round((((dtct[did]+dmct[did])/dtct[did])*100)/100).toFixed(2);
 		if(typeof(Departments[did].cconc) === 'undefined')
 			console.log("*****conc undefined: "+dtct[did]+","+dmct[did]);
-		Departments[did].acc = dcap[did];
-		if(typeof(Departments[did].acc) === 'undefined')
-			console.log("*****acc undefined: "+dcap[did]);
+//		Departments[did].acc = dcap[did];
+//		if(typeof(Departments[did].acc) === 'undefined')
+//			console.log("*****acc undefined: "+dcap[did]);
 	}
 }
 
