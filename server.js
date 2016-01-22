@@ -642,7 +642,7 @@ function calculateACT_CPH() {
 	}
 }
 
-function calculateASA_SLA() {
+function calculateASA() {
 	var tchat, count = 0, tac = 0, anstime = 0;
 	var danstime = new Object();
 	var dcount = new Object();
