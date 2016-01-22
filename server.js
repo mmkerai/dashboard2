@@ -748,7 +748,7 @@ function calculateACC_CCONC() {
 			dmct[depts[x]] = dmct[depts[x]] + Operators[i].mct;
 		}
 	}
-	
+	console.log("****tct and mct is " +tct+","+mct);
 	Overall.cconc = Math.round((((otct+omct)/otct)*10)/10).toFixed(1);
 	
 	for(var i in Departments)
