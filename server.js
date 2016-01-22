@@ -389,9 +389,7 @@ function doStartOfDay() {
 	getApiData("getFolders", 0, foldersCallback);
 	sleep(1000);
 	getOperatorAvailabilityData();
-	sleep(1000);
 	getInactiveChatData();
-	sleep(1000);
 	getActiveChatData();
 }
 
@@ -835,6 +833,7 @@ function getActiveChatData() {
 	{
 		parameters = "DepartmentID="+did;
 		getApiData("getActiveChats",parameters,allActiveChats);
+		sleep(200);
 	}
 }
 
