@@ -128,6 +128,7 @@ var DashMetrics = function(name) {
 //**************** Global class for operator metrics
 var OpMetrics  = function(name) {
 		this.name = name;
+		this.ccap = 2;		// assume chat capacity of 2
 		this.cconc = 0;		// chat concurrency
 		this.tcan = 0;		// total chats answered
 		this.csla = 0;		// chats answered within SLA
@@ -728,7 +729,7 @@ function calculateLWT_CIQ() {
 function calculateACC_CCONC() {
 	var dtct = new Object();
 	var dmct = new Object();
-	var otct = 0, omct = 0;
+	var otct = 0, omct = 0, ocap = 0;
 	// first zero out the cconc and acc for all dept
 	for(var i in Departments)
 	{
@@ -744,11 +745,13 @@ function calculateACC_CCONC() {
 		
 		otct = otct + Operators[i].tct;
 		omct = omct + Operators[i].mct;
+		ocap = ocap + (Operators[i].ccap - Operators[i].activeChats.length);
 		// all depts that the operator belongs to
 		for(var x in depts)
 		{
 			dtct[depts[x]] = dtct[depts[x]] + Operators[i].tct;
 			dmct[depts[x]] = dmct[depts[x]] + Operators[i].mct;
+			dcap[depts[x]] = dcap[depts[x]] + (Operators[i].ccap - Operators[i].activeChats.length);
 		}
 	}
 	console.log("****tct and mct is " +otct+","+omct);
@@ -757,7 +760,7 @@ function calculateACC_CCONC() {
 	for(var i in Departments)
 	{
 		Departments[i].cconc = Math.round((dtct[i]+dmct[i])/dtct[i]);
-		Departments[i].acc = 0;
+		Departments[i].acc = ocap;
 	}
 }
 
