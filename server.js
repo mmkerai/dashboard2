@@ -746,14 +746,14 @@ function calculateACC_CCONC() {
 		
 		otct = otct + Operators[i].tct;
 		omct = omct + Operators[i].mct;
-		if(Operator[i].status == 2)
+		if(Operators[i].status == 2)
 			ocap = ocap + (Operators[i].ccap - Operators[i].activeChats.length);
 		// all depts that the operator belongs to
 		for(var x in depts)
 		{
 			dtct[depts[x]] = dtct[depts[x]] + Operators[i].tct;
 			dmct[depts[x]] = dmct[depts[x]] + Operators[i].mct;
-			if(Operator[i].status == 2)
+			if(Operators[i].status == 2)
 				dcap[depts[x]] = dcap[depts[x]] + (Operators[i].ccap - Operators[i].activeChats.length);
 		}
 	}
