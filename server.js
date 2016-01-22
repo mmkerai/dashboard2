@@ -102,7 +102,8 @@ var ChatData = function(chatid, dept, start) {
 var DashMetrics = function(name) {
 		this.name = name;
 		this.cconc = 0;
-		this.csla = 0;
+		this.csla = 0;		// number
+		this.psla = 0;		// percent
 		this.cph = 0;
 		this.ciq = 0;
 		this.lwt = 0;
@@ -385,7 +386,7 @@ function doStartOfDay() {
 	sleep(1000);
 	getOperatorAvailabilityData();
 	sleep(1000);
-//	getInactiveChatData();
+	getInactiveChatData();
 	sleep(1000);
 	getActiveChatData();
 }
@@ -539,6 +540,8 @@ function processClosedChat(chat) {
 		Overall.csla++;
 		deptobj.csla++;
 		opobj.csla++;
+		Overall.psla = Math.round((Overall.csla/Overall.tcan)*100);
+		deptobj.psla = Math.round((deptobj.csla/deptobj.tcan)*100);
 	}
 	
 	opobj.tct = opobj.tct + (closetime - anstime);
@@ -639,7 +642,7 @@ function calculateACT_CPH() {
 	}
 }
 
-function calculateASA() {
+function calculateASA_SLA() {
 	var tchat, count = 0, tac = 0, anstime = 0;
 	var danstime = new Object();
 	var dcount = new Object();
