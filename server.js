@@ -446,8 +446,11 @@ function processAnsweredChat(chat) {
 	AllChats[chat.ChatID] = tchat;		// save this chat info
 	
 	mcstime = anstime;
-	if(opobj.activeChats.length == 1) 	// already one chat so this is a multichat
-		opobj.activeChats[0].mcstarttime = mcstime;
+	if(anstime != 0)		// make sure this was a chat that was answered
+	{
+		if(opobj.activeChats.length == 1) 	// already one chat so this is a multichat
+			opobj.activeChats[0].mcstarttime = mcstime;
+	}
 		
 	opobj.activeChats.push({chatid: chat.ChatID,
 						mcstarttime: mcstime,			// start time for a multichat
@@ -749,7 +752,7 @@ function calculateACC_CCONC() {
 		}
 	}
 	console.log("****tct and mct is " +otct+","+omct);
-	Overall.cconc = Math.round((((otct+omct)/otct)*10)/10).toFixed(1);
+	Overall.cconc = Math.round((((otct+omct)/otct)*100)/100).toFixed(2);
 	
 	for(var i in Departments)
 	{
