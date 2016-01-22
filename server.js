@@ -758,6 +758,8 @@ function calculateACC_CCONC() {
 			dmct[depts[x]] = dmct[depts[x]] + opobj.mct;
 			if(Operators[i].status == 2)
 				dcap[depts[x]] = dcap[depts[x]] + (opobj.ccap - opobj.activeChats.length);
+			if(typeof(dcap[depts[x]] === 'undefined')
+				console.log("*****dacc undefined: "+opobj.ccap+","+opobj.activeChats.length);
 		}
 	}
 	console.log("****tct and mct is " +otct+","+omct);
