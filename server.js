@@ -746,22 +746,24 @@ function calculateACC_CCONC() {
 		
 		otct = otct + Operators[i].tct;
 		omct = omct + Operators[i].mct;
-		ocap = ocap + (Operators[i].ccap - Operators[i].activeChats.length);
+		if(Operator[i].status == 2)
+			ocap = ocap + (Operators[i].ccap - Operators[i].activeChats.length);
 		// all depts that the operator belongs to
 		for(var x in depts)
 		{
 			dtct[depts[x]] = dtct[depts[x]] + Operators[i].tct;
 			dmct[depts[x]] = dmct[depts[x]] + Operators[i].mct;
-			dcap[depts[x]] = dcap[depts[x]] + (Operators[i].ccap - Operators[i].activeChats.length);
+			if(Operator[i].status == 2)
+				dcap[depts[x]] = dcap[depts[x]] + (Operators[i].ccap - Operators[i].activeChats.length);
 		}
 	}
 	console.log("****tct and mct is " +otct+","+omct);
 	Overall.cconc = Math.round((((otct+omct)/otct)*100)/100).toFixed(2);
-	
+	Overall.acc = ocap;
 	for(var i in Departments)
 	{
 		Departments[i].cconc = Math.round((dtct[i]+dmct[i])/dtct[i]);
-		Departments[i].acc = ocap;
+		Departments[i].acc = dcap[i];
 	}
 }
 
