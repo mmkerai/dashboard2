@@ -765,7 +765,7 @@ function calculateACC_CCONC() {
 	Overall.acc = ocap;
 	for(var did in Departments)
 	{
-		Departments[did].cconc = Math.round((dtct[did]+dmct[did])/dtct[did]);
+		Departments[did].cconc = Math.round((((dtct[did]+dmct[did])/dtct[did])*100)/100).toFixed(2);
 		Departments[did].acc = dcap[did];
 	}
 }
