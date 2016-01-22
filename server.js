@@ -1,5 +1,5 @@
 // acronyms used
-// conc - concurrency
+// cconc - concurrency
 // cph - chats per hour
 // ciq - chats in queue
 // lwt - longest waiting time
@@ -16,6 +16,10 @@
 // aavail - total number of agents available
 // status - current status 0 - logged out, 1 - away, 2 - available
 // tcs - time in current status
+// tct - total chat time
+// mct - multi chat time
+// csla - no of chats within sla
+// psla - percent of chats within sla (csla/tcan * 100)
 
 
 //********************************* Set up Express Server 
@@ -559,7 +563,7 @@ function processClosedChat(chat) {
 		{
 			if(achats[x].chatid == chat.ChatID)
 			{
-				opobj.mct = opobj.mct +(achats[x].mcstarttime - closetime);
+				opobj.mct = opobj.mct +(closetime - achats[x].mcstarttime);
 				achats.splice(x,1);
 				opobj.activeChats = achats;		// save back after removing
 			}
@@ -717,6 +721,43 @@ function calculateLWT_CIQ() {
 	}
 	Overall.lwt = maxwait;
 	Overall.ciq = tciq;
+}
+
+//use operators by dept to calc chat concurrency and available chat capacity
+function calculateACC_CCONC() {
+	var dtct = new Object();
+	var dmct = new Object();
+	var otct = 0, omct = 0;
+	// first zero out the cconc and acc for all dept
+	for(var i in Departments)
+	{
+		Departments[i].cconc = 0;
+		Departments[i].acc = 0;
+	}
+	
+	for(var i in OperatorDepts)
+	{
+		var depts = new Array();
+		depts = OperatorDepts[i];
+		if(typeof(depts) === 'undefined') return;	// operator not recognised
+		
+		otct = otct + Operators[i].tct;
+		omct = omct + Operators[i].mct;
+		// all depts that the operator belongs to
+		for(var x in depts)
+		{
+			dtct[depts[x]] = dtct[depts[x]] + Operators[i].tct;
+			dmct[depts[x]] = dmct[depts[x]] + Operators[i].mct;
+		}
+	}
+	
+	Overall.cconc = Math.round((((otct+omct)/otct)*10)/10).toFixed(1);
+	
+	for(var i in Departments)
+	{
+		Departments[i].cconc = Math.round((dtct[i]+dmct[i])/dtct[i]);
+		Departments[i].acc = 0;
+	}
 }
 
 // this function calls API again if data is truncated
@@ -894,8 +935,8 @@ function updateChatStats() {
 	calculateLWT_CIQ();
 	calculateASA();
 	calculateACT_CPH();
+	calculateACC_CCONC();
 	Overall.tco = Overall.tcan + Overall.tcuq + Overall.tcua;
-//	calculateSla();
 	for(var i in LoggedInUsers)
 	{
 		socket = LoggedInUsers[i];
