@@ -615,9 +615,11 @@ function allInactiveChats(chats) {
 		
 		// now save time/duration the chat was active to help calculate concurrency later
 		tchat = AllChats[chats[i].ChatID];		// get the sanitized chat details
+		if(typeof(tchat) === 'undefined') continue;		// if this chat did not exist 
+
 		if(tchat.operator == 0) continue;		// operator id not set - go to next one
 
-		if(tchat.answered == 0 || tchat.closed == 0) continue;
+		if(tchat.answered == 0 || tchat.closed == 0) continue; // not answered and closed so go to next one
 		
 		if(typeof(OperatorCconc[tchat.operator]) === 'undefined') 	// first time this operator has come up
 			conc = new Array(1440);	// every minute of the day
