@@ -605,14 +605,54 @@ function processOperatorStatusChanged(ostatus) {
 
 // process all inactive (closed) chat objects
 function allInactiveChats(chats) {
+	var sh,sm,eh,em,sindex,eindex;
+	var conc = new Array();
+	var opobj;
+	
 	for(var i in chats)
 	{
 		processClosedChat(chats[i]);
-		if(chats[i].OperatorID != null && chats[i].OperatorID != "")
-			OperatorCconc[OperatorID] = new Array();
+		
+		// now save time/duration the chat was active to help calculate concurrency later
+		tchat = AllChats[chats[i].ChatID];		// get the sanitized chat details
+		if(tchat.operator == 0) continue;		// operator id not set - go to next one
+
+		if(tchat.answered == 0 || tchat.closed == 0) continue;
+		
+		if(typeof(OperatorCconc[tchat.operator]) === 'undefined') 	// first time this operator has come up
+			conc = new Array(1440);	// every minute of the day
+		else
+			conc = OperatorCconc[chats[i].OperatorID];		
+			
+		sh = tchat.answered.getHours();
+		sm = tchat.answered.getMinutes();
+		eh = tchat.closed.getHours();
+		em = tchat.closed.getMinutes();
+		sindex = (sh*60)+sm;	// convert to minutes from midnight
+		eindex = (eh*60)+em;	// convert to minutes from midnight
+		for(var count=sindex; count <= eindex; count++)
+		{
+			conc[count] = conc[count] + 1; // save chat activity for the closed chats
+		}
+		
+		OperatorCconc[chats[i].OperatorID] = conc;		// save it back for next time
 	}
-	// calculate chat concurrency for the closed chats
 	
+	// calculate total chat times for concurrency
+	var chattime, mchattime;		// times in minutes
+	for(var op in OperatorCconc)
+	{
+		opobj = Operators[op];
+		if(typeof(opobj) === 'undefined') return;
+		conc = OperatorCconc[op];
+		for(var i in conc)
+		{
+			if(conc[i]) > 0) chattime++;
+			if(conc[i]) > 1) mchattime++;
+		}
+		opobj.tct = chattime*60000;		// minutes to milliseconds
+		opobj.mct = mchattime*60000;		// minutes to milliseconds
+	}
 }
 
 // calculate ACT and Chat per hour - both are done after chats are complete (ended)
