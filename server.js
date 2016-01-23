@@ -637,7 +637,7 @@ function allInactiveChats(chats) {
 		
 		if(x < 5)
 		{
-			console.log("****Time is "+sh+","+sm+","+eh+","+em);
+			console.log("****Time is "+conc);
 			x++;
 		}
 		
