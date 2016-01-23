@@ -620,7 +620,10 @@ function allInactiveChats(chats) {
 		if(tchat.answered == 0 || tchat.closed == 0) continue; // not answered and closed so go to next one
 		
 		if(typeof(OperatorCconc[tchat.operator]) === 'undefined') 	// first time this operator has come up
-			conc = new Array(1440);	// every minute of the day
+		{
+//			conc = new Array(1440);	// every minute of the day
+			conc = Array(1440).fill(0);
+		}
 		else
 			conc = OperatorCconc[chats[i].OperatorID];		
 			
