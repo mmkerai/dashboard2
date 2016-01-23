@@ -217,11 +217,17 @@ app.post('/chat-closed', function(req, res){
 
 // Process incoming Boldchat triggered operator data
 app.get('/operator-status-changed', function(req, res){ 
-	debugLog("*****operator-status-changed",req.body);
+	debugLog("*****operator-status-changed get",req.body);
 	processOperatorStatusChanged(req.body);
 	res.send({ "result": "success" });
 });
 
+// Process incoming Boldchat triggered operator data
+app.post('/operator-status-changed', function(req, res){ 
+	debugLog("*****operator-status-changed post",req.body);
+	processOperatorStatusChanged(req.body);
+	res.send({ "result": "success" });
+});
 // Set up code for outbound BoldChat API calls.  All of the capture callback code should ideally be packaged as an object.
 var fs = require('fs');
 eval(fs.readFileSync('hmac-sha512.js')+'');
@@ -763,7 +769,8 @@ function calculateACC_CCONC() {
 		}
 	}
 	console.log("****tct and mct is " +otct+","+omct);
-	Overall.cconc = Math.round((((otct+omct)/otct)*100)/100).toFixed(2);
+//	Overall.cconc = Math.round((((otct+omct)/otct)*100)/100).toFixed(2);
+	Overall.cconc = ((((otct+omct)/otct)*100)/100).toFixed(2);
 	Overall.acc = ocap;
 	for(var did in Departments)
 	{
