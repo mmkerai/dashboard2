@@ -216,13 +216,6 @@ app.post('/chat-closed', function(req, res){
 });
 
 // Process incoming Boldchat triggered operator data
-app.get('/operator-status-changed', function(req, res){ 
-	debugLog("*****operator-status-changed get",req.body);
-	processOperatorStatusChanged(req.body);
-	res.send({ "result": "success" });
-});
-
-// Process incoming Boldchat triggered operator data
 app.post('/operator-status-changed', function(req, res){ 
 	debugLog("*****operator-status-changed post",req.body);
 	processOperatorStatusChanged(req.body);
@@ -587,8 +580,7 @@ function processOperatorStatusChanged(ostatus) {
 
 	opobj = Operators[ostatus.LoginID];		// if answered there will always be a operator assigned
 	if(typeof(opobj) === 'undefined') return;
-	opobj.status = ostatus.StatusType;
-	console.log("*****Status is "+ostatus.StatusType);
+//	console.log("*****Status is "+ostatus.StatusType);
 	
 	depts = OperatorDepts[ostatus.LoginID];
 	if(typeof(depts) === 'undefined') return;	// operator not recognised
@@ -596,9 +588,29 @@ function processOperatorStatusChanged(ostatus) {
 	for(var x in depts)
 	{
 		deptobj = Departments[depts[x]];
-		if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
-		deptobj.oaway++;	
+		if(typeof(deptobj) === 'undefined') continue;		// a dept we are not interested in
+		if(ostatus.StatusType == 1)
+		{
+			deptobj.oaway++;
+			Overall.oaway++;
+			if(opobj.status == 2)		// previously available so adjust accordingly
+			{
+				deptobj.oavail--;
+				Overall.oavail--;
+			}
+		}
+		else if(ostatus.StatusType == 2)
+		{
+			deptobj.oavail++;
+			Overall.oavail++;
+			if(opobj.status == 1)		// previously away so adjust accordingly
+			{
+				deptobj.oaway--;
+				Overall.oaway--;
+			}
+		}
 	}
+	opobj.status = ostatus.StatusType;	// save new status
 }
 
 // process all inactive (closed) chat objects
