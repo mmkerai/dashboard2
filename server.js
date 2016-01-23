@@ -643,12 +643,12 @@ function allInactiveChats(chats) {
 	for(var op in OperatorCconc)
 	{
 		opobj = Operators[op];
-		if(typeof(opobj) === 'undefined') return;
+		if(typeof(opobj) === 'undefined') continue;
 		conc = OperatorCconc[op];
 		for(var i in conc)
 		{
-			if(conc[i]) > 0) chattime++;
-			if(conc[i]) > 1) mchattime++;
+			if(conc[i] > 0) chattime++;
+			if(conc[i] > 1) mchattime++;
 		}
 		opobj.tct = chattime*60000;		// minutes to milliseconds
 		opobj.mct = mchattime*60000;		// minutes to milliseconds
