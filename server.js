@@ -639,6 +639,7 @@ function allInactiveChats(chats) {
 	}
 	
 	// calculate total chat times for concurrency
+	var x;
 	var chattime=0, mchattime=0;		// times in minutes
 	for(var op in OperatorCconc)
 	{
@@ -652,6 +653,11 @@ function allInactiveChats(chats) {
 		}
 		opobj.tct = chattime*60000;		// minutes to milliseconds
 		opobj.mct = mchattime*60000;		// minutes to milliseconds
+		if(x < 5)
+		{
+			console.log("*****Opobj tct and mct: "+opobj.tct+","+opobj.mct);
+			x++;
+		}
 	}
 }
 
