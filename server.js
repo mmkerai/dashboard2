@@ -606,7 +606,7 @@ function allInactiveChats(chats) {
 	var sh,sm,eh,em,sindex,eindex;
 	var conc = new Array();
 	var opobj;
-	
+	var x = 0;
 	for(var i in chats)
 	{
 		processClosedChat(chats[i]);
@@ -635,11 +635,17 @@ function allInactiveChats(chats) {
 			conc[count] = conc[count] + 1; // save chat activity for the closed chats
 		}
 		
+		if(x < 5)
+		{
+			console.log("****Time is "+tchat.answered","tchat.closed);
+			x++;
+		}
+		
 		OperatorCconc[chats[i].OperatorID] = conc;		// save it back for next time
 	}
 	
 	// calculate total chat times for concurrency
-	var x=0;
+	x=0;
 	var chattime=0, mchattime=0;		// times in minutes
 	for(var op in OperatorCconc)
 	{
@@ -655,7 +661,7 @@ function allInactiveChats(chats) {
 		opobj.mct = mchattime*60000;		// minutes to milliseconds
 		if(x < 5)
 		{
-			console.log("*****Opobj tct and mct: "+opobj.tct+","+opobj.mct);
+			console.log("*****Opobj tct and mct: "+chattime+","+mchattime);
 			x++;
 		}
 	}
