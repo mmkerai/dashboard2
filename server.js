@@ -637,7 +637,7 @@ function allInactiveChats(chats) {
 		
 		if(x < 5)
 		{
-			console.log("****Time is "+tchat.answered","tchat.closed);
+			console.log("****Time is "+tchat.answered+","+tchat.closed);
 			x++;
 		}
 		
