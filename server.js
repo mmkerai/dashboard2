@@ -622,7 +622,7 @@ function allInactiveChats(chats) {
 		if(typeof(OperatorCconc[tchat.operator]) === 'undefined') 	// first time this operator has come up
 		{
 //			conc = new Array(1440);	// every minute of the day
-			conc = Array(1440).fill(0);
+			conc = Array(1440).fill(0);	// initialise with zeros
 		}
 		else
 			conc = OperatorCconc[chats[i].OperatorID];		
@@ -637,13 +637,7 @@ function allInactiveChats(chats) {
 		{
 			conc[count] = conc[count] + 1; // save chat activity for the closed chats
 		}
-		
-		if(x < 5)
-		{
-			console.log("****Time is "+conc);
-			x++;
-		}
-		
+				
 		OperatorCconc[chats[i].OperatorID] = conc;		// save it back for next time
 	}
 	
@@ -662,11 +656,6 @@ function allInactiveChats(chats) {
 		}
 		opobj.tct = chattime*60000;		// minutes to milliseconds
 		opobj.mct = mchattime*60000;		// minutes to milliseconds
-		if(x < 5)
-		{
-			console.log("*****Opobj tct and mct: "+chattime+","+mchattime);
-			x++;
-		}
 	}
 }
 
@@ -830,13 +819,12 @@ function calculateACC_CCONC() {
 				Departments[depts[x]].acc = Departments[depts[x]].acc + (opobj.ccap - opobj.activeChats.length);
 		}
 	}
-	console.log("****tct and mct is " +otct+","+omct);
-//	Overall.cconc = Math.round((((otct+omct)/otct)*100)/100).toFixed(2);
+//	console.log("****tct and mct is " +otct+","+omct);
 	Overall.cconc = ((((otct+omct)/otct)*100)/100).toFixed(2);
 	Overall.acc = ocap;
 	for(var did in Departments)
 	{
-		Departments[did].cconc = Math.round((((dtct[did]+dmct[did])/dtct[did])*100)/100).toFixed(2);
+		Departments[did].cconc = ((((dtct[did]+dmct[did])/dtct[did])*100)/100).toFixed(2);
 		if(typeof(Departments[did].cconc) === 'undefined')
 			console.log("*****conc undefined: "+dtct[did]+","+dmct[did]);
 	}
@@ -879,7 +867,7 @@ function getApiData(method, params, fcallback, cbparam) {
 
 			if(typeof next !== 'undefined') 
 			{
-				console.log("*****Next required: "+next);
+//				console.log("*****Next required: "+next);
 				loadNext(method, next, fcallback);
 			}
 		});
