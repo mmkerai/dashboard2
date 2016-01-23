@@ -639,7 +639,7 @@ function allInactiveChats(chats) {
 	}
 	
 	// calculate total chat times for concurrency
-	var x;
+	var x=0;
 	var chattime=0, mchattime=0;		// times in minutes
 	for(var op in OperatorCconc)
 	{
