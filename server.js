@@ -146,6 +146,7 @@ var	Departments;	// array of dept ids and dept name objects
 var	DepartmentsByName;	// array of dept names and ids
 var	DeptOperators;	// array of operators by dept id
 var	OperatorDepts;	// array of depts for each operator
+var	OperatorCconc;	// chat concurrency for each operator
 var	Folders;	// array of folder ids and folder name objects
 var	Operators;	// array of operator ids and name objects
 var	OperatorsByName;	// array of operator ids and name objects
@@ -172,6 +173,7 @@ function initialiseGlobals () {
 	DepartmentsByName = new Object();
 	DeptOperators = new Object();
 	OperatorDepts = new Object();
+	OperatorCconc = new Object();
 	Folders = new Object();	
 	Operators = new Object();
 	OperatorsByName = new Object();	
@@ -563,7 +565,8 @@ function processClosedChat(chat) {
 	achats = opobj.activeChats;
 	if(achats.length == 1)		// single chat
 	{
-		opobj.activeChats == new Array();		// remove from list
+		if(achats[0].chatid == chat.ChatID)			// this is the chat that has closed
+			opobj.activeChats == new Array();		// remove from list by re-initiasing variable
 	}
 	else				// must be multi chat
 	{
@@ -605,7 +608,11 @@ function allInactiveChats(chats) {
 	for(var i in chats)
 	{
 		processClosedChat(chats[i]);
+		if(chats[i].OperatorID != null && chats[i].OperatorID != "")
+			OperatorCconc[OperatorID] = new Array();
 	}
+	// calculate chat concurrency for the closed chats
+	
 }
 
 // calculate ACT and Chat per hour - both are done after chats are complete (ended)
