@@ -143,7 +143,6 @@ var OpMetrics  = function(name) {
 var LoggedInUsers;
 var AllChats;
 var	Departments;	// array of dept ids and dept name objects
-var	DepartmentsByName;	// array of dept names and ids
 var	DeptOperators;	// array of operators by dept id
 var	OperatorDepts;	// array of depts for each operator
 var	OperatorCconc;	// chat concurrency for each operator
@@ -170,7 +169,6 @@ function initialiseGlobals () {
 	LoggedInUsers = new Array();
 	AllChats = new Object();
 	Departments = new Object();	
-	DepartmentsByName = new Object();
 	DeptOperators = new Object();
 	OperatorDepts = new Object();
 	OperatorCconc = new Object();
@@ -271,7 +269,7 @@ function deptsCallback(dlist) {
 	{
 		dname = dlist[i].Name;
 		if(dname.indexOf("PROD") == -1)	continue;		// if this is not a PROD dept
-		DepartmentsByName[dname] = {name: dlist[i].DepartmentID};
+		dname.replace("PROD - ","");		// remove PROD from name
 		Departments[dlist[i].DepartmentID] = new DashMetrics(dname);
 	}
 	console.log("No of PROD Depts: "+Object.keys(Departments).length);
@@ -641,7 +639,7 @@ function allInactiveChats(chats) {
 	}
 	
 	// calculate total chat times for concurrency
-	var chattime, mchattime;		// times in minutes
+	var chattime=0, mchattime=0;		// times in minutes
 	for(var op in OperatorCconc)
 	{
 		opobj = Operators[op];
@@ -649,8 +647,8 @@ function allInactiveChats(chats) {
 		conc = OperatorCconc[op];
 		for(var i in conc)
 		{
-			if(conc[i] > 0) chattime++;
-			if(conc[i] > 1) mchattime++;
+			if(conc[i] > 0) chattime++;		// all chats
+			if(conc[i] > 1) mchattime++;	// multichats
 		}
 		opobj.tct = chattime*60000;		// minutes to milliseconds
 		opobj.mct = mchattime*60000;		// minutes to milliseconds
