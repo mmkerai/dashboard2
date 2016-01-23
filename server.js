@@ -217,7 +217,7 @@ app.post('/chat-closed', function(req, res){
 
 // Process incoming Boldchat triggered operator data
 app.post('/operator-status-changed', function(req, res){ 
-	debugLog("*****operator-status-changed post",req.body);
+//	debugLog("*****operator-status-changed post",req.body);
 	processOperatorStatusChanged(req.body);
 	res.send({ "result": "success" });
 });
@@ -257,13 +257,13 @@ function debugLog(name, dataobj) {
 }
 
 function deptsCallback(dlist) {
-	var dname;
+	var dname, newname;
 	for(var i in dlist) 
 	{
 		dname = dlist[i].Name;
 		if(dname.indexOf("PROD") == -1)	continue;		// if this is not a PROD dept
-		dname.replace("PROD - ","");		// remove PROD from name
-		Departments[dlist[i].DepartmentID] = new DashMetrics(dname);
+		newname = dname.replace("PROD - ","");		// remove PROD from name
+		Departments[dlist[i].DepartmentID] = new DashMetrics(newname);
 	}
 	console.log("No of PROD Depts: "+Object.keys(Departments).length);
 	for(var did in Departments)
