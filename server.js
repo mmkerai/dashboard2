@@ -605,7 +605,7 @@ function allInactiveChats(chats) {
 	var opobj;
 	for(var i in chats)
 	{
-		processClosedChat(chats[i]);
+		processClosedChat(chats[i]);	// add the chat to AllChats object
 		
 		// now save time/duration the chat was active to help calculate concurrency later
 		tchat = AllChats[chats[i].ChatID];		// get the sanitized chat details
@@ -615,7 +615,7 @@ function allInactiveChats(chats) {
 
 		if(tchat.answered == 0 || tchat.closed == 0) continue; // not answered and closed so go to next one
 		
-		var conc = OperatorCconc[chats[i].OperatorID];		// chat concurrency array
+		var conc = OperatorCconc[tchat.operator];		// chat concurrency array
 			
 		sh = tchat.answered.getHours();
 		sm = tchat.answered.getMinutes();
@@ -628,11 +628,11 @@ function allInactiveChats(chats) {
 			conc[count] = conc[count] + 1; // save chat activity for the closed chats
 		}
 				
-		OperatorCconc[chats[i].OperatorID] = conc;		// save it back for next time
+		OperatorCconc[tchat.operator] = conc;		// save it back for next time
 	}
 	
 	// calculate total chat times for concurrency
-	var chattime=0, mchattime=0;		// times in minutes
+	var chattime=0, mchattime=0, x=0;		// times in minutes
 	conc = new Array();
 	for(var op in OperatorCconc)
 	{
@@ -646,6 +646,11 @@ function allInactiveChats(chats) {
 		}
 		opobj.tct = opobj.tct + (chattime*60000);		// minutes to milliseconds
 		opobj.mct = opobj.mct + (mchattime*60000);		// minutes to milliseconds
+		if(x < 5)
+		{
+			console.log("****Opobj is"+opobj.tct+","+opobj.mct);
+			x++;
+		}
 	}
 }
 
