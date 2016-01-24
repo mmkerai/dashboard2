@@ -311,7 +311,6 @@ function operatorAvailabilityCallback(dlist) {
 	for(var i in dlist)
 	{
 		operator = dlist[i].LoginID;
-//		console.log("Operator: "+operator + " StatusType is "+dlist[i].StatusType);
 		if(Operators[operator] !== 'undefined')		// check operator id is valid
 		{
 			Operators[operator].status = dlist[i].StatusType;
@@ -560,29 +559,41 @@ function processClosedChat(chat) {
 
 // process operator status changed. or unavailable
 function processOperatorStatusChanged(ostatus) {
-	var did;
 	var depts = new Array();
 
-	operator = Operators[ostatus.LoginID];		// if answered there will always be a operator assigned	
-	Operators[operator].status = ostatus.StatusType;
-		
+	operator = ostatus.LoginID;	
+	if(Operators[operator] === 'undefined') return;
+	var cstatus = Operators[operator].status	
 	// update metrics
 	if(ostatus.StatusType == 1)
 	{
 		Overall.oaway++;
+		if(cstatus == 2) 		// if operator was available
+			Overall.oavail--;
 		depts = OperatorDepts[operator];
 		if(typeof(depts) === 'undefined') return;	// operator not recognised
 		for(var did in depts)
+		{
 			Departments[depts[did]].oaway++;
+			if(cstatus == 2) 		// if operator was available
+				Departments[depts[did]].oavail--;
+		}
 	}
 	else if(ostatus.StatusType == 2)
 	{
 		Overall.oavail++;
+		if(cstatus == 1) 		// if operator was away
+			Overall.oaway--;
 		depts = OperatorDepts[operator];
 		if(typeof(depts) === 'undefined') return;	// operator not recognised
 		for(var did in depts)
+		{
 			Departments[depts[did]].oavail++;
+			if(cstatus == 1) 		// if operator was away
+				Departments[depts[did]].oaway--;
+		}
 	}
+	Operators[operator].status = ostatus.StatusType;
 }
 
 // process all inactive (closed) chat objects
