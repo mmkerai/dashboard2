@@ -815,7 +815,7 @@ function calculateACC_CCONC() {
 	for(var did in Departments)
 	{
 		Departments[did].cconc = ((dtct[did]+dmct[did])/dtct[did]).toFixed(2);
-//		if(typeof(Departments[did].cconc) === 'undefined')
+		if(typeof(Departments[did].cconc) === 'undefined')
 			console.log("*****conc undefined: "+dtct[did]+","+dmct[did]);
 	}
 }
