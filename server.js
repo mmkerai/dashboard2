@@ -362,7 +362,7 @@ function setupOperatorDepts() {
 			depts.push(did);	// add dept to list of operators
 			OperatorDepts[ops[k]] = depts;
 		}
-	}
+	}  
 }
 
 // setup all globals TODO: add teams
