@@ -316,21 +316,6 @@ function operatorAvailabilityCallback(dlist) {
 		{
 			Operators[operator].status = dlist[i].StatusType;
 			Operators[operator].tcs = Math.round((TimeNow - new Date(dlist[i].Created))/1000);
-/*			for(var did in Departments)	// department stats
-			{
-				var ops = new Array();
-				ops = DeptOperators[did];
-				for(var k in ops)
-				{		
-					if(ops[k] == operator)
-					{
-						if(dlist[i].StatusType == 1)
-							Departments[did].oaway++;	
-						else if(dlist[i].StatusType == 2)
-							Departments[did].oavail++;
-					}
-				}
-			}*/
 			// update metrics
 			if(dlist[i].StatusType == 1)
 			{
@@ -581,35 +566,25 @@ function processOperatorStatusChanged(ostatus) {
 	opobj = Operators[ostatus.LoginID];		// if answered there will always be a operator assigned
 	if(typeof(opobj) === 'undefined') return;
 //	console.log("*****Status is "+ostatus.StatusType);
-	
-	depts = OperatorDepts[ostatus.LoginID];
-	if(typeof(depts) === 'undefined') return;	// operator not recognised
-	
-	for(var x in depts)
+		
+	// update metrics
+	if(ostatus.StatusType == 1)
 	{
-		deptobj = Departments[depts[x]];
-		if(typeof(deptobj) === 'undefined') continue;		// a dept we are not interested in
-		if(ostatus.StatusType == 1)
-		{
-			deptobj.oaway++;
-			Overall.oaway++;
-			if(opobj.status == 2)		// previously available so adjust accordingly
-			{
-				deptobj.oavail--;
-				Overall.oavail--;
-			}
-		}
-		else if(ostatus.StatusType == 2)
-		{
-			deptobj.oavail++;
-			Overall.oavail++;
-			if(opobj.status == 1)		// previously away so adjust accordingly
-			{
-				deptobj.oaway--;
-				Overall.oaway--;
-			}
-		}
+		Overall.oaway++;
+		depts = OperatorDepts[operator];
+		if(typeof(depts) === 'undefined') return;	// operator not recognised
+		for(var did in depts)
+			Departments[depts[did]].oaway++;
 	}
+	else if(ostatus.StatusType == 2)
+	{
+		Overall.oavail++;
+		depts = OperatorDepts[operator];
+		if(typeof(depts) === 'undefined') return;	// operator not recognised
+		for(var did in depts)
+			Departments[depts[did]].oavail++;
+	}
+	
 	opobj.status = ostatus.StatusType;	// save new status
 }
 
@@ -820,7 +795,7 @@ function calculateACC_CCONC() {
 		
 		otct = otct + opobj.tct;
 		omct = omct + opobj.mct;
-		if(opobj.status == 2)
+		if(opobj.status == 2)		// make sure operator is available
 			ocap = ocap + (opobj.ccap - opobj.activeChats.length);
 		// all depts that the operator belongs to
 		for(var x in depts)
