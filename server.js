@@ -278,7 +278,7 @@ function operatorsCallback(dlist) {
 	{
 		OperatorsByName[dlist[i].Name] = {name: dlist[i].LoginID};
 		Operators[dlist[i].LoginID] = new OpMetrics(dlist[i].Name);																			
-		var conc = Array(1440).fill(0);	// initialise with zeros
+		var conc = new Array(1440).fill(0);	// initialise with zeros
 		OperatorCconc[dlist[i].LoginID] = conc;
 	}
 	console.log("No of Operators: "+Object.keys(Operators).length);
@@ -603,7 +603,6 @@ function allInactiveChats(chats) {
 	var sh,sm,eh,em,sindex,eindex;
 //	var conc = new Array();
 	var opobj;
-	var x = 0;
 	for(var i in chats)
 	{
 		processClosedChat(chats[i]);
