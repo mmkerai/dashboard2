@@ -601,7 +601,7 @@ function processOperatorStatusChanged(ostatus) {
 // process all inactive (closed) chat objects
 function allInactiveChats(chats) {
 	var sh,sm,eh,em,sindex,eindex;
-	var conc = new Array();
+//	var conc = new Array();
 	var opobj;
 	var x = 0;
 	for(var i in chats)
@@ -616,7 +616,7 @@ function allInactiveChats(chats) {
 
 		if(tchat.answered == 0 || tchat.closed == 0) continue; // not answered and closed so go to next one
 		
-		conc = OperatorCconc[chats[i].OperatorID];		// chat concurrency array
+		var conc = OperatorCconc[chats[i].OperatorID];		// chat concurrency array
 			
 		sh = tchat.answered.getHours();
 		sm = tchat.answered.getMinutes();
@@ -641,7 +641,6 @@ function allInactiveChats(chats) {
 		if(typeof(opobj) === 'undefined') continue;
 		conc = OperatorCconc[op];
 		for(var i in conc)
-//		for(var i=0; i < 1440;i++)
 		{
 			if(conc[i] > 0) chattime++;		// all chats
 			if(conc[i] > 1) mchattime++;	// multichats
