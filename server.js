@@ -632,7 +632,7 @@ function allInactiveChats(chats) {
 	}
 	
 	// calculate total chat times for concurrency
-	var chattime=0, mchattime=0, x=0;		// times in minutes
+	var chattime=0, mchattime=0;		// times in minutes
 	conc = new Array();
 	for(var op in OperatorCconc)
 	{
@@ -646,11 +646,6 @@ function allInactiveChats(chats) {
 		}
 		opobj.tct = opobj.tct + (chattime*60000);		// minutes to milliseconds
 		opobj.mct = opobj.mct + (mchattime*60000);		// minutes to milliseconds
-		if(x < 5)
-		{
-			console.log("****Opobj is"+opobj.tct+","+opobj.mct);
-			x++;
-		}
 	}
 }
 
@@ -815,12 +810,12 @@ function calculateACC_CCONC() {
 		}
 	}
 //	console.log("****tct and mct is " +otct+","+omct);
-	Overall.cconc = ((((otct+omct)/otct)*100)/100).toFixed(2);
+	Overall.cconc = ((otct+omct)/otct).toFixed(2);
 	Overall.acc = ocap;
 	for(var did in Departments)
 	{
-		Departments[did].cconc = ((((dtct[did]+dmct[did])/dtct[did])*100)/100).toFixed(2);
-		if(typeof(Departments[did].cconc) === 'undefined')
+		Departments[did].cconc = ((dtct[did]+dmct[did])/dtct[did]).toFixed(2);
+//		if(typeof(Departments[did].cconc) === 'undefined')
 			console.log("*****conc undefined: "+dtct[did]+","+dmct[did]);
 	}
 }
