@@ -563,9 +563,8 @@ function processOperatorStatusChanged(ostatus) {
 	var did;
 	var depts = new Array();
 
-	opobj = Operators[ostatus.LoginID];		// if answered there will always be a operator assigned
-	if(typeof(opobj) === 'undefined') return;
-//	console.log("*****Status is "+ostatus.StatusType);
+	operator = Operators[ostatus.LoginID];		// if answered there will always be a operator assigned	
+	Operators[operator].status = ostatus.StatusType;
 		
 	// update metrics
 	if(ostatus.StatusType == 1)
@@ -584,8 +583,6 @@ function processOperatorStatusChanged(ostatus) {
 		for(var did in depts)
 			Departments[depts[did]].oavail++;
 	}
-	
-	opobj.status = ostatus.StatusType;	// save new status
 }
 
 // process all inactive (closed) chat objects
