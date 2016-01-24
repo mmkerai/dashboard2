@@ -633,14 +633,14 @@ function allInactiveChats(chats) {
 	}
 	
 	// calculate total chat times for concurrency
-	x=0;
 	var chattime=0, mchattime=0;		// times in minutes
+	conc = new Array();
 	for(var op in OperatorCconc)
 	{
 		opobj = Operators[op];
 		if(typeof(opobj) === 'undefined') continue;
 		conc = OperatorCconc[op];
-		for(var i in conc)
+		for(var i=0; i < 1440;i++)
 		{
 			if(conc[i] > 0) chattime++;		// all chats
 			if(conc[i] > 1) mchattime++;	// multichats
