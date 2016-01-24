@@ -649,8 +649,8 @@ function allInactiveChats(chats) {
 			if(conc[i] > 0) chattime++;		// all chats
 			if(conc[i] > 1) mchattime++;	// multichats
 		}
-		opobj.tct = chattime*60000;		// minutes to milliseconds
-		opobj.mct = mchattime*60000;		// minutes to milliseconds
+		opobj.tct = opobj.tct + (chattime*60000);		// minutes to milliseconds
+		opobj.mct = opobj.mct + (mchattime*60000);		// minutes to milliseconds
 	}
 }
 
