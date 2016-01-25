@@ -306,6 +306,7 @@ function deptOperatorsCallback(dlist, dept) {
 	console.log("Operators in dept: "+dept+" - "+DeptOperators[dept].length);
 }
 
+
 function operatorAvailabilityCallback(dlist) {
 	// StatusType 0, 1 and 2 is Logged out, logged in as away, logged in as available respectively
 	var operator;
