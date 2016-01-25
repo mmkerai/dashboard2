@@ -379,9 +379,10 @@ function doStartOfDay() {
 	sleep(1000);
 	getApiData("getFolders", 0, foldersCallback);
 	sleep(1000);
+	getOperatorAvailabilityData();
 	getInactiveChatData();
 	getActiveChatData();
-	getOperatorAvailabilityData();
+
 }
 
 // process started chat object and update all relevat dept, operator and global metrics
