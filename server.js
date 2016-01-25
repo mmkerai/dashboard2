@@ -1015,6 +1015,8 @@ function updateChatStats() {
 	{
 		doStartOfDay();
 		console.log("New day started, stats reset");
+		setTimeout(updateChatStats, 10000);
+		return;
 	}
 	calculateLWT_CIQ();
 	calculateASA();
