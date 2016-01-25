@@ -375,9 +375,9 @@ function doStartOfDay() {
 	sleep(1000);
 	getApiData("getFolders", 0, foldersCallback);
 	sleep(1000);
-	getOperatorAvailabilityData();
 	getInactiveChatData();
 	getActiveChatData();
+	getOperatorAvailabilityData();
 }
 
 // process started chat object and update all relevat dept, operator and global metrics
@@ -896,7 +896,6 @@ function getOperatorAvailabilityData() {
 		setTimeout(getOperatorAvailabilityData, 1000);
 		return;
 	}
-	setupOperatorDepts();			// convert dept operators to operator depts for easier updating
 	getApiData("getOperatorAvailability", "ServiceTypeID=1", operatorAvailabilityCallback);
 }
 
@@ -925,6 +924,7 @@ function getInactiveChatData() {
 		setTimeout(getInactiveChatData, 1000);
 		return;
 	}
+	setupOperatorDepts();			// convert dept operators to operator depts for easier updating
 
 	// set date to start of today. Search seems to work by looking at closed time i.e. everything that closed after
 	// "FromDate" will be included even if the created datetime is before the FromDate.
