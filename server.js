@@ -155,6 +155,7 @@ var ApiDataNotReady;	// Flag to show when data has been received from API so tha
 var TimeNow;			// global for current time
 var EndOfDay;			// global time for end of the day before all stats are reset
 var Overall;		// top level stats
+var	OperatorsSetupComplete;
 
 function sleep(milliseconds) {
   var start = new Date().getTime();
@@ -182,6 +183,7 @@ function initialiseGlobals () {
 	EndOfDay = TimeNow;
 	EndOfDay.setHours(23,59,59,0);	// last second of the day
 	Overall = new DashMetrics("Overall");	
+	OperatorsSetupComplete = false;
 }
 // Process incoming Boldchat triggered chat data
 app.post('/chat-started', function(req, res){
@@ -194,8 +196,8 @@ app.post('/chat-started', function(req, res){
 // Process incoming Boldchat triggered chat data
 app.post('/chat-unavailable', function(req, res){
 //	debugLog("Chat-unavailable",req.body);
-//	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
-//		processUnavailableChat(req.body);
+	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
+		processUnavailableChat(req.body);
 	res.send({ "result": "success" });
 });
 
@@ -218,7 +220,8 @@ app.post('/chat-closed', function(req, res){
 // Process incoming Boldchat triggered operator data
 app.post('/operator-status-changed', function(req, res){ 
 //	debugLog("*****operator-status-changed post",req.body);
-	processOperatorStatusChanged(req.body);
+	if(OperatorsSetupComplete == true)
+		processOperatorStatusChanged(req.body);
 	res.send({ "result": "success" });
 });
 // Set up code for outbound BoldChat API calls.  All of the capture callback code should ideally be packaged as an object.
@@ -363,7 +366,8 @@ function setupOperatorDepts() {
 			depts.push(did);	// add dept to list of operators
 			OperatorDepts[ops[k]] = depts;
 		}
-	}  
+	} 
+	OperatorsSetupComplete = true;
 }
 
 // setup all globals TODO: add teams
@@ -939,7 +943,7 @@ function getInactiveChatData() {
 	{
 		parameters = "FolderID="+fid+"&FromDate="+startDate.toISOString();
 		getApiData("getInactiveChats", parameters, allInactiveChats);
-		sleep(500);
+		sleep(200);
 	}	
 }
 
