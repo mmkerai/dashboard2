@@ -595,6 +595,23 @@ function processOperatorStatusChanged(ostatus) {
 				Departments[depts[did]].oaway--;
 		}
 	}
+	else if(ostatus.StatusType == 0)		// logged out
+	{
+		if(cstatus == 1) 		// if operator was away
+			Overall.oaway--;
+		else if(cstatus == 2)	// or available previously
+			Overall.oavail--;
+		
+		depts = OperatorDepts[operator];
+		if(typeof(depts) === 'undefined') return;	// operator not recognised
+		for(var did in depts)
+		{
+			if(cstatus == 1) 		// if operator was away
+				Departments[depts[did]].oaway--;
+			else if(cstatus == 2)	// or available previously
+				Overall.oavail--;
+		}
+	}
 	Operators[operator].status = ostatus.StatusType;
 }
 
