@@ -1011,13 +1011,13 @@ io.sockets.on('connection', function(socket){
 
 function updateChatStats() {
 	TimeNow = new Date();		// update the time for all calculations
-	if(TimeNow > EndOfDay)		// we have skipped to a new day
+/*	if(TimeNow > EndOfDay)		// we have skipped to a new day
 	{
 		doStartOfDay();
 		console.log("New day started, stats reset");
 		setTimeout(updateChatStats, 10000);
 		return;
-	}
+	}*/
 	calculateLWT_CIQ();
 	calculateASA();
 	calculateACT_CPH();
