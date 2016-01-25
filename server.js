@@ -339,7 +339,8 @@ function operatorAvailabilityCallback(dlist) {
 					Departments[depts[did]].oavail++;
 			}
 		}
-	}			
+	}
+	OperatorsSetupComplete = true;	
 }
 
 function getDepartmentNameFromID(id) {
@@ -367,7 +368,6 @@ function setupOperatorDepts() {
 			OperatorDepts[ops[k]] = depts;
 		}
 	} 
-	OperatorsSetupComplete = true;
 }
 
 // setup all globals TODO: add teams
@@ -1038,4 +1038,4 @@ function tidyUp() {
 }
 doStartOfDay();		// initialise everything
 setTimeout(updateChatStats,5000);	// updates socket io data at infinitum
-setTimeout(tidyUp,60000);			// tidy up every minute
+//setTimeout(tidyUp,60000);			// tidy up every minute
