@@ -916,6 +916,7 @@ function getActiveChatData() {
 	}
 }
 
+
 // gets today's chat data incase system was started during the day
 function getInactiveChatData() {
 	if(ApiDataNotReady)
