@@ -220,7 +220,7 @@ app.post('/chat-closed', function(req, res){
 // Process incoming Boldchat triggered operator data
 app.post('/operator-status-changed', function(req, res){ 
 //	debugLog("*****operator-status-changed post",req.body);
-	if(OperatorsSetupComplete == true)
+	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
 		processOperatorStatusChanged(req.body);
 	res.send({ "result": "success" });
 });
@@ -340,7 +340,6 @@ function operatorAvailabilityCallback(dlist) {
 			}
 		}
 	}
-	OperatorsSetupComplete = true;	
 }
 
 function getDepartmentNameFromID(id) {
@@ -368,6 +367,7 @@ function setupOperatorDepts() {
 			OperatorDepts[ops[k]] = depts;
 		}
 	} 
+	OperatorsSetupComplete = true;	
 }
 
 // setup all globals TODO: add teams
@@ -894,9 +894,9 @@ function getApiData(method, params, fcallback, cbparam) {
 
 // gets operator availability info 
 function getOperatorAvailabilityData() {
-	if(ApiDataNotReady)
+	if(OperatorSetupComplete == true)
 	{
-		console.log("Static data not ready (OA): "+ApiDataNotReady);
+		console.log("Operator setup incomplete");
 		setTimeout(getOperatorAvailabilityData, 1000);
 		return;
 	}
