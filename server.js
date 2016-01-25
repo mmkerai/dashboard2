@@ -894,7 +894,7 @@ function getApiData(method, params, fcallback, cbparam) {
 
 // gets operator availability info 
 function getOperatorAvailabilityData() {
-	if(OperatorSetupComplete == true)
+	if(OperatorsSetupComplete == true)
 	{
 		console.log("Operator setup incomplete");
 		setTimeout(getOperatorAvailabilityData, 1000);
