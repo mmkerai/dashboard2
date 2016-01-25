@@ -609,7 +609,7 @@ function processOperatorStatusChanged(ostatus) {
 			if(cstatus == 1) 		// if operator was away
 				Departments[depts[did]].oaway--;
 			else if(cstatus == 2)	// or available previously
-				Overall.oavail--;
+				Departments[depts[did]].oavail--;
 		}
 	}
 	Operators[operator].status = ostatus.StatusType;

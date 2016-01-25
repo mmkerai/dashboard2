@@ -14,3 +14,7 @@
 	overflow: scroll;
 	overflow-x: hidden;
 }
+.dashtable td{
+    text-align: center;
+    vertical-align: middle;	
+}
