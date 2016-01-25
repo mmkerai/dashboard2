@@ -382,7 +382,6 @@ function doStartOfDay() {
 	getOperatorAvailabilityData();
 	getInactiveChatData();
 	getActiveChatData();
-
 }
 
 // process started chat object and update all relevat dept, operator and global metrics
@@ -1030,8 +1029,13 @@ function updateChatStats() {
 		io.sockets.connected[socket].emit('departmentStats', Departments);
 	}
 //	debugLog("Overall", Overall);
-	setTimeout(updateChatStats, 3000);	// send update every second
+	setTimeout(updateChatStats, 2000);	// send update every second
 }
 
+function tidyUp() {
+	getApiData("getOperatorAvailability", "ServiceTypeID=1", operatorAvailabilityCallback);
+	setTimeout(tidyUp,60000);			// tidy up every minute
+}
 doStartOfDay();		// initialise everything
-setTimeout(updateChatStats,3000);	// updates socket io data at infinitum
+setTimeout(updateChatStats,5000);	// updates socket io data at infinitum
+setTimeout(tidyUp,60000);			// tidy up every minute
