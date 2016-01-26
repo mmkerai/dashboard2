@@ -379,7 +379,7 @@ function doStartOfDay() {
 	sleep(1000);
 	getApiData("getOperators", 0, operatorsCallback);
 	sleep(1000);
-	getApiData("getFolders", 0, foldersCallback);
+	getApiData("getFolders", "FolderType=5", foldersCallback);	// get only chat folders
 	sleep(1000);
 	getOperatorAvailabilityData();
 	getInactiveChatData();
@@ -899,7 +899,7 @@ function calculateInactiveConc() {
 			if(conc[i] > 0) chattime++;		// all chats
 			if(conc[i] > 1) mchattime++;	// multichats
 		}
-		opobj.tct = opobj.tct + (chattime*60000) + (mchattime*60000);		// minutes to milliseconds
+		opobj.tct = opobj.tct + (chattime*60000);		// minutes to milliseconds
 		opobj.mct = opobj.mct + (mchattime*60000);		// minutes to milliseconds
 	}
 }
