@@ -794,6 +794,7 @@ function calculateACC_CCONC() {
 		dtct[i] = 0;
 		dmct[i] = 0;
 	}
+
 	
 	calculateOperatorConc();
 	for(var i in OperatorDepts)
