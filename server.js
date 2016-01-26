@@ -878,7 +878,7 @@ function getApiData(method, params, fcallback, cbparam) {
 	});
 }
 
-// calculates conc for all inactive chats 
+// calculates conc for all inactive chats (used during start up only)
 function calculateInactiveConc() {
 	if(ApiDataNotReady)
 	{
