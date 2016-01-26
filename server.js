@@ -904,6 +904,7 @@ function getOperatorAvailabilityData() {
 	getApiData("getOperatorAvailability", "ServiceTypeID=1", operatorAvailabilityCallback);
 }
 
+
 // gets current active chats 
 function getActiveChatData() {
 	if(ApiDataNotReady)
