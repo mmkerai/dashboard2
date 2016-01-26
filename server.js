@@ -106,6 +106,8 @@ var ChatData = function(chatid, dept, start) {
 var DashMetrics = function(name) {
 		this.name = name;
 		this.cconc = 0;
+		this.tct = 0;
+		this.mct = 0;
 		this.csla = 0;		// number
 		this.psla = 0;		// percent
 		this.cph = 0;
@@ -382,6 +384,7 @@ function doStartOfDay() {
 	getOperatorAvailabilityData();
 	getInactiveChatData();
 	getActiveChatData();
+	calculateInactiveConc();		// concurrency for all closed/inactive chats
 }
 
 // process started chat object and update all relevat dept, operator and global metrics
@@ -550,7 +553,7 @@ function processClosedChat(chat) {
 		if(achats[0].chatid == chat.ChatID)			// this is the chat that has closed
 			opobj.activeChats == new Array();		// remove from list by re-initiasing variable
 	}
-	else				// must be multi chat
+	else if(achats.length > 1)				// must be multi chat
 	{
 		for(var x in achats) // go through each multichat
 		{
@@ -651,23 +654,6 @@ function allInactiveChats(chats) {
 		}
 				
 		OperatorCconc[tchat.operator] = conc;		// save it back for next time
-	}
-	
-	// calculate total chat times for concurrency
-	var chattime=0, mchattime=0;		// times in minutes
-	conc = new Array();
-	for(var op in OperatorCconc)
-	{
-		opobj = Operators[op];
-		if(typeof(opobj) === 'undefined') continue;
-		conc = OperatorCconc[op];
-		for(var i in conc)
-		{
-			if(conc[i] > 0) chattime++;		// all chats
-			if(conc[i] > 1) mchattime++;	// multichats
-		}
-		opobj.tct = opobj.tct + (chattime*60000) + (mchattime*60000);		// minutes to milliseconds
-		opobj.mct = opobj.mct + (mchattime*60000);		// minutes to milliseconds
 	}
 }
 
@@ -890,6 +876,32 @@ function getApiData(method, params, fcallback, cbparam) {
 			ApiDataNotReady--;
 		});
 	});
+}
+
+// calculates conc for all inactive chats 
+function calculateInactiveConc() {
+	if(ApiDataNotReady)
+	{
+		console.log("Chat data not ready (CiC): "+ApiDataNotReady);
+		setTimeout(calculateInactiveConc, 1000);
+		return;
+	}
+		// calculate total chat times for concurrency
+	var chattime=0, mchattime=0;		// times in minutes
+	conc = new Array();
+	for(var op in OperatorCconc)
+	{
+		opobj = Operators[op];
+		if(typeof(opobj) === 'undefined') continue;
+		conc = OperatorCconc[op];
+		for(var i in conc)
+		{
+			if(conc[i] > 0) chattime++;		// all chats
+			if(conc[i] > 1) mchattime++;	// multichats
+		}
+		opobj.tct = opobj.tct + (chattime*60000) + (mchattime*60000);		// minutes to milliseconds
+		opobj.mct = opobj.mct + (mchattime*60000);		// minutes to milliseconds
+	}
 }
 
 // gets operator availability info 
