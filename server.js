@@ -544,7 +544,6 @@ function processClosedChat(chat) {
 	}
 	
 	opobj.tcan++;	// chats answered and complete
-	updateCconc(tchat);
 	// now remove from active chat list and update stats
 	var achats = new Array();
 	achats = opobj.activeChats;
@@ -637,7 +636,6 @@ function allInactiveChats(chats) {
 		if(tchat.operator == 0) continue;		// operator id not set - go to next one
 		if(tchat.answered == 0 || tchat.closed == 0) continue; // not answered and closed so go to next one
 		updateCconc(tchat);
-
 	}
 }
 
