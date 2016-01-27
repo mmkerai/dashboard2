@@ -828,7 +828,6 @@ function calculateACC_CCONC() {
 	}
 }
 
-
 // this function calls API again if data is truncated
 function loadNext(method, next, callback) {
 	var str = [];
@@ -843,6 +842,7 @@ function loadNext(method, next, callback) {
 // calls extraction API and receives JSON objects 
 function getApiData(method, params, fcallback, cbparam) {
 	ApiDataNotReady++;		// flag to track api calls
+	
 	BC_API_Request(method, params, function (response) {
 		var str = '';
 		//another chunk of data has been received, so append it to `str`
