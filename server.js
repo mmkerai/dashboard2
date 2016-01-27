@@ -828,6 +828,7 @@ function calculateACC_CCONC() {
 	}
 }
 
+
 // this function calls API again if data is truncated
 function loadNext(method, next, callback) {
 	var str = [];
