@@ -56,7 +56,7 @@ $(document).ready(function() {
 		var row, col, rowid;
 		for(var i in ddata)
 		{
-			var tcanpc = ddata[i].tcan + "("+Math.round((ddata[i].tcan/ddata[i].tco)/100)+")";
+			var tcanpc = ddata[i].tcan + "("+Math.round((ddata[i].tcan/ddata[i].tco)*100)+")";
 			rowid = document.getElementById(ddata[i].name);
 			if(rowid === null)		// row doesnt exist so create one
 			{
@@ -74,7 +74,7 @@ $(document).ready(function() {
 				col = row.insertCell(8).innerHTML = tcanpc;
 				col = row.insertCell(9).innerHTML = ddata[i].tcuq;
 				col = row.insertCell(10).innerHTML = ddata[i].tcua;
-				col = row.insertCell(11).innerHTML = Math.round(((ddata[i].tcun+data.tco)/ddata[i].tcun)/100);
+				col = row.insertCell(11).innerHTML = Math.round(((ddata[i].tcun+ddata[i].tco)/ddata[i].tcun)/100);
 				col = row.insertCell(12).innerHTML = toHHMMSS(ddata[i].asa);
 				col = row.insertCell(13).innerHTML = toHHMMSS(ddata[i].act);
 				col = row.insertCell(14).innerHTML = ddata[i].acc;
@@ -93,7 +93,7 @@ $(document).ready(function() {
 				rowid.cells[8].innerHTML = ddata[i].tcan;
 				rowid.cells[9].innerHTML = ddata[i].tcuq;
 				rowid.cells[10].innerHTML = ddata[i].tcua;
-				rowid.cells[11].innerHTML = Math.round(((ddata[i].tcun+data.tco)/ddata[i].tcun)/100);
+				rowid.cells[11].innerHTML = Math.round(((ddata[i].tcun+ddata[i].tco)/ddata[i].tcun)/100);
 				rowid.cells[12].innerHTML = toHHMMSS(ddata[i].asa);
 				rowid.cells[13].innerHTML = toHHMMSS(ddata[i].act);
 				rowid.cells[14].innerHTML = ddata[i].acc;
