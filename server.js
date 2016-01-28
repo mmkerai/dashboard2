@@ -316,7 +316,6 @@ function operatorAvailabilityCallback(dlist) {
 	// StatusType 0, 1 and 2 is Logged out, logged in as away, logged in as available respectively
 	var operator;
 	var depts;
-	console.log("***Operator availability");
 	for(var i in dlist)
 	{
 		operator = dlist[i].LoginID;
@@ -919,7 +918,7 @@ function calculateOperatorConc() {
 function getOperatorAvailabilityData() {
 	if(ApiDataNotReady)
 	{
-		console.log("Operator setup incomplete");
+		console.log("Static data not ready (OA): "+ApiDataNotReady);
 		setTimeout(getOperatorAvailabilityData, 1000);
 		return;
 	}
