@@ -316,6 +316,7 @@ function operatorAvailabilityCallback(dlist) {
 	// StatusType 0, 1 and 2 is Logged out, logged in as away, logged in as available respectively
 	var operator;
 	var depts;
+	console.log("***Operator availability");
 	for(var i in dlist)
 	{
 		operator = dlist[i].LoginID;
@@ -831,7 +832,6 @@ function calculateACC_CCONC() {
 			console.log("*****conc undefined: "+dtct[did]+","+dmct[did]);
 	}
 }
-
 
 // this function calls API again if data is truncated
 function loadNext(method, next, callback) {
