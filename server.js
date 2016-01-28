@@ -814,10 +814,14 @@ function calculateACC_CCONC() {
 			dtct[depts[x]] = dtct[depts[x]] + opobj.tct;
 			dmct[depts[x]] = dmct[depts[x]] + opobj.mct;
 			if(Operators[i].status == 2)
-				Departments[depts[x]].acc = Departments[depts[x]].acc + (opobj.ccap - opobj.activeChats.length);
+			{
+				var acc = opobj.ccap - opobj.activeChats.length;
+				if(acc < 0) acc == 0;		// make sure this is never negative which can occur sometimes
+				Departments[depts[x]].acc = Departments[depts[x]].acc + acc;
+			}
 		}
 	}
-//	console.log("****tct and mct is " +otct+","+omct);
+	console.log("****tct and mct is " +otct+","+omct);
 	Overall.cconc = ((otct+omct)/otct).toFixed(2);
 	Overall.acc = ocap;
 	for(var did in Departments)
