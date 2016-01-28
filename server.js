@@ -1046,6 +1046,11 @@ function updateChatStats() {
 	calculateACT_CPH();
 	calculateACC_CCONC();
 	Overall.tco = Overall.tcan + Overall.tcuq + Overall.tcua;
+	for(var did in Departments)
+	{
+		Departments[did].tco = Departments[did].tcan + Departments[did].tcuq + Departments[did].tcua;
+	}
+	
 	for(var i in LoggedInUsers)
 	{
 		socket = LoggedInUsers[i];

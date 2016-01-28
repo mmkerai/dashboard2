@@ -32,7 +32,7 @@ $(document).ready(function() {
 	});
 
 	socket.on('overallStats', function(data){
-		var tcanpc = data.tcan + "("+Math.round((data.tcan/data.tco)/100)+")";
+		var tcanpc = data.tcan + "("+Math.round((data.tcan/data.tco)*100)+")";
 		$("#ocon").text(data.cconc);
 		$("#osla").text(data.psla +"%");
 		$("#ocph").text(data.cph);
@@ -43,7 +43,7 @@ $(document).ready(function() {
 		$("#otcan").text(tcanpc);
 		$("#ouiq").text(data.tcuq);
 		$("#ouas").text(data.tcua);
-		$("#ocunavail").text(Math.round(((data.tcun+data.tco)/data.tcun)/100));
+		$("#ocunavail").text(Math.round(((data.tcun+data.tco)/data.tcun)*100));
 		$("#oasa").text(toHHMMSS(data.asa));
 		$("#oact").text(toHHMMSS(data.act));
 		$("#oaccap").text(data.acc);
@@ -74,7 +74,7 @@ $(document).ready(function() {
 				col = row.insertCell(8).innerHTML = tcanpc;
 				col = row.insertCell(9).innerHTML = ddata[i].tcuq;
 				col = row.insertCell(10).innerHTML = ddata[i].tcua;
-				col = row.insertCell(11).innerHTML = Math.round(((ddata[i].tcun+ddata[i].tco)/ddata[i].tcun)/100);
+				col = row.insertCell(11).innerHTML = Math.round(((ddata[i].tcun+ddata[i].tco)/ddata[i].tcun)*100);
 				col = row.insertCell(12).innerHTML = toHHMMSS(ddata[i].asa);
 				col = row.insertCell(13).innerHTML = toHHMMSS(ddata[i].act);
 				col = row.insertCell(14).innerHTML = ddata[i].acc;
@@ -93,7 +93,7 @@ $(document).ready(function() {
 				rowid.cells[8].innerHTML = ddata[i].tcan;
 				rowid.cells[9].innerHTML = ddata[i].tcuq;
 				rowid.cells[10].innerHTML = ddata[i].tcua;
-				rowid.cells[11].innerHTML = Math.round(((ddata[i].tcun+ddata[i].tco)/ddata[i].tcun)/100);
+				rowid.cells[11].innerHTML = Math.round(((ddata[i].tcun+ddata[i].tco)/ddata[i].tcun)*100);
 				rowid.cells[12].innerHTML = toHHMMSS(ddata[i].asa);
 				rowid.cells[13].innerHTML = toHHMMSS(ddata[i].act);
 				rowid.cells[14].innerHTML = ddata[i].acc;
