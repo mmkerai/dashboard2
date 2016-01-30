@@ -87,7 +87,7 @@ $(document).ready(function() {
 				rowid.cells[2].innerHTML = ddata[i].psla +"%";
 				rowid.cells[3].innerHTML = ddata[i].cph;
 				rowid.cells[4].innerHTML = ddata[i].ciq;
-				rowid.cells[5].innerHTML = ddata[i].lwt;
+				rowid.cells[5].innerHTML = toHHMMSS(ddata[i].lwt);
 				rowid.cells[6].innerHTML = ddata[i].tco;
 				rowid.cells[7].innerHTML = ddata[i].tac;
 				rowid.cells[8].innerHTML = ddata[i].tcan;

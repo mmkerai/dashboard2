@@ -783,6 +783,7 @@ function calculateACC_CCONC() {
 	var dtct = new Object();
 	var dmct = new Object();
 	var dcap = new Object();
+	var active;
 	var otct = 0, omct = 0, ocap = 0;
 	// first zero out the cconc and acc for all dept
 	for(var i in Departments)
@@ -807,7 +808,11 @@ function calculateACC_CCONC() {
 		otct = otct + opobj.tct;
 		omct = omct + opobj.mct;
 		if(opobj.status == 2)		// make sure operator is available
-			ocap = ocap + (opobj.ccap - opobj.activeChats.length);
+		{
+			active = opobj.ccap - opobj.activeChats.length;
+			if(active < 0) active = 0;			// make sure not negative
+			ocap = ocap + active;
+		}
 		// all depts that the operator belongs to
 		for(var x in depts)
 		{
