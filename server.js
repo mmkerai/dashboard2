@@ -829,7 +829,6 @@ function calculateACC_CCONC() {
 	console.log("****tct and mct is " +otct+","+omct);
 	Overall.cconc = ((otct+omct)/otct).toFixed(2);
 	Overall.acc = ocap;
-	
 	for(var did in Departments)
 	{
 		Departments[did].cconc = ((dtct[did]+dmct[did])/dtct[did]).toFixed(2);
