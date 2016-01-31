@@ -109,7 +109,7 @@ function showDepartment(did,dname) {
 	console.log("Show Dept: "+did+","+dname);
 	var deptpage = NewWin("department.html?did="+did, "Department Dashboard");
 	var doc = deptpage.document;
-	doc.getElementById("dashheader").innerHTML = "Department: "+dname;
+//	doc.getElementById("dashheader").innerHTML = "Department: "+dname;
 }
 
 function NewWin(htmlfile, name)		// open a new window
