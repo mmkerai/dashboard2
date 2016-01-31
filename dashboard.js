@@ -63,7 +63,7 @@ $(document).ready(function() {
 				row = ttable.insertRow();	// there is already a header row and top row
 				col = row.insertCell(0);
 				row.id = ddata[i].name;
-				col.outerHTML = "<th scope='row' onClick='showDepartment("+ddata[i].did+","+ddata[i].name+")'>"+ddata[i].name+"</th>";
+				col.outerHTML = "<th scope='row' onClick='showDepartment("+ddata[i].did+","+ddata[i].name+");'>"+ddata[i].name+"</th>";
 				col = row.insertCell(1).innerHTML = ddata[i].cconc;
 				col = row.insertCell(2).innerHTML = ddata[i].psla +"%";
 				col = row.insertCell(3).innerHTML = ddata[i].cph;
