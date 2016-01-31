@@ -1,55 +1,15 @@
-var socket = io.connect();
-var auth2;
-var Gid_token;
-var profile;
-
-function onSignIn(googleUser) {
-// Useful data for your client-side scripts:
-	profile = googleUser.getBasicProfile();
-//	console.log("ID: " + profile.getId()); // Don't send this directly to your server!
-//	console.log("Name: " + profile.getName());
-//	console.log("Image URL: " + profile.getImageUrl());
-	console.log("Email: " + profile.getEmail());
-
-	// The ID token you need to pass to your backend:
-	Gid_token = googleUser.getAuthResponse().id_token;
-	socket.emit('authenticate', {token: Gid_token, email: profile.getEmail()});
-}
 
 $(document).ready(function() {
 
-  	$("#g-signout").hide();
-
-	socket.on('authResponse', function(data){
-		$("#g-signout").show();
-		$("#gname").text(profile.getName());
-		$("#gprofile-image").attr({src: profile.getImageUrl()});
-		$("#error").text("");
-	});
+var did = decodeURIComponent(window.location.search.match(/(\?|&)did\=([^&]*)/)[2]);
+var socket = decodeURIComponent(window.location.search.match(/(\?|&)socket\=([^&]*)/)[2]);
+console.log("did is "+did);
+console.log("socket is "+socket);
 
 	socket.on('errorResponse', function(data){
 		$("#error").text(data);
 	});
 
-	socket.on('overallStats', function(data){
-		var tcanpc = data.tcan + "("+Math.round((data.tcan/data.tco)*100)+"%)";
-		$("#ocon").text(data.cconc);
-		$("#osla").text(data.psla +"%");
-		$("#ocph").text(data.cph);
-		$("#ociq").text(data.ciq);
-		$("#olwt").text(toHHMMSS(data.lwt));
-		$("#ooff").text(data.tco);
-		$("#otac").text(data.tac);
-		$("#otcan").text(tcanpc);
-		$("#ouiq").text(data.tcuq);
-		$("#ouas").text(data.tcua);
-		$("#ocunavail").text(Math.round((data.tcun/(data.tcun+data.tco))*100)+ "%");
-		$("#oasa").text(toHHMMSS(data.asa));
-		$("#oact").text(toHHMMSS(data.act));
-		$("#oaccap").text(data.acc);
-		$("#oaway").text(data.oaway);
-		$("#oavail").text(data.oavail);
-	});
 	socket.on('departmentStats', function(ddata){
 		var ttable = document.getElementById("topTable");
 //		for(cnt = 0; cnt < Object.keys(ddata).length; cnt++)
@@ -107,7 +67,7 @@ $(document).ready(function() {
 
 function showDepartments(did,dname) {
 	console.log("Show Dept: "+did+","+dname);
-	var deptpage = NewWin("departments.html?did="+did+"&socket="+socket, "Department Dashboard");
+	var deptpage = NewWin("departments.html?did="+did, "Department Dashboard");
 	var doc = deptpage.document;
 	doc.getElementById("dashheader").innerHTML = "Department: "+dname;
 }
@@ -122,20 +82,6 @@ function NewWin(htmlfile, name)		// open a new window
 				'toolbar=yes,location=no,status=no,menubar=yes,scrollbars=yes,resizable=yes,width='+WIDTH+',height='+HEIGHT+',top='+top+',left='+left);
 	winpop.focus();
 	return winpop;
-}
-
-function signOut() {
-	auth2 = gapi.auth2.getAuthInstance();
-	if(auth2 === 'undefined')
-		console.log("auth2 is undefined");
-	
-	auth2.signOut().then(function () {
-		console.log('User signed out.');
-		$("#g-signout").hide();
-
-	if(Gid_token !== 'undefined')
-		socket.emit('un-authenticate', {token: Gid_token, email: profile.getEmail()});
-	});
 }
 
 function toHHMMSS(seconds) {

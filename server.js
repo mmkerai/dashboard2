@@ -103,7 +103,8 @@ var ChatData = function(chatid, dept, start) {
 };
 
 //******************* Global class for dashboard metrics
-var DashMetrics = function(name) {
+var DashMetrics = function(id,name) {
+		this.did = id;		// dept id
 		this.name = name;
 		this.cconc = 0;
 //		this.tct = 0;
@@ -128,7 +129,8 @@ var DashMetrics = function(name) {
 };
 
 //**************** Global class for operator metrics
-var OpMetrics  = function(name) {
+var OpMetrics  = function(id,name) {
+		this.oid = id;		// operator id
 		this.name = name;
 		this.ccap = 2;		// assume chat capacity of 2
 		this.cconc = 0;		// chat concurrency
@@ -150,7 +152,6 @@ var	OperatorDepts;	// array of depts for each operator
 var	OperatorCconc;	// chat concurrency for each operator
 var	Folders;	// array of folder ids and folder name objects
 var	Operators;	// array of operator ids and name objects
-var	OperatorsByName;	// array of operator ids and name objects
 var	WaitingTimes;	// array of chat waiting times objects
 var	Teams;	// array of team names
 var ApiDataNotReady;	// Flag to show when data has been received from API so that data can be processed
@@ -177,14 +178,13 @@ function initialiseGlobals () {
 	OperatorCconc = new Object();
 	Folders = new Object();	
 	Operators = new Object();
-	OperatorsByName = new Object();	
 	WaitingTimes = new Object();
 	Teams = new Object();
 	ApiDataNotReady = 0;
 	TimeNow = new Date();
 	EndOfDay = TimeNow;
 	EndOfDay.setHours(23,59,59,0);	// last second of the day
-	Overall = new DashMetrics("Overall");	
+	Overall = new DashMetrics("11111111","Overall");	
 	OperatorsSetupComplete = false;
 }
 // Process incoming Boldchat triggered chat data
@@ -268,7 +268,7 @@ function deptsCallback(dlist) {
 		dname = dlist[i].Name;
 		if(dname.indexOf("PROD") == -1)	continue;		// if this is not a PROD dept
 		newname = dname.replace("PROD - ","");		// remove PROD from name
-		Departments[dlist[i].DepartmentID] = new DashMetrics(newname);
+		Departments[dlist[i].DepartmentID] = new DashMetrics(dlist[i].DepartmentID,newname);
 	}
 	console.log("No of PROD Depts: "+Object.keys(Departments).length);
 	for(var did in Departments)
@@ -281,8 +281,7 @@ function deptsCallback(dlist) {
 function operatorsCallback(dlist) {
 	for(var i in dlist) 
 	{
-		OperatorsByName[dlist[i].Name] = {name: dlist[i].LoginID};
-		Operators[dlist[i].LoginID] = new OpMetrics(dlist[i].Name);																			
+		Operators[dlist[i].LoginID] = new OpMetrics(dlist[i].LoginID,dlist[i].Name);																			
 		var conc = new Array(1440).fill(0);	// initialise with zeros
 		OperatorCconc[dlist[i].LoginID] = conc;
 	}
@@ -827,13 +826,13 @@ function calculateACC_CCONC() {
 		}
 	}
 	console.log("****tct and mct is " +otct+","+omct);
-	Overall.cconc = ((otct+omct)/otct).toFixed(2);
+	if(otct != 0)
+		Overall.cconc = ((otct+omct)/otct).toFixed(2);
 	Overall.acc = ocap;
 	for(var did in Departments)
 	{
-		Departments[did].cconc = ((dtct[did]+dmct[did])/dtct[did]).toFixed(2);
-		if(typeof(Departments[did].cconc) === 'undefined')
-			console.log("*****conc undefined: "+dtct[did]+","+dmct[did]);
+		if(dtct[did] != 0)		// dont divide by zero
+			Departments[did].cconc = ((dtct[did]+dmct[did])/dtct[did]).toFixed(2);
 	}
 }
 
