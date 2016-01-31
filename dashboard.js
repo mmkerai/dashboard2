@@ -2,6 +2,7 @@ var socket = io.connect();
 var auth2;
 var Gid_token;
 var profile;
+var did;
 
 function onSignIn(googleUser) {
 // Useful data for your client-side scripts:
@@ -17,6 +18,8 @@ function onSignIn(googleUser) {
 }
 
 $(document).ready(function() {
+var did = decodeURIComponent(window.location.search.match(/(\?|&)did\=([^&]*)/)[2]);
+console.log("did is "+did);
 
   	$("#g-signout").hide();
 
@@ -31,32 +34,36 @@ $(document).ready(function() {
 		$("#error").text(data);
 	});
 
-	socket.on('overallStats', function(data){
-		var tcanpc = data.tcan + "("+Math.round((data.tcan/data.tco)*100)+"%)";
-		$("#ocon").text(data.cconc);
-		$("#osla").text(data.psla +"%");
-		$("#ocph").text(data.cph);
-		$("#ociq").text(data.ciq);
-		$("#olwt").text(toHHMMSS(data.lwt));
-		$("#ooff").text(data.tco);
-		$("#otac").text(data.tac);
-		$("#otcan").text(tcanpc);
-		$("#ouiq").text(data.tcuq);
-		$("#ouas").text(data.tcua);
-		$("#ocunavail").text(Math.round((data.tcun/(data.tcun+data.tco))*100)+ "%");
-		$("#oasa").text(toHHMMSS(data.asa));
-		$("#oact").text(toHHMMSS(data.act));
-		$("#oaccap").text(data.acc);
-		$("#oaway").text(data.oaway);
-		$("#oavail").text(data.oavail);
-	});
+	if(typeof(did) === 'undefined')
+	{
+		socket.on('overallStats', function(data){
+			var tcanpc = data.tcan + " ("+Math.round((data.tcan/data.tco)*100)+"%)";
+			$("#ocon").text(data.cconc);
+			$("#osla").text(data.psla +"%");
+			$("#ocph").text(data.cph);
+			$("#ociq").text(data.ciq);
+			$("#olwt").text(toHHMMSS(data.lwt));
+			$("#ooff").text(data.tco);
+			$("#otac").text(data.tac);
+			$("#otcan").text(tcanpc);
+			$("#ouiq").text(data.tcuq);
+			$("#ouas").text(data.tcua);
+			$("#ocunavail").text(Math.round((data.tcun/(data.tcun+data.tco))*100)+ "%");
+			$("#oasa").text(toHHMMSS(data.asa));
+			$("#oact").text(toHHMMSS(data.act));
+			$("#oaccap").text(data.acc);
+			$("#oaway").text(data.oaway);
+			$("#oavail").text(data.oavail);
+		});
+	}
+	
 	socket.on('departmentStats', function(ddata){
 		var ttable = document.getElementById("topTable");
 //		for(cnt = 0; cnt < Object.keys(ddata).length; cnt++)
 		var row, col, rowid;
 		for(var i in ddata)
 		{
-			var tcanpc = ddata[i].tcan + "("+Math.round((ddata[i].tcan/ddata[i].tco)*100)+"%)";
+			var tcanpc = ddata[i].tcan + " ("+Math.round((ddata[i].tcan/ddata[i].tco)*100)+"%)";
 			rowid = document.getElementById(ddata[i].name);
 			if(rowid === null)		// row doesnt exist so create one
 			{
@@ -90,7 +97,7 @@ $(document).ready(function() {
 				rowid.cells[5].innerHTML = toHHMMSS(ddata[i].lwt);
 				rowid.cells[6].innerHTML = ddata[i].tco;
 				rowid.cells[7].innerHTML = ddata[i].tac;
-				rowid.cells[8].innerHTML = ddata[i].tcan;
+				rowid.cells[8].innerHTML = tcanpc;
 				rowid.cells[9].innerHTML = ddata[i].tcuq;
 				rowid.cells[10].innerHTML = ddata[i].tcua;
 				rowid.cells[11].innerHTML = Math.round((ddata[i].tcun/(ddata[i].tcun+ddata[i].tco))*100) +"%";
@@ -102,13 +109,14 @@ $(document).ready(function() {
 			}
 		}
 	});
-		
 });
 
-function showDepartment(did,dname) {
-	console.log("Show Dept: "+did+","+dname);
-	var deptpage = NewWin("department.html?did="+did, "Department Dashboard");
-	var doc = deptpage.document;
+function showDepartment(dept,dname) {
+	console.log("Show Dept: "+dept+","+dname);
+	did = dept;
+	window.location.reload();
+//	var deptpage = NewWin("department.html?did="+did, "Department Dashboard");
+//	var doc = deptpage.document;
 //	doc.getElementById("dashheader").innerHTML = "Department: "+dname;
 }
 
