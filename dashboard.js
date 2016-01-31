@@ -18,7 +18,7 @@ function onSignIn(googleUser) {
 }
 
 $(document).ready(function() {
-var did = decodeURIComponent(window.location.search.match(/(\?|&)did\=([^&]*)/));
+did = decodeURIComponent(window.location.search.match(/(\?|&)did\=([^&]*)/));
 console.log("did is "+did);
 
   	$("#g-signout").hide();
@@ -34,7 +34,7 @@ console.log("did is "+did);
 		$("#error").text(data);
 	});
 
-	if(typeof(did) === 'undefined')
+	if(did === null)
 	{
 		socket.on('overallStats', function(data){
 			var tcanpc = data.tcan + " ("+Math.round((data.tcan/data.tco)*100)+"%)";
