@@ -18,7 +18,7 @@ function onSignIn(googleUser) {
 }
 
 $(document).ready(function() {
-var did = decodeURIComponent(window.location.search.match(/(\?|&)did\=([^&]*)/)[2]);
+var did = decodeURIComponent(window.location.search.match(/(\?|&)did\=([^&]*)/));
 console.log("did is "+did);
 
   	$("#g-signout").hide();
