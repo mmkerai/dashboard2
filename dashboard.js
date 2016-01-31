@@ -105,7 +105,7 @@ $(document).ready(function() {
 		
 });
 
-function showDepartments(did,dname) {
+function showDepartment(did,dname) {
 	console.log("Show Dept: "+did+","+dname);
 	var deptpage = NewWin("departments.html?did="+did+"&socket="+socket, "Department Dashboard");
 	var doc = deptpage.document;
