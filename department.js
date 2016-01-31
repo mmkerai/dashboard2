@@ -1,10 +1,9 @@
+var socket = io.connect();
 
 $(document).ready(function() {
 
 var did = decodeURIComponent(window.location.search.match(/(\?|&)did\=([^&]*)/)[2]);
-var socket = decodeURIComponent(window.location.search.match(/(\?|&)socket\=([^&]*)/)[2]);
 console.log("did is "+did);
-console.log("socket is "+socket);
 
 	socket.on('errorResponse', function(data){
 		$("#error").text(data);

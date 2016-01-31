@@ -77,6 +77,9 @@ app.get(PAGEPATH, function(req, res){
 app.get('/agents.html', function(req, res){
 	res.sendFile(__dirname + '/agents.html');
 });
+app.get('/department.html', function(req, res){
+	res.sendFile(__dirname + '/department.html');
+});
 app.get('/index.css', function(req, res){ 
 	res.sendFile(__dirname + '/index.css');
 });
