@@ -18,7 +18,7 @@ function onSignIn(googleUser) {
 }
 
 $(document).ready(function() {
-did = decodeURIComponent(window.location.search.match(/(\?|&)did\=([^&]*)/));
+did = getURLParameter("did");
 console.log("did is "+did);
 
   	$("#g-signout").hide();
@@ -113,8 +113,7 @@ console.log("did is "+did);
 
 function showDepartment(dept,dname) {
 	console.log("Show Dept: "+dept+","+dname);
-	did = dept;
-	window.location.reload();
+	window.location.href = window.location.pathname+'?did='+dept;
 //	var deptpage = NewWin("department.html?did="+did, "Department Dashboard");
 //	var doc = deptpage.document;
 //	doc.getElementById("dashheader").innerHTML = "Department: "+dname;
@@ -157,4 +156,8 @@ function toHHMMSS(seconds) {
     if (seconds < 10) {seconds = "0"+seconds;}
     var time    = hours+':'+minutes+':'+seconds;
     return time;
+}
+
+function getURLParameter(name) {
+  return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null
 }
