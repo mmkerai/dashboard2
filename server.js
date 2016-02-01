@@ -229,6 +229,7 @@ app.post('/operator-status-changed', function(req, res){
 		processOperatorStatusChanged(req.body);
 	res.send({ "result": "success" });
 });
+
 // Set up code for outbound BoldChat API calls.  All of the capture callback code should ideally be packaged as an object.
 var fs = require('fs');
 eval(fs.readFileSync('hmac-sha512.js')+'');
@@ -575,7 +576,7 @@ function processOperatorStatusChanged(ostatus) {
 	if(Operators[operator] === 'undefined') return;
 	var cstatus = Operators[operator].status	
 	// update metrics
-	if(ostatus.StatusType == 1)
+	if(ostatus.StatusType == 1)	// away
 	{
 		Overall.oaway++;
 		if(cstatus == 2) 		// if operator was available
@@ -589,7 +590,7 @@ function processOperatorStatusChanged(ostatus) {
 				Departments[depts[did]].oavail--;
 		}
 	}
-	else if(ostatus.StatusType == 2)
+	else if(ostatus.StatusType == 2)	// available
 	{
 		Overall.oavail++;
 		if(cstatus == 1) 		// if operator was away
@@ -798,6 +799,7 @@ function calculateACC_CCONC() {
 
 	
 	calculateOperatorConc();
+	var acc;
 	for(var i in OperatorDepts)
 	{
 		var depts = new Array();
@@ -820,10 +822,10 @@ function calculateACC_CCONC() {
 		{
 			dtct[depts[x]] = dtct[depts[x]] + opobj.tct;
 			dmct[depts[x]] = dmct[depts[x]] + opobj.mct;
-			if(Operators[i].status == 2)
+			if(Operators[i].status == 2)	// operator available
 			{
-				var acc = opobj.ccap - opobj.activeChats.length;
-				if(acc < 0) acc == 0;		// make sure this is never negative which can occur sometimes
+				acc = opobj.ccap - opobj.activeChats.length;
+				if(acc < 0) acc = 0;		// make sure this is never negative which can occur sometimes
 				Departments[depts[x]].acc = Departments[depts[x]].acc + acc;
 			}
 		}
