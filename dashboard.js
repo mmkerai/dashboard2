@@ -125,7 +125,6 @@ function showTopTableHeader() {
 	var header = ttable.createTHead();
 	row = header.insertRow();
 	cell = row.insertCell().innerHTML = "cell 1";
-	cell = row.insertCell(1).
 			
 }
 
