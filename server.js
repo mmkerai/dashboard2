@@ -547,6 +547,7 @@ function processClosedChat(chat) {
 	}
 	
 	opobj.tcan++;	// chats answered and complete
+	
 	// now remove from active chat list and update stats
 	var achats = new Array();
 	achats = opobj.activeChats;
