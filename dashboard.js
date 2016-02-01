@@ -36,6 +36,7 @@ console.log("did is "+did);
 
 	if(did === null)
 	{
+//		showtableHeader();
 		socket.on('overallStats', function(data){
 			var tcanpc = data.tcan + " ("+Math.round((data.tcan/data.tco)*100)+"%)";
 			$("#ocon").text(data.cconc);
@@ -117,6 +118,15 @@ function showDepartment(dept,dname) {
 //	var deptpage = NewWin("department.html?did="+did, "Department Dashboard");
 //	var doc = deptpage.document;
 //	doc.getElementById("dashheader").innerHTML = "Department: "+dname;
+}
+
+function showTopTableHeader() {
+	var ttable = document.getElementById("topTable");
+	var header = ttable.createTHead();
+	row = header.insertRow();
+	cell = row.insertCell().innerHTML = "cell 1";
+	cell = row.insertCell(1).
+			
 }
 
 function NewWin(htmlfile, name)		// open a new window
