@@ -904,6 +904,7 @@ function calculateInactiveConc() {
 	calculateOperatorConc();
 }
 
+
 // calculate total chat times for concurrency
 function calculateOperatorConc() {
 	for(var op in OperatorCconc)
