@@ -162,6 +162,8 @@ var TimeNow;			// global for current time
 var EndOfDay;			// global time for end of the day before all stats are reset
 var Overall;		// top level stats
 var	OperatorsSetupComplete;
+var ActiveChatNotInList;
+var OpStatusHasNotChanged;
 
 function sleep(milliseconds) {
   var start = new Date().getTime();
@@ -184,11 +186,13 @@ function initialiseGlobals () {
 	WaitingTimes = new Object();
 	Teams = new Object();
 	ApiDataNotReady = 0;
+	ActiveChatNotInList = 0;
 	TimeNow = new Date();
 	EndOfDay = TimeNow;
 	EndOfDay.setHours(23,59,59,0);	// last second of the day
 	Overall = new DashMetrics("11111111","Overall");	
 	OperatorsSetupComplete = false;
+	OpStatusHasNotChanged = 0;
 }
 // Process incoming Boldchat triggered chat data
 app.post('/chat-started', function(req, res){
@@ -554,6 +558,8 @@ function processClosedChat(chat) {
 	{
 		if(achats[0].chatid == chat.ChatID)			// this is the chat that has closed
 			opobj.activeChats == new Array();		// remove from list by re-initiasing variable
+		else
+			console.log("Active chat not in list: "+ActiveChatNotInList++);	// shouldnt happen
 	}
 	else if(achats.length > 1)				// must be multi chat
 	{
@@ -574,15 +580,21 @@ function processOperatorStatusChanged(ostatus) {
 
 	operator = ostatus.LoginID;	
 	if(Operators[operator] === 'undefined') return;
-	var cstatus = Operators[operator].status	
+	depts = OperatorDepts[operator];
+	if(typeof(depts) === 'undefined') return;	// operator not recognised
+
+	var cstatus = Operators[operator].status
+	if(cstatus == ostatus.StatusType)		// shouldnt happen but I am dubious
+	{
+		console.log("Operator status has not changed: "+OpStatusHasNotChanged++);
+		return;
+	}
 	// update metrics
 	if(ostatus.StatusType == 1)	// away
 	{
 		Overall.oaway++;
 		if(cstatus == 2) 		// if operator was available
 			Overall.oavail--;
-		depts = OperatorDepts[operator];
-		if(typeof(depts) === 'undefined') return;	// operator not recognised
 		for(var did in depts)
 		{
 			Departments[depts[did]].oaway++;
@@ -595,8 +607,6 @@ function processOperatorStatusChanged(ostatus) {
 		Overall.oavail++;
 		if(cstatus == 1) 		// if operator was away
 			Overall.oaway--;
-		depts = OperatorDepts[operator];
-		if(typeof(depts) === 'undefined') return;	// operator not recognised
 		for(var did in depts)
 		{
 			Departments[depts[did]].oavail++;
@@ -611,8 +621,6 @@ function processOperatorStatusChanged(ostatus) {
 		else if(cstatus == 2)	// or available previously
 			Overall.oavail--;
 		
-		depts = OperatorDepts[operator];
-		if(typeof(depts) === 'undefined') return;	// operator not recognised
 		for(var did in depts)
 		{
 			if(cstatus == 1) 		// if operator was away
@@ -643,7 +651,8 @@ function allInactiveChats(chats) {
 }
 
 function updateCconc(tchat) {
-	var conc = OperatorCconc[tchat.operator];		// chat concurrency array
+	var conc = new Array();
+	conc = OperatorCconc[tchat.operator];		// chat concurrency array
 		
 	sh = tchat.answered.getHours();
 	sm = tchat.answered.getMinutes();
@@ -822,7 +831,7 @@ function calculateACC_CCONC() {
 		{
 			dtct[depts[x]] = dtct[depts[x]] + opobj.tct;
 			dmct[depts[x]] = dmct[depts[x]] + opobj.mct;
-			if(Operators[i].status == 2)	// operator available
+			if(opobj.status == 2)	// operator available
 			{
 				acc = opobj.ccap - opobj.activeChats.length;
 				if(acc < 0) acc = 0;		// make sure this is never negative which can occur sometimes
@@ -904,14 +913,18 @@ function calculateInactiveConc() {
 	calculateOperatorConc();
 }
 
-
 // calculate total chat times for concurrency
 function calculateOperatorConc() {
+	var opobj = new Object();
+	var chattime, mchattime;
+	var conc;
+	
 	for(var op in OperatorCconc)
 	{
 		opobj = Operators[op];
 		if(typeof(opobj) === 'undefined') continue;
-		var chattime=0, mchattime=0;		// times in minutes
+		chattime=0;
+		mchattime=0;	
 		conc = new Array();
 		conc = OperatorCconc[op];
 		for(var i in conc)
