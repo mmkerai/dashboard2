@@ -1017,6 +1017,7 @@ io.sockets.on('connection', function(socket){
 		}
 		else
 		{
+			console.log("Save socket "+socket.id);
 			LoggedInUsers[socket.id] = true;
 			socket.emit('authResponse',{name: user.name, pwd: user.pwd});
 		}
@@ -1035,6 +1036,8 @@ io.sockets.on('connection', function(socket){
 });
 
 function updateChatStats() {
+	var socketid;
+	
 	TimeNow = new Date();		// update the time for all calculations
 	if(TimeNow > EndOfDay)		// we have skipped to a new day
 	{
@@ -1055,10 +1058,10 @@ function updateChatStats() {
 	
 	for(var i in LoggedInUsers)
 	{
-		socket = LoggedInUsers[i];
-//		console.log("Socket id is: "+socket);
-		io.sockets.connected[socket].emit('overallStats', Overall);
-		io.sockets.connected[socket].emit('departmentStats', Departments);
+		socketid = LoggedInUsers[i];
+		console.log("Socket id is: "+socketid);
+		io.sockets.connected[socketid].emit('overallStats', Overall);
+		io.sockets.connected[socketid].emit('departmentStats', Departments);
 	}
 //	debugLog("Overall", Overall);
 	setTimeout(updateChatStats, 2000);	// send update every second
