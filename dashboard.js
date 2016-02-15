@@ -48,7 +48,7 @@ function delCookie(name)
 }
 
 function clearCredentials() {
-	initialiseValues();
+	$('#error').text("");
 	delCookie("username");
 	delCookie("password");
 	window.location.reload();
@@ -62,7 +62,7 @@ function checksignedin()
 	if(name == null || pwd == null)
 	{
 		$('#myname').text("Not signed in");
-		$("#toptable").hide();
+		$("#topTable").hide();
 		$("#signinform").show();
 	}
 	else
@@ -94,7 +94,7 @@ console.log("did is "+did);
 		
  	socket.on('authErrorResponse', function(data){
 		$("#error").text(data);
-		$("#toptable").hide();
+		$("#topTable").hide();
 		$("#signinform").show();
 	});
 
@@ -109,7 +109,7 @@ console.log("did is "+did);
 		$('#error').text("");
 		$('#myname').text(data.name);
 		$("#signinform").hide();
-		$("#toptable").show();
+		$("#topTable").show();
 	});
 	
 	if(did === null)

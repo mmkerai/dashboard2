@@ -1006,7 +1006,7 @@ io.sockets.on('connection', function(socket){
 	
 	//  authenticate user name and password
 	socket.on('authenticate', function(user){
-		console.log("authentication request received for: "+data.email);
+		console.log("authentication request received for: "+user.name);
 		if(typeof(AuthUsers[user.name]) === 'undefined')
 		{
 			socket.emit('authErrorResponse',"Username not valid");
@@ -1063,7 +1063,6 @@ function updateChatStats() {
 //	debugLog("Overall", Overall);
 	setTimeout(updateChatStats, 2000);	// send update every second
 }
-
 
 function tidyUp() {
 	getApiData("getOperatorAvailability", "ServiceTypeID=1", operatorAvailabilityCallback);
