@@ -112,8 +112,8 @@ console.log("did is "+did);
 		$("#topTable").show();
 	});
 	
-	if(did === null)
-	{
+//	if(did === null)
+//	{
 //		showtableHeader();
 		socket.on('overallStats', function(data){
 			var tcanpc = data.tcan + " ("+Math.round((data.tcan/data.tco)*100)+"%)";
@@ -134,7 +134,7 @@ console.log("did is "+did);
 			$("#oaway").text(data.oaway);
 			$("#oavail").text(data.oavail);
 		});
-	}
+//	}
 	
 	socket.on('departmentStats', function(ddata){
 		var ttable = document.getElementById("topTable");
