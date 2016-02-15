@@ -1,117 +1,39 @@
 var socket = io.connect();
+var auth2;
+var Gid_token;
+var profile;
 var did;
 
-function readCookie(name)
-{
-  name += '=';
-  var parts = document.cookie.split(/;\s*/);
-  for (var i = 0; i < parts.length; i++)
-  {
-    var part = parts[i];
-    if (part.indexOf(name) == 0)
-      return part.substring(name.length);
-  }
-  return null;
-}
+function onSignIn(googleUser) {
+// Useful data for your client-side scripts:
+	profile = googleUser.getBasicProfile();
+//	console.log("ID: " + profile.getId()); // Don't send this directly to your server!
+//	console.log("Name: " + profile.getName());
+//	console.log("Image URL: " + profile.getImageUrl());
+	console.log("Email: " + profile.getEmail());
 
-/*
- * Saves a cookie for delay time. If delay is blank then no expiry.
- * If delay is less than 100 then assumes it is days
- * otherwise assume it is in seconds
- */
-function saveCookie(name, value, delay)
-{
-  var date, expires;
-  if(delay)
-  {
-	  if(delay < 100)	// in days
-		  delay = delay*24*60*60*1000;	// convert days to milliseconds
-	  else
-		  delay = delay*1000;	// seconds to milliseconds
-	  
-	  date = new Date();
-	  date.setTime(date.getTime()+delay);	// delay must be in seconds
-	  expires = "; expires=" + date.toGMTString();		// convert unix date to string
-  }
-  else
-	  expires = "";
-  
-  document.cookie = name+"="+value+expires+"; path=/";
-}
-
-/*
- * Delete cookie by setting expiry to 1st Jan 1970
- */
-function delCookie(name) 
-{
-	document.cookie = name + "=; expires=Thu, 01-Jan-70 00:00:01 GMT; path=/";
-}
-
-function clearCredentials() {
-	initialiseValues();
-	delCookie("username");
-	delCookie("password");
-	window.location.reload();
-}
-
-function checksignedin()
-{
-	var name = readCookie("username");
-	var pwd = readCookie("password");
-//	console.log("User cookie: "+name+" and pwd "+pwd);
-	if(name == null || pwd == null)
-	{
-		$('#myname').text("Not signed in");
-		$("#toptable").hide();
-		$("#signinform").show();
-	}
-	else
-	{
-		signin(name,pwd);	
-	}	
-}
-
-function signin(uname, pwd)
-{
-	var data = new Object();
-	data = {name: uname,pwd: pwd};
-//	console.log("Data object: "+data.name+" and "+data.pwd);
-	socket.emit('authenticate', data);
+	// The ID token you need to pass to your backend:
+	Gid_token = googleUser.getAuthResponse().id_token;
+	socket.emit('authenticate', {token: Gid_token, email: profile.getEmail()});
 }
 
 $(document).ready(function() {
 did = getURLParameter("did");
 console.log("did is "+did);
 
-	checksignedin();
-
-	$('#signinform').submit(function(event) {
-		event.preventDefault();
-		var name = $('#username').val();
-		var pwd = $('#password').val();
-		signin(name,pwd);
-	});
-		
- 	socket.on('authErrorResponse', function(data){
-		$("#error").text(data);
-		$("#toptable").hide();
-		$("#signinform").show();
-	});
-
- 	socket.on('errorResponse', function(data){
-		$("#error").text(data);
-	});
+  	$("#g-signout").hide();
 
 	socket.on('authResponse', function(data){
-		saveCookie("username", data.name, 1);	// save as cookie for 1 day
-		saveCookie("password", data.pwd, 1);
-//		console.log("Save cookie: "+data.name+" and pwd "+data.pwd);
-		$('#error').text("");
-		$('#myname').text(data.name);
-		$("#signinform").hide();
-		$("#toptable").show();
+		$("#g-signout").show();
+		$("#gname").text(profile.getName());
+		$("#gprofile-image").attr({src: profile.getImageUrl()});
+		$("#error").text("");
 	});
-	
+
+	socket.on('errorResponse', function(data){
+		$("#error").text(data);
+	});
+
 	if(did === null)
 	{
 //		showtableHeader();
@@ -216,6 +138,20 @@ function NewWin(htmlfile, name)		// open a new window
 				'toolbar=yes,location=no,status=no,menubar=yes,scrollbars=yes,resizable=yes,width='+WIDTH+',height='+HEIGHT+',top='+top+',left='+left);
 	winpop.focus();
 	return winpop;
+}
+
+function signOut() {
+	auth2 = gapi.auth2.getAuthInstance();
+	if(auth2 === 'undefined')
+		console.log("auth2 is undefined");
+	
+	auth2.signOut().then(function () {
+		console.log('User signed out.');
+		$("#g-signout").hide();
+
+	if(Gid_token !== 'undefined')
+		socket.emit('un-authenticate', {token: Gid_token, email: profile.getEmail()});
+	});
 }
 
 function toHHMMSS(seconds) {

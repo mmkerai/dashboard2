@@ -3,9 +3,9 @@
 // cph - chats per hour
 // ciq - chats in queue
 // lwt - longest waiting time
-// tco - chats offered (chats active, answered and abandoned)
+// tco - chats offered (chats active, answered and unabandoned)
 // tac - total active chats (answered)
-// tcan - total chats answered complete and active
+// tcan - total chats answered complete (closed)
 // tcuq - total chats unanswered/abandoned in queue
 // tcua - total chats unanswered/abandoned after assigned
 // tcun - total chats unavailable
@@ -29,6 +29,10 @@ var express = require('express'),
 	server = require('http').createServer(app),
 	io = require('socket.io').listen(server);
 var bodyParser = require('body-parser');
+//var cookieParser = require('cookie-parser');
+//var session = require("express-session");
+//app.use(cookieParser());
+//app.use(session({resave: true, saveUninitialized: true, secret: 'LMIDashboardCodebyMMK', cookie: { maxAge: 600000 }}));
 app.use( bodyParser.json() );       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
   extended: true
@@ -42,8 +46,9 @@ server.listen(PORT);
 var AID = process.env.AID || 0;
 var APISETTINGSID = process.env.APISETTINGSID || 0;
 var KEY = process.env.KEY || 0;
-var PAGEPATH = process.env.PAGEPATH || "/";
-var AUTHUSERS = JSON.parse(process.env.AUTHUSERS) || {};
+var PAGEPATH = process.env.PAGEPATH || "/"; //  Obsecur page path such as /bthCn2HYe0qPlcfZkp1t
+var GMAILS = process.env.GMAILS; // list of valid emails
+var GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 var SLATHRESHOLD = process.env.SLATHRESHOLDS;
 var VALIDACCESSNETWORKS = JSON.parse(process.env.VALIDACCESSNETWORKS) || {};  // JSON string with valid public ISP addresses { "83.83.95.62": "Mark Troyer (LMI) Home Office", "10.10.10.1": "LogMeIn UK Office", "10.10": "H3G internal Network"};
 if (AID == 0 || APISETTINGSID == 0 || KEY == 0) {
@@ -159,19 +164,6 @@ var Overall;		// top level stats
 var	OperatorsSetupComplete;
 var ActiveChatNotInList;
 var OpStatusHasNotChanged;
-var AuthUsers = new Object();
-
-// load list of authorised users and their passwords
-//console.log("Authusers: "+AUTHUSERS);
-var au = [];
-au = AUTHUSERS.users;
-for(var i in au)
-{
-	var uname = au[i].name;
-	var pwd = au[i].pwd;
-	AuthUsers[uname] = pwd;
-	console.log("User: "+uname+" saved");
-}
 
 function sleep(milliseconds) {
   var start = new Date().getTime();
@@ -435,14 +427,9 @@ function processAnsweredChat(chat) {
 	if(chat.OperatorID == null || chat.OperatorID == "") return;		// operator id not set for some strange reason
 
 	deptobj = Departments[chat.DepartmentID];
-	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
+	if(typeof(deptobj) === 'undefined') return;		// a non PROD dept we are not interested in
 	opobj = Operators[chat.OperatorID];
-	if(typeof(opobj) === 'undefined') return;		// an operator that doesnt exist (may happen if created midday)
 	
-	Overall.tcan++;
-	deptobj.tcan++;
-	opobj.tcan++;	// chats answered
-
 	if(chat.Started != null && chat.Started != "")
 		starttime = new Date(chat.Started);
 
@@ -491,7 +478,7 @@ function processClosedChat(chat) {
 		return;
 	}
 	deptobj = Departments[chat.DepartmentID];
-	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
+	if(typeof(deptobj) === 'undefined') return;		// a non PROD dept we are not interested in
 
 	if(chat.ChatStatusType >= 7 && chat.ChatStatusType <= 15)		// unavailable chat
 	{
@@ -550,6 +537,8 @@ function processClosedChat(chat) {
 		return;
 	}
 
+	Overall.tcan++;
+	deptobj.tcan++;
 	var speed = anstime - starttime;
 	if(speed < (SLATHRESHOLD*1000))		// sla threshold in milliseconds
 	{
@@ -560,6 +549,7 @@ function processClosedChat(chat) {
 		deptobj.psla = Math.round((deptobj.csla/deptobj.tcan)*100);
 	}
 	
+	opobj.tcan++;	// chats answered and complete
 	// now remove from active chat list and update stats
 	var achats = new Array();
 	achats = opobj.activeChats;
@@ -1001,26 +991,55 @@ function getInactiveChatData() {
 	}	
 }
 
-// Set up socket actions and responses
+// Set up callbacks
 io.sockets.on('connection', function(socket){
 	
-	//  authenticate user name and password
-	socket.on('authenticate', function(user){
+	socket.on('authenticate', function(data){
 		console.log("authentication request received for: "+data.email);
-		if(typeof(AuthUsers[user.name]) === 'undefined')
+		if(GMAILS[data.email] === 'undefined')
 		{
-			socket.emit('authErrorResponse',"Username not valid");
-		}
-		else if(AuthUsers[user.name] != user.pwd)
-		{
-			socket.emit('authErrorResponse',"Password not valid");
+			console.log("This gmail is invalid: "+data.email);
+			socket.emit('errorResponse',"Invalid email");
 		}
 		else
 		{
-			LoggedInUsers[socket.id] = true;
-			socket.emit('authResponse',{name: user.name, pwd: user.pwd});
+			Google_Oauth_Request(data.token, function (response) {
+			var str = '';
+			//another chunk of data has been received, so append it to `str`
+			response.on('data', function (chunk) {
+				str += chunk;
+			});
+			//the whole response has been received, take final action.
+			response.on('end', function () {
+				var jwt = JSON.parse(str);
+//				console.log("Response received: "+str);
+				if(jwt.aud == GOOGLE_CLIENT_ID)		// valid token response
+				{
+//					console.log("User authenticated, socket id: "+socket.id);
+					LoggedInUsers.push(socket.id);		// save the socket id so that updates can be sent
+					socket.emit('authResponse',"success");
+				}
+				else
+					socket.emit('errorResponse',"Invalid token");
+				});
+			});
 		}
-	});	
+	});
+
+	socket.on('un-authenticate', function(data){
+		console.log("un-authentication request received: "+data.email);
+		if(GMAILS[data.email] === 'undefined')
+		{
+			console.log("This gmail is invalid: "+data.email);
+			socket.emit('errorResponse',"Invalid email");
+		}
+		else
+		{
+			console.log("Valid gmail: "+data.email);
+			var index = LoggedInUsers.indexOf(socket.id);
+			if(index > -1) LoggedInUsers.splice(index, 1);
+		}
+	});
 	
 	socket.on('disconnect', function(data){
 		console.log("connection disconnect");
