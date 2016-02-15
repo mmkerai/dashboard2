@@ -1017,8 +1017,8 @@ io.sockets.on('connection', function(socket){
 		}
 		else
 		{
-			console.log("Save socket "+socket.id);
-			LoggedInUsers[socket.id] = true;
+//			console.log("Save socket "+socket.id);
+			LoggedInUsers.push(socket.id);		// save the socket id so that updates can be sent
 			socket.emit('authResponse',{name: user.name, pwd: user.pwd});
 		}
 	});	
@@ -1059,7 +1059,7 @@ function updateChatStats() {
 	for(var i in LoggedInUsers)
 	{
 		socketid = LoggedInUsers[i];
-		console.log("Socket id is: "+socketid);
+//		console.log("Socket id is: "+socketid);
 		io.sockets.connected[socketid].emit('overallStats', Overall);
 		io.sockets.connected[socketid].emit('departmentStats', Departments);
 	}
