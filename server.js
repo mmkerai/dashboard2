@@ -339,7 +339,7 @@ function operatorAvailabilityCallback(dlist) {
 				for(var did in depts)
 				{
 					Departments[depts[did]].oaway++;
-					SkillGroup[depts[did].skillgroup].oaway++;
+					SkillGroups[depts[did].skillgroup].oaway++;
 				}
 			}
 			else if(dlist[i].StatusType == 2)
@@ -350,7 +350,7 @@ function operatorAvailabilityCallback(dlist) {
 				for(var did in depts)
 				{
 					Departments[depts[did]].oavail++;
-					SkillGroup[depts[did].skillgroup].oavail++;
+					SkillGroups[depts[did].skillgroup].oavail++;
 				}
 			}
 		}
@@ -417,7 +417,7 @@ function processUnavailableChat(chat) {
 	if(chat.DepartmentID === null) return;	
 	var deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
-	var sgobj = SkillGroup[deptobj.skillgroup];
+	var sgobj = SkillGroups[deptobj.skillgroup];
 	// make sure that this is genuine and sometime this event is triggered for an old closed chat
 	if(chat.Started == "" && chat.Answered == "")
 	{
@@ -437,7 +437,7 @@ function processAnsweredChat(chat) {
 
 	deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
-	sgobj = SkillGroup[deptobj.skillgroup];
+	sgobj = SkillGroups[deptobj.skillgroup];
 	opobj = Operators[chat.OperatorID];
 	if(typeof(opobj) === 'undefined') return;		// an operator that doesnt exist (may happen if created midday)
 	
@@ -495,7 +495,7 @@ function processClosedChat(chat) {
 	}
 	deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
-	sgobj = SkillGroup[deptobj.skillgroup];
+	sgobj = SkillGroups[deptobj.skillgroup];
 
 	if(chat.ChatStatusType >= 7 && chat.ChatStatusType <= 15)		// unavailable chat
 	{
@@ -616,11 +616,11 @@ function processOperatorStatusChanged(ostatus) {
 		for(var did in depts)
 		{
 			Departments[depts[did]].oaway++;
-			SkillGroup[depts[did].skillgroup].oaway++;
+			SkillGroups[depts[did].skillgroup].oaway++;
 			if(cstatus == 2) 		// if operator was available
 			{
 				Departments[depts[did]].oavail--;
-				SkillGroup[depts[did].skillgroup].oavail--;
+				SkillGroups[depts[did].skillgroup].oavail--;
 			}
 		}
 	}
@@ -632,11 +632,11 @@ function processOperatorStatusChanged(ostatus) {
 		for(var did in depts)
 		{
 			Departments[depts[did]].oavail++;
-			SkillGroup[depts[did].skillgroup].oavail++;
+			SkillGroups[depts[did].skillgroup].oavail++;
 			if(cstatus == 1) 		// if operator was away
 			{
 				Departments[depts[did]].oaway--;
-				SkillGroup[depts[did].skillgroup].oaway--;
+				SkillGroups[depts[did].skillgroup].oaway--;
 			}
 		}
 	}
@@ -652,12 +652,12 @@ function processOperatorStatusChanged(ostatus) {
 			if(cstatus == 1) 		// if operator was away
 			{
 				Departments[depts[did]].oaway--;
-				SkillGroup[depts[did].skillgroup].oaway--;
+				SkillGroups[depts[did].skillgroup].oaway--;
 			}
 			else if(cstatus == 2)	// or available previously
 			{
 				Departments[depts[did]].oavail--;
-				SkillGroup[depts[did].skillgroup].oavail--;
+				SkillGroups[depts[did].skillgroup].oavail--;
 			}
 		}
 	}
@@ -1083,7 +1083,7 @@ function updateChatStats() {
 	{
 		socketid = LoggedInUsers[i];
 //		console.log("Socket id is: "+socketid);
-		io.sockets.connected[socketid].emit('overallStats', SkillGroup["skills"]);
+		io.sockets.connected[socketid].emit('overallStats', SkillGroups["skills"]);
 		io.sockets.connected[socketid].emit('departmentStats', Departments);
 	}
 //	debugLog("Overall", Overall);
