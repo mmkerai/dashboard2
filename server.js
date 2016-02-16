@@ -198,7 +198,7 @@ function initialiseGlobals () {
 	ApiDataNotReady = 0;
 	ActiveChatNotInList = 0;
 	TimeNow = new Date();
-	EndOfDay = TimeNow;
+	EndOfDay = new Date();
 	EndOfDay.setHours(23,59,59,0);	// last second of the day
 	Overall = new DashMetrics("Overall","Overall");	
 	OperatorsSetupComplete = false;
