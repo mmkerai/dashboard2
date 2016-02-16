@@ -554,6 +554,7 @@ function processClosedChat(chat) {
 	opobj = Operators[opid];		// if answered there will always be a operator assigned
 	if(typeof(opobj) === 'undefined') 	
 	{									// in case there isnt
+		console.log("Opid is "+opid);
 		debugLog("*****Error Operator obj is null",chat);
 		return;
 	}
