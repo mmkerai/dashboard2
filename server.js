@@ -276,8 +276,8 @@ function deptsCallback(dlist) {
 		dname = dlist[i].Name;
 		if(dname.indexOf("PROD") == -1)	continue;		// if this is not a PROD dept
 		newname = dname.replace("PROD - ","");		// remove PROD from name
-		Departments[dlist[i].DepartmentID] = new DashMetrics("Skills",newname);
-		SkillGroups["Skills"] = new DashMetrics("n/a","Skills");
+		Departments[dlist[i].DepartmentID] = new DashMetrics(newname,newname);
+		SkillGroups[newname] = new DashMetrics("n/a","Skills");
 	}
 	console.log("No of PROD Depts: "+Object.keys(Departments).length);
 	for(var did in Departments)
@@ -395,7 +395,7 @@ function doStartOfDay() {
 	sleep(1000);
 	getApiData("getFolders", "FolderType=5", foldersCallback);	// get only chat folders
 	sleep(1000);
-	getOperatorAvailabilityData();
+//	getOperatorAvailabilityData();
 	getInactiveChatData();
 	getActiveChatData();
 	calculateInactiveConc();		// concurrency for all closed/inactive chats
@@ -1084,8 +1084,8 @@ function updateChatStats() {
 	{
 		socketid = LoggedInUsers[i];
 //		console.log("Socket id is: "+socketid);
-		io.sockets.connected[socketid].emit('overallStats', SkillGroups["skills"]);
-		io.sockets.connected[socketid].emit('departmentStats', Departments);
+		io.sockets.connected[socketid].emit('overallStats', Overall);
+		io.sockets.connected[socketid].emit('departmentStats', SkillGroups);
 	}
 //	debugLog("Overall", Overall);
 	setTimeout(updateChatStats, 2000);	// send update every second
