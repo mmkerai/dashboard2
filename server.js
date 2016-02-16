@@ -277,7 +277,7 @@ function deptsCallback(dlist) {
 		if(dname.indexOf("PROD") == -1)	continue;		// if this is not a PROD dept
 		newname = dname.replace("PROD - ","");		// remove PROD from name
 		Departments[dlist[i].DepartmentID] = new DashMetrics("Skills",newname);
-		SkillGroup["Skills"] = new DashMetrics("n/a","Skills");
+		SkillGroups["Skills"] = new DashMetrics("n/a","Skills");
 	}
 	console.log("No of PROD Depts: "+Object.keys(Departments).length);
 	for(var did in Departments)
