@@ -357,6 +357,7 @@ function operatorAvailabilityCallback(dlist) {
 	}
 }
 
+
 function getDepartmentNameFromID(id) {
 	return(Departments[id].name);
 }
