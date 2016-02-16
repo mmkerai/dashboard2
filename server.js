@@ -277,7 +277,7 @@ function deptsCallback(dlist) {
 		if(dname.indexOf("PROD") == -1)	continue;		// if this is not a PROD dept
 		newname = dname.replace("PROD - ","");		// remove PROD from name
 		Departments[dlist[i].DepartmentID] = new DashMetrics(newname,newname);
-		SkillGroups[newname] = new DashMetrics("n/a",newname);
+		SkillGroups[newname] = new DashMetrics(newname,"n/a");
 	}
 	console.log("No of PROD Depts: "+Object.keys(Departments).length);
 	for(var did in Departments)
@@ -696,7 +696,7 @@ function updateCconc(tchat) {
 	eindex = (eh*60)+em;	// convert to minutes from midnight
 	for(var count=sindex; count <= eindex; count++)
 	{
-		conc[count] = conc[count] + 1; // save chat activity for the closed chats
+		conc[count]++; // save chat activity for the closed chats
 	}			
 	OperatorCconc[tchat.operator] = conc;		// save it back for next time	
 }
@@ -763,10 +763,14 @@ function calculateACT_CPH() {
 }
 
 function calculateASA() {
-	var tchat, count = 0, tac = 0, anstime = 0;
+	var tchat,sgid;
+	var count = 0, tac = 0, anstime = 0;
 	var danstime = new Object();
 	var dcount = new Object();
 	var dtac = new Object();
+	var sganstime = new Object();
+	var sgcount = new Object();
+	var sgtac = new Object();
 
 	for(var i in Departments)
 	{
@@ -775,6 +779,11 @@ function calculateASA() {
 		dcount[i] = 0;
 		danstime[i] = 0;
 		dtac[i] = 0;
+		SkillGroups[Departments[i].skillgroup].asa = 0;
+		SkillGroups[Departments[i].skillgroup].tac = 0;
+		sgcount[Departments[i].skillgroup] = 0;
+		sganstime[Departments[i].skillgroup] = 0;
+		sgtac[Departments[i].skillgroup] = 0;
 	}
 	
 	for(var i in AllChats)
@@ -782,18 +791,22 @@ function calculateASA() {
 		tchat = AllChats[i];
 		if((tchat.status == 2 || tchat.status == 0) && tchat.answered != 0 && tchat.started != 0)
 		{
+			sgid = Departments[tchat.department].skillgroup;
 			count++;
-			dcount[tchat.department] = dcount[tchat.department] + 1;
+			dcount[tchat.department]++;
+			sgcount[sgid]++;
 			speed = tchat.answered - tchat.started;
 //			if(speed < SLATHRESHOLD)	// asa is within threshold
 //				Overall.sla++;
 				
 			anstime = anstime + speed;
 			danstime[tchat.department] = danstime[tchat.department] + speed;
+			sganstime[sgid] = sganstime[sgid] + speed;
 			if(tchat.status == 2)	// active chat
 			{
 				tac++;
-				dtac[tchat.department] = dtac[tchat.department] +1;
+				dtac[tchat.department]++;
+				sgtac[sgid]++;
 			}
 		}
 	}
@@ -806,6 +819,12 @@ function calculateASA() {
 			Departments[i].asa = Math.round((danstime[i] / dcount[i])/1000);
 		Departments[i].tac = dtac[i];
 	}
+	for(var i in sgcount)
+	{
+		if(sgcount[i] != 0)	// musnt divide by 0
+			SkillGroups[i].asa = Math.round((sganstime[i] / sgcount[i])/1000);
+		SkillGroups[i].tac = sgtac[i];
+	}	
 }
 
 function calculateLWT_CIQ() {
@@ -829,9 +848,13 @@ function calculateLWT_CIQ() {
 		{
 			tciq++;
 			Departments[tchat.department].ciq++;
+			SkillGroups[Departments[tchat.department].skillgroup].ciq++;
 			waittime = Math.round((TimeNow - tchat.started)/1000);
 			if(Departments[tchat.department].lwt < waittime)
+			{
 				Departments[tchat.department].lwt = waittime;
+				SkillGroups[Departments[tchat.department].skillgroup].lwt = waittime;
+			}
 			
 			if(maxwait < waittime)
 				maxwait = waittime;
@@ -843,11 +866,14 @@ function calculateLWT_CIQ() {
 
 //use operators by dept to calc chat concurrency and available chat capacity
 function calculateACC_CCONC() {
+	var otct = 0, omct = 0, ocap = 0;
 	var dtct = new Object();
 	var dmct = new Object();
 	var dcap = new Object();
+	var sgtct = new Object();
+	var sgmct = new Object();
+	var sgcap = new Object();
 	var active;
-	var otct = 0, omct = 0, ocap = 0;
 	// first zero out the cconc and acc for all dept
 	for(var i in Departments)
 	{
@@ -855,9 +881,12 @@ function calculateACC_CCONC() {
 		Departments[i].acc = 0;
 		dtct[i] = 0;
 		dmct[i] = 0;
+		SkillGroups[Departments[i].skillgroup].cconc = 0;
+		SkillGroups[Departments[i].skillgroup].acc = 0;
+		sgtct[Departments[i].skillgroup] = 0;
+		sgmct[Departments[i].skillgroup] = 0;
 	}
 
-	
 	calculateOperatorConc();
 	var acc;
 	for(var i in OperatorDepts)
@@ -880,13 +909,17 @@ function calculateACC_CCONC() {
 		// all depts that the operator belongs to
 		for(var x in depts)
 		{
+			sgid = Departments[depts[x]].skillgroup;
 			dtct[depts[x]] = dtct[depts[x]] + opobj.tct;
 			dmct[depts[x]] = dmct[depts[x]] + opobj.mct;
+			sgtct[sgid] = sgtct[sgid] + opobj.tct;
+			sgmct[sgid] = sgmct[sgid] + opobj.mct;
 			if(opobj.status == 2)	// operator available
 			{
 				acc = opobj.ccap - opobj.activeChats.length;
 				if(acc < 0) acc = 0;		// make sure this is never negative which can occur sometimes
-				Departments[depts[x]].acc = Departments[depts[x]].acc + acc;
+				Departments[sgid].acc = Departments[sgid].acc + acc;
+				SkillGroups[sgid].acc = SkillGroups[sgid].acc + acc;
 			}
 		}
 	}
@@ -899,6 +932,11 @@ function calculateACC_CCONC() {
 		if(dtct[did] != 0)		// dont divide by zero
 			Departments[did].cconc = ((dtct[did]+dmct[did])/dtct[did]).toFixed(2);
 	}
+	for(var sgid in SkillGroups)
+	{
+		if(sgtct[sgid] != 0)		// dont divide by zero
+			SkillGroups[sgid].cconc = ((sgtct[sgid]+sgmct[sgid])/sgtct[sgid]).toFixed(2);
+	}	
 }
 
 // this function calls API again if data is truncated
