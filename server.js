@@ -101,12 +101,12 @@ var ChatData = function(chatid, dept, start) {
 };
 
 //******************* Global class for dashboard metrics
-var DashMetrics = function(id,name) {
-		this.did = id;		// dept id
+var DashMetrics = function(sg,name) {
+		this.skillgroup = sg;
 		this.name = name;
 		this.cconc = 0;
-//		this.tct = 0;
-//		this.mct = 0;
+		this.tct = 0;
+		this.mct = 0;
 		this.csla = 0;		// number
 		this.psla = 0;		// percent
 		this.cph = 0;
@@ -146,6 +146,7 @@ var LoggedInUsers;
 var AllChats;
 var	Departments;	// array of dept ids and dept name objects
 var	DeptOperators;	// array of operators by dept id
+var	SkillGroups;	// array of skill groups which are collection of depts
 var	OperatorDepts;	// array of depts for each operator
 var	OperatorCconc;	// chat concurrency for each operator
 var	Folders;	// array of folder ids and folder name objects
@@ -186,6 +187,7 @@ function initialiseGlobals () {
 	LoggedInUsers = new Array();
 	AllChats = new Object();
 	Departments = new Object();	
+	SkillGroups = new Object();	
 	DeptOperators = new Object();
 	OperatorDepts = new Object();
 	OperatorCconc = new Object();
@@ -198,7 +200,7 @@ function initialiseGlobals () {
 	TimeNow = new Date();
 	EndOfDay = TimeNow;
 	EndOfDay.setHours(23,59,59,0);	// last second of the day
-	Overall = new DashMetrics("11111111","Overall");	
+	Overall = new DashMetrics("Overall","Overall");	
 	OperatorsSetupComplete = false;
 	OpStatusHasNotChanged = 0;
 }
@@ -259,16 +261,6 @@ function BC_API_Request(api_method,params,callBackFunction) {
 	https.request(options, callBackFunction).end();
 }
 
-function Google_Oauth_Request(token,callBackFunction) {
-	var options = {
-		host : 'www.googleapis.com', 
-		port : 443, 
-		path : '/oauth2/v3/tokeninfo?id_token='+token, 
-		method : 'GET'
-	};
-	https.request(options, callBackFunction).end();
-}
-
 function debugLog(name, dataobj) {
 	console.log(name+": ");
 	for(key in dataobj) {
@@ -284,7 +276,8 @@ function deptsCallback(dlist) {
 		dname = dlist[i].Name;
 		if(dname.indexOf("PROD") == -1)	continue;		// if this is not a PROD dept
 		newname = dname.replace("PROD - ","");		// remove PROD from name
-		Departments[dlist[i].DepartmentID] = new DashMetrics(dlist[i].DepartmentID,newname);
+		Departments[dlist[i].DepartmentID] = new DashMetrics("Skills",newname);
+		SkillGroup["Skills"] = new DashMetrics("n/a","Skills");
 	}
 	console.log("No of PROD Depts: "+Object.keys(Departments).length);
 	for(var did in Departments)
@@ -344,7 +337,10 @@ function operatorAvailabilityCallback(dlist) {
 				depts = new Array();
 				depts = OperatorDepts[operator];
 				for(var did in depts)
+				{
 					Departments[depts[did]].oaway++;
+					SkillGroup[depts[did].skillgroup].oaway++;
+				}
 			}
 			else if(dlist[i].StatusType == 2)
 			{
@@ -352,7 +348,10 @@ function operatorAvailabilityCallback(dlist) {
 				depts = new Array();
 				depts = OperatorDepts[operator];
 				for(var did in depts)
+				{
 					Departments[depts[did]].oavail++;
+					SkillGroup[depts[did].skillgroup].oavail++;
+				}
 			}
 		}
 	}
@@ -404,7 +403,7 @@ function doStartOfDay() {
 // process started chat object and update all relevat dept, operator and global metrics
 function processStartedChat(chat) {
 	if(chat.DepartmentID == null || chat.DepartmentID == "") return;// should never be null at this stage but I have seen it
-	deptobj = Departments[chat.DepartmentID];
+	var deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
 
 	var starttime = new Date(chat.Started);
@@ -416,19 +415,21 @@ function processStartedChat(chat) {
 // process unavailable chat object. Occurs when visitor gets the unavailable message as ACD queue is full or nobody available
 function processUnavailableChat(chat) {
 	if(chat.DepartmentID === null) return;	
-	deptobj = Departments[chat.DepartmentID];
+	var deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
+	var sgobj = SkillGroup[deptobj.skillgroup];
 	// make sure that this is genuine and sometime this event is triggered for an old closed chat
 	if(chat.Started == "" && chat.Answered == "")
 	{
 		deptobj.tcun++;
+		sgobj.tcun++;
 		Overall.tcun++;
 	}
 }
 
 // active chat means a started chat has been answered by an operator so it is no longer in the queue
 function processAnsweredChat(chat) {
-	var deptobj, opobj, tchat;
+	var deptobj, opobj, sgobj, tchat;
 	var anstime=0, starttime=0;
 	
 	if(chat.DepartmentID == null || chat.DepartmentID == "") return;	// should never be null at this stage but I have seen it
@@ -436,10 +437,12 @@ function processAnsweredChat(chat) {
 
 	deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
+	sgobj = SkillGroup[deptobj.skillgroup];
 	opobj = Operators[chat.OperatorID];
 	if(typeof(opobj) === 'undefined') return;		// an operator that doesnt exist (may happen if created midday)
 	
 	Overall.tcan++;
+	sgobj.tcan++;
 	deptobj.tcan++;
 	opobj.tcan++;	// chats answered
 
@@ -482,7 +485,7 @@ function allActiveChats(achats) {
 
 // process closed chat object. closed chat may not be started or answered if it was abandoned or unavailable
 function processClosedChat(chat) {
-	var deptobj,opobj,tchat;
+	var deptobj,opobj,sgobj,tchat;
 	var starttime=0,anstime=0,endtime=0,closetime=0,opid=0;
 
 	if(chat.DepartmentID === null)		// should never be null at this stage but I have seen it
@@ -492,11 +495,13 @@ function processClosedChat(chat) {
 	}
 	deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
+	sgobj = SkillGroup[deptobj.skillgroup];
 
 	if(chat.ChatStatusType >= 7 && chat.ChatStatusType <= 15)		// unavailable chat
 	{
 		Overall.tcun++;
 		deptobj.tcun++;
+		sgobj.tcun++;
 		return;
 	}
 
@@ -527,11 +532,13 @@ function processClosedChat(chat) {
 		{
 			Overall.tcuq++;
 			deptobj.tcuq++;
+			sgobj.tcuq++;
 		}
 		else
 		{
 			Overall.tcua++;
 			deptobj.tcua++;			
+			sgobj.tcua++;			
 		}
 		return;	// all done 
 	}
@@ -555,9 +562,11 @@ function processClosedChat(chat) {
 	{
 		Overall.csla++;
 		deptobj.csla++;
+		sgobj.csla++;
 		opobj.csla++;
 		Overall.psla = Math.round((Overall.csla/Overall.tcan)*100);
 		deptobj.psla = Math.round((deptobj.csla/deptobj.tcan)*100);
+		sgobj.psla = Math.round((sgobj.csla/sgobj.tcan)*100);
 	}
 	
 	// now remove from active chat list and update stats
@@ -607,8 +616,12 @@ function processOperatorStatusChanged(ostatus) {
 		for(var did in depts)
 		{
 			Departments[depts[did]].oaway++;
+			SkillGroup[depts[did].skillgroup].oaway++;
 			if(cstatus == 2) 		// if operator was available
+			{
 				Departments[depts[did]].oavail--;
+				SkillGroup[depts[did].skillgroup].oavail--;
+			}
 		}
 	}
 	else if(ostatus.StatusType == 2)	// available
@@ -619,8 +632,12 @@ function processOperatorStatusChanged(ostatus) {
 		for(var did in depts)
 		{
 			Departments[depts[did]].oavail++;
+			SkillGroup[depts[did].skillgroup].oavail++;
 			if(cstatus == 1) 		// if operator was away
+			{
 				Departments[depts[did]].oaway--;
+				SkillGroup[depts[did].skillgroup].oaway--;
+			}
 		}
 	}
 	else if(ostatus.StatusType == 0)		// logged out
@@ -633,9 +650,15 @@ function processOperatorStatusChanged(ostatus) {
 		for(var did in depts)
 		{
 			if(cstatus == 1) 		// if operator was away
+			{
 				Departments[depts[did]].oaway--;
+				SkillGroup[depts[did].skillgroup].oaway--;
+			}
 			else if(cstatus == 2)	// or available previously
+			{
 				Departments[depts[did]].oavail--;
+				SkillGroup[depts[did].skillgroup].oavail--;
+			}
 		}
 	}
 	Operators[operator].status = ostatus.StatusType;
@@ -1060,7 +1083,7 @@ function updateChatStats() {
 	{
 		socketid = LoggedInUsers[i];
 //		console.log("Socket id is: "+socketid);
-		io.sockets.connected[socketid].emit('overallStats', Overall);
+		io.sockets.connected[socketid].emit('overallStats', SkillGroup["skills"]]);
 		io.sockets.connected[socketid].emit('departmentStats', Departments);
 	}
 //	debugLog("Overall", Overall);
