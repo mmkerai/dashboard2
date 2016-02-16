@@ -101,9 +101,10 @@ var ChatData = function(chatid, dept, start) {
 };
 
 //******************* Global class for dashboard metrics
-var DashMetrics = function(sg,name) {
-		this.skillgroup = sg;
+var DashMetrics = function(did,name,sg) {
+		this.did = did;		// used only for departments
 		this.name = name;
+		this.skillgroup = sg; // used only for departments
 		this.cconc = 0;
 		this.tct = 0;
 		this.mct = 0;
@@ -276,8 +277,8 @@ function deptsCallback(dlist) {
 		dname = dlist[i].Name;
 		if(dname.indexOf("PROD") == -1)	continue;		// if this is not a PROD dept
 		newname = dname.replace("PROD - ","");		// remove PROD from name
-		Departments[dlist[i].DepartmentID] = new DashMetrics(newname,newname);
-		SkillGroups[newname] = new DashMetrics(newname,"n/a");
+		Departments[dlist[i].DepartmentID] = new DashMetrics(dlist[i].DepartmentID,newname,"sgroup");
+		SkillGroups["sgroup"] = new DashMetrics("",newname,"n/a");
 	}
 	console.log("No of PROD Depts: "+Object.keys(Departments).length);
 	for(var did in Departments)
