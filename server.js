@@ -277,7 +277,7 @@ function deptsCallback(dlist) {
 		if(dname.indexOf("PROD") == -1)	continue;		// if this is not a PROD dept
 		newname = dname.replace("PROD - ","");		// remove PROD from name
 		Departments[dlist[i].DepartmentID] = new DashMetrics(newname,newname);
-		SkillGroups[newname] = new DashMetrics("n/a","Skills");
+		SkillGroups[newname] = new DashMetrics("n/a",newname);
 	}
 	console.log("No of PROD Depts: "+Object.keys(Departments).length);
 	for(var did in Departments)
@@ -703,18 +703,24 @@ function updateCconc(tchat) {
 
 // calculate ACT and Chat per hour - both are done after chats are complete (ended)
 function calculateACT_CPH() {
-	var tchat,count=0,chattime=0,cph=0;
+	var tchat, sgid;
+	var count=0,chattime=0,cph=0;
 	var dchattime = new Object();
 	var dcount = new Object();
 	var dcph = new Object();
+	var sgchattime = new Object();	// skill group
+	var sgcount = new Object();
 	var pastHour = TimeNow - (60*60*1000);	// Epoch time for past hour
 
 	for(var i in Departments)
 	{
 		Departments[i].act = 0;
+		SkillGroups[Departments[i].skillgroup].act = 0;
 		dcount[i] = 0;
 		dchattime[i] = 0;
 		dcph[i] = 0;
+		sgcount[Departments[i].skillgroup] = 0;
+		sgchattime[Departments[i].skillgroup] = 0;
 	}
 	
 	for(var i in AllChats)
@@ -723,10 +729,13 @@ function calculateACT_CPH() {
 		if(tchat.status == 0 && tchat.ended != 0 && tchat.answered != 0)		// chat ended
 		{
 			count++;
-			dcount[tchat.department] = dcount[tchat.department] + 1;
+			sgid = Departments[tchat.department].skillgroup;
+			dcount[tchat.department]++;
+			sgcount[sgid]++; 
 			ctime = tchat.ended - tchat.answered;
 			chattime = chattime + ctime;
 			dchattime[tchat.department] = dchattime[tchat.department] + ctime;	
+			sgchattime[sgid] = sgchattime[sgid] + ctime;	
 			if(tchat.ended >= pastHour)
 			{
 				cph++;
@@ -744,6 +753,12 @@ function calculateACT_CPH() {
 			Departments[i].act = Math.round((dchattime[i] / dcount[i])/1000);
 			
 		Departments[i].cph = dcph[i];
+	}
+	
+	for(var i in sgcount)
+	{
+		if(sgcount[i] != 0)	// musnt divide by 0
+			SkillGroups[i].act = Math.round((sgchattime[i] / sgcount[i])/1000);
 	}
 }
 
@@ -802,6 +817,8 @@ function calculateLWT_CIQ() {
 	{
 		Departments[i].lwt = 0;
 		Departments[i].ciq = 0;
+		SkillGroups[Departments[i].skillgroup].lwt = 0;
+		SkillGroups[Departments[i].skillgroup].ciq = 0;
 	}
 	
 	// now recalculate the lwt by dept and save the overall
