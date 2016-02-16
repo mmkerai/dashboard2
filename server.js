@@ -1083,7 +1083,7 @@ function updateChatStats() {
 	{
 		socketid = LoggedInUsers[i];
 //		console.log("Socket id is: "+socketid);
-		io.sockets.connected[socketid].emit('overallStats', SkillGroup["skills"]]);
+		io.sockets.connected[socketid].emit('overallStats', SkillGroup["skills"]);
 		io.sockets.connected[socketid].emit('departmentStats', Departments);
 	}
 //	debugLog("Overall", Overall);
