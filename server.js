@@ -593,6 +593,10 @@ function processClosedChat(chat) {
 			}
 		}
 	}
+	
+	if(tchat.answered != 0 && tchat.closed != 0) 	// chat answered and closed so update conc
+		updateCconc(tchat);
+
 }
 
 // process operator status changed. or unavailable
@@ -676,12 +680,12 @@ function allInactiveChats(chats) {
 	{
 		processClosedChat(chats[i]);	// add the chat to AllChats object
 		
-		// now save time/duration the chat was active to help calculate concurrency later
+/*		// now save time/duration the chat was active to help calculate concurrency later
 		tchat = AllChats[chats[i].ChatID];		// get the sanitized chat details
 		if(typeof(tchat) === 'undefined') continue;		// if this chat did not exist 
 		if(tchat.operator == 0) continue;		// operator id not set - go to next one
 		if(tchat.answered == 0 || tchat.closed == 0) continue; // not answered and closed so go to next one
-		updateCconc(tchat);
+		updateCconc(tchat);*/
 	}
 }
 
@@ -1145,7 +1149,6 @@ function updateChatStats() {
 	for(var i in LoggedInUsers)
 	{
 		socketid = LoggedInUsers[i];
-//		console.log("Socket id is: "+socketid);
 		io.sockets.connected[socketid].emit('overallStats', Overall);
 		io.sockets.connected[socketid].emit('departmentStats', SkillGroups);
 	}
