@@ -443,11 +443,6 @@ function processAnsweredChat(chat) {
 	opobj = Operators[chat.OperatorID];
 	if(typeof(opobj) === 'undefined') return;		// an operator that doesnt exist (may happen if created midday)
 	
-	Overall.tcan++;
-	sgobj.tcan++;
-	deptobj.tcan++;
-	opobj.tcan++;	// chats answered
-
 	if(chat.Started != null && chat.Started != "")
 		starttime = new Date(chat.Started);
 
@@ -545,6 +540,10 @@ function processClosedChat(chat) {
 		return;	// all done 
 	}
 
+	Overall.tcan++;
+	sgobj.tcan++;
+	deptobj.tcan++;
+
 	tchat.answered = anstime;
 	tchat.ended = endtime;
 	tchat.closed = closetime;
@@ -559,6 +558,7 @@ function processClosedChat(chat) {
 		debugLog("*****Error Operator obj is null",chat);
 		return;
 	}
+	opobj.tcan++;	// chats answered
 
 	var speed = anstime - starttime;
 	if(speed < (SLATHRESHOLD*1000))		// sla threshold in milliseconds
@@ -1135,6 +1135,11 @@ function updateChatStats() {
 	for(var did in Departments)
 	{
 		Departments[did].tco = Departments[did].tcan + Departments[did].tcuq + Departments[did].tcua;
+	}
+	
+	for(var sgid in SkillGroups)
+	{
+		SkillGroups[sgid].tco = SkillGroups[sgid].tcan + SkillGroups[sgid].tcuq + SkillGroups[sgid].tcua;
 	}
 	
 	for(var i in LoggedInUsers)
