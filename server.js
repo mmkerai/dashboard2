@@ -271,16 +271,20 @@ function debugLog(name, dataobj) {
 }
 
 function deptsCallback(dlist) {
-	var dname, newname;
+	var dname, newname, sg,ch1,ch2;
 	for(var i in dlist) 
 	{
 		dname = dlist[i].Name;
-		if(dname.indexOf("PROD") == -1)	continue;		// if this is not a PROD dept
-		newname = dname.replace("PROD - ","");		// remove PROD from name
-		Departments[dlist[i].DepartmentID] = new DashMetrics(dlist[i].DepartmentID,newname,"sgroup");
-		SkillGroups["sgroup"] = new DashMetrics("",newname,"n/a");
+		sg = dname.match("\\[(.*)]");	// match square brackets
+		if(sg == null) continue				// dept name does not match a skillgroup in square brackets
+		ch1 = dname.indexOf("[");
+		ch2 = dname.indexOf("]");
+		sg = dname.substring(ch1+1,ch2));	// name between the brackets
+		newname = dname.substring(ch2+1));	// remainder of the name
+		Departments[dlist[i].DepartmentID] = new DashMetrics(dlist[i].DepartmentID,newname,sg);
+		SkillGroups[sg] = new DashMetrics(sg,sg,"n/a");
 	}
-	console.log("No of PROD Depts: "+Object.keys(Departments).length);
+	console.log("No of Skillgroup Depts: "+Object.keys(Departments).length);
 	for(var did in Departments)
 	{
 		parameters = "DepartmentID="+did;
@@ -494,7 +498,7 @@ function processClosedChat(chat) {
 	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
 	sgobj = SkillGroups[deptobj.skillgroup];
 
-	if(chat.ChatStatusType >= 7 && chat.ChatStatusType <= 15)		// unavailable chat
+	if(chat.ChatStatusType >= 7 && chat.ChatStatusType <= 18)		// unavailable chat
 	{
 		Overall.tcun++;
 		deptobj.tcun++;
@@ -596,7 +600,6 @@ function processClosedChat(chat) {
 	
 	if(tchat.answered != 0 && tchat.closed != 0) 	// chat answered and closed so update conc
 		updateCconc(tchat);
-
 }
 
 // process operator status changed. or unavailable
@@ -690,6 +693,7 @@ function allInactiveChats(chats) {
 }
 
 function updateCconc(tchat) {
+	var sh,sm,eh,em,sindex,eindex;
 	var conc = new Array();
 	conc = OperatorCconc[tchat.operator];		// chat concurrency array
 		
