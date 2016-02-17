@@ -279,7 +279,7 @@ function deptsCallback(dlist) {
 		if(sg == null) continue				// dept name does not match a skillgroup in square brackets
 		ch1 = dname.indexOf("[");
 		ch2 = dname.indexOf("]");
-		sg = dname.substring(ch1+1,ch2));	// name between the brackets
+		sg = dname.substring(ch1+1,ch2);	// name between the brackets
 		newname = dname.substring(ch2+1));	// remainder of the name
 		Departments[dlist[i].DepartmentID] = new DashMetrics(dlist[i].DepartmentID,newname,sg);
 		SkillGroups[sg] = new DashMetrics(sg,sg,"n/a");
