@@ -101,6 +101,7 @@ var ChatData = function(chatid, dept, start) {
 		this.status = 0;	// 0 is closed, 1 is waiting (started), 2 is active (answered)
 };
 
+
 //******************* Global class for dashboard metrics
 var DashMetrics = function(did,name,sg) {
 		this.did = did;		// used only for departments
