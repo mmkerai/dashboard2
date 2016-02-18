@@ -347,7 +347,7 @@ function operatorAvailabilityCallback(dlist) {
 				for(var did in depts)
 				{
 					Departments[depts[did]].oaway++;
-					SkillGroups[depts[did].skillgroup].oaway++;
+					SkillGroups[Departments[depts[did]].skillgroup].oaway++;
 				}
 			}
 			else if(dlist[i].StatusType == 2)
@@ -358,20 +358,11 @@ function operatorAvailabilityCallback(dlist) {
 				for(var did in depts)
 				{
 					Departments[depts[did]].oavail++;
-					SkillGroups[depts[did].skillgroup].oavail++;
+					SkillGroups[Departments[depts[did]].skillgroup].oavail++;
 				}
 			}
 		}
 	}
-}
-
-
-function getDepartmentNameFromID(id) {
-	return(Departments[id].name);
-}
-
-function getOperatorNameFromID(id) {
-	return(Operators[id].name);
 }
 
 // set up operator depts from department operators for easier indexing
