@@ -152,6 +152,7 @@ var	DeptOperators;	// array of operators by dept id
 var	SkillGroups;	// array of skill groups which are collection of depts
 var	OperatorDepts;	// array of depts for each operator
 var	OperatorCconc;	// chat concurrency for each operator
+var OperatorSkills;	// skill group each operator belongs to
 var	Folders;	// array of folder ids and folder name objects
 var	Operators;	// array of operator ids and name objects
 var	WaitingTimes;	// array of chat waiting times objects
@@ -194,6 +195,7 @@ function initialiseGlobals () {
 	DeptOperators = new Object();
 	OperatorDepts = new Object();
 	OperatorCconc = new Object();
+	OperatorSkills = new Object();
 	Folders = new Object();	
 	Operators = new Object();
 	WaitingTimes = new Object();
@@ -344,48 +346,27 @@ function operatorAvailabilityCallback(dlist) {
 			if(dlist[i].StatusType == 1)
 			{
 				Overall.oaway++;
+				SkillGroups[OperatorSkills[operator]].oaway++;
 				depts = new Array();
 				depts = OperatorDepts[operator];
 				for(var did in depts)
 				{
 					Departments[depts[did]].oaway++;
-					SkillGroups[Departments[depts[did]].skillgroup].oaway++;
 				}
 			}
 			else if(dlist[i].StatusType == 2)
 			{
 				Overall.oavail++;
+				SkillGroups[OperatorSkills[operator]].oavail++;
 				depts = new Array();
 				depts = OperatorDepts[operator];
 				for(var did in depts)
 				{
 					Departments[depts[did]].oavail++;
-					SkillGroups[Departments[depts[did]].skillgroup].oavail++;
 				}
 			}
 		}
 	}
-}
-
-// set up operator depts from department operators for easier indexing
-function setupOperatorDepts() {
-	var ops, depts;
-	for(var did in Departments)
-	{
-		ops = new Array();
-		ops = DeptOperators[did];
-		for(var k in ops)
-		{		
-			depts = OperatorDepts[ops[k]];
-			if(typeof(depts) === 'undefined')
-				depts = new Array();
-
-			depts.push(did);	// add dept to list of operators
-			OperatorDepts[ops[k]] = depts;
-			console.log("Operator: "+ops[k]+" is "+depts);
-		}
-	} 
-	OperatorsSetupComplete = true;	
 }
 
 // setup all globals TODO: add teams
@@ -397,10 +378,10 @@ function doStartOfDay() {
 	sleep(1000);
 	getApiData("getFolders", "FolderType=5", foldersCallback);	// get only chat folders
 	sleep(1000);
-
-	getOperatorAvailabilityData();
-	getInactiveChatData();
-	getActiveChatData();
+	setUpDeptAndSkillGroups();
+//	getOperatorAvailabilityData();
+//	getInactiveChatData();
+//	getActiveChatData();
 }
 
 // process started chat object and update all relevat dept, operator and global metrics
@@ -615,53 +596,61 @@ function processOperatorStatusChanged(ostatus) {
 	if(ostatus.StatusType == 1)	// away
 	{
 		Overall.oaway++;
+		SkillGroups[OperatorSkills[operator]].oaway++;
 		if(cstatus == 2) 		// if operator was available
+		{
 			Overall.oavail--;
+			SkillGroups[OperatorSkills[operator]].oavail--;
+		}
 		for(var did in depts)
 		{
 			Departments[depts[did]].oaway++;
-			SkillGroups[Departments[depts[did]].skillgroup].oaway++;
 			if(cstatus == 2) 		// if operator was available
 			{
 				Departments[depts[did]].oavail--;
-				SkillGroups[Departments[depts[did]].skillgroup].oavail--;
 			}
 		}
 	}
 	else if(ostatus.StatusType == 2)	// available
 	{
 		Overall.oavail++;
+		SkillGroups[OperatorSkills[operator]].oavail++;
 		if(cstatus == 1) 		// if operator was away
+		{
 			Overall.oaway--;
+			SkillGroups[OperatorSkills[operator]].oaway--;
+		}
 		for(var did in depts)
 		{
 			Departments[depts[did]].oavail++;
-			SkillGroups[Departments[depts[did]].skillgroup].oavail++;
 			if(cstatus == 1) 		// if operator was away
 			{
 				Departments[depts[did]].oaway--;
-				SkillGroups[Departments[depts[did]].skillgroup].oaway--;
 			}
 		}
 	}
 	else if(ostatus.StatusType == 0)		// logged out
 	{
 		if(cstatus == 1) 		// if operator was away
+		{
 			Overall.oaway--;
+			SkillGroups[OperatorSkills[operator]].oaway--;
+		}
 		else if(cstatus == 2)	// or available previously
+		{
 			Overall.oavail--;
+			SkillGroups[OperatorSkills[operator]].oavail--;
+		}
 		
 		for(var did in depts)
 		{
 			if(cstatus == 1) 		// if operator was away
 			{
 				Departments[depts[did]].oaway--;
-				SkillGroups[Departments[depts[did]].skillgroup].oaway--;
 			}
 			else if(cstatus == 2)	// or available previously
 			{
 				Departments[depts[did]].oavail--;
-				SkillGroups[Departments[depts[did]].skillgroup].oavail--;
 			}
 		}
 	}
@@ -874,32 +863,29 @@ function calculateLWT_CIQ() {
 
 //use operators by dept to calc chat concurrency and available chat capacity
 function calculateACC_CCONC() {
-	var otct = 0, omct = 0, ocap = 0;
-	var dtct = new Object();
-	var dmct = new Object();
-	var dcap = new Object();
-	var sgtct = new Object();
-	var sgmct = new Object();
-	var sgcap = new Object();
 	var active;
 	var depts = new Array();
-	var opobj;
+	var opobj, sgid;
 
 	// first zero out the cconc and acc for all dept
+	Overall.cconc = 0;
+	Overall.acc = 0;
+	Overall.tct = 0;
+	Overall.mct = 0;
 	for(var i in Departments)
 	{
 		Departments[i].cconc = 0;
 		Departments[i].acc = 0;
-		dtct[i] = 0;
-		dmct[i] = 0;
+		Departments[i].tct = 0;
+		Departments[i].mct = 0;
 		SkillGroups[Departments[i].skillgroup].cconc = 0;
 		SkillGroups[Departments[i].skillgroup].acc = 0;
-		sgtct[Departments[i].skillgroup] = 0;
-		sgmct[Departments[i].skillgroup] = 0;
+		SkillGroups[Departments[i].skillgroup].tct = 0;
+		SkillGroups[Departments[i].skillgroup].mct = 0;
 	}
 
 	calculateOperatorConc();
-	var acc;
+
 	for(var i in OperatorDepts)
 	{
 		depts = OperatorDepts[i];
@@ -908,44 +894,42 @@ function calculateACC_CCONC() {
 		opobj = Operators[i];
 		if(typeof(opobj) === 'undefined') continue;	// operator not recognised
 		
-		otct = otct + opobj.tct;
-		omct = omct + opobj.mct;
+		Overall.tct = Overall.tct + opobj.tct;
+		Overall.mct = Overall.mct + opobj.mct;
+		sgid = OperatorSkills[i];
+		SkillGroups[sgid].tct = SkillGroups[sgid].tct + opobj.tct;
+		SkillGroups[sgid].mct = SkillGroups[sgid].mct + opobj.mct;
 		if(opobj.status == 2)		// make sure operator is available
 		{
 			active = opobj.ccap - opobj.activeChats.length;
 			if(active < 0) active = 0;			// make sure not negative
-			ocap = ocap + active;
+			Overall.acc = Overall.acc + active;
+			SkillGroups[sgid].acc = SkillGroups[sgid].acc + active;
 		}
 		// all depts that the operator belongs to
 		for(var x in depts)
 		{
-			sgid = Departments[depts[x]].skillgroup;
-			dtct[depts[x]] = dtct[depts[x]] + opobj.tct;
-			dmct[depts[x]] = dmct[depts[x]] + opobj.mct;
-			sgtct[sgid] = sgtct[sgid] + opobj.tct;
-			sgmct[sgid] = sgmct[sgid] + opobj.mct;
+			Departments[depts[x]].tct = Departments[depts[x]].tct + opobj.tct;
+			Departments[depts[x]].mct = Departments[depts[x]].mct + opobj.mct;
 			if(opobj.status == 2)	// operator available
 			{
-				acc = opobj.ccap - opobj.activeChats.length;
-				if(acc < 0) acc = 0;		// make sure this is never negative which can occur sometimes
-				Departments[depts[x]].acc = Departments[depts[x]].acc + acc;
-				SkillGroups[sgid].acc = SkillGroups[sgid].acc + acc;
+				Departments[depts[x]].acc = Departments[depts[x]].acc + active;
 			}
 		}
 	}
 //	console.log("****tct and mct is " +otct+","+omct+");
-	if(otct != 0)
-		Overall.cconc = ((otct+omct)/otct).toFixed(2);
-	Overall.acc = ocap;
+	if(Overall.tct != 0)
+		Overall.cconc = ((Overall.tct+Overall.mct)/Overall.tct).toFixed(2);
+
 	for(var did in Departments)
 	{
-		if(dtct[did] != 0)		// dont divide by zero
-			Departments[did].cconc = ((dtct[did]+dmct[did])/dtct[did]).toFixed(2);
+		if(Departments[did].tct != 0)		// dont divide by zero
+			Departments[did].cconc = ((Departments[did].tct+Departments[did].mct)/Departments[did].tct).toFixed(2);
 	}
 	for(var sgid in SkillGroups)
 	{
-		if(sgtct[sgid] != 0)		// dont divide by zero
-			SkillGroups[sgid].cconc = ((sgtct[sgid]+sgmct[sgid])/sgtct[sgid]).toFixed(2);
+		if(SkillGroups[sgid].tct != 0)		// dont divide by zero
+			SkillGroups[sgid].cconc = ((SkillGroups[sgid].tct+SkillGroups[sgid].mct)/SkillGroups[sgid].tct).toFixed(2);
 	}	
 }
 
@@ -1042,13 +1026,12 @@ function calculateOperatorConc() {
 
 // gets operator availability info 
 function getOperatorAvailabilityData() {
-	if(ApiDataNotReady)
+	if(ApiDataNotReady || OperatorsSetupComplete == false)
 	{
 		console.log("Static data not ready (OA): "+ApiDataNotReady);
 		setTimeout(getOperatorAvailabilityData, 1000);
 		return;
 	}
-	setupOperatorDepts();			// convert dept operators to operator depts for easier updating
 	getApiData("getOperatorAvailability", "ServiceTypeID=1", operatorAvailabilityCallback);
 }
 
@@ -1069,7 +1052,36 @@ function getActiveChatData() {
 	}
 }
 
+// setup dept and skills by operator for easy indexing
+function setUpDeptAndSkillGroups() {
+	if(ApiDataNotReady)
+	{
+		console.log("Static data not ready (setD&SG): "+ApiDataNotReady);
+		setTimeout(setUpDeptAndSkillGroups, 1000);
+		return;
+	}
 
+	var ops, depts;
+	for(var did in Departments)
+	{
+		ops = new Array();
+		ops = DeptOperators[did];
+		for(var k in ops)
+		{		
+			depts = OperatorDepts[ops[k]];
+			if(typeof(depts) === 'undefined')
+				depts = new Array();
+
+			depts.push(did);	// add dept to list of operators
+			OperatorDepts[ops[k]] = depts;
+			OperatorSkills[ops[k]] = Departments[did].skillgroup;	// not an array so will be overwritten by subsequent 
+																	// values. i.e. operator can only belong to 1 skill group
+		}
+	} 
+	debugLog("Operator skillgroups:",OperatorSkills);
+	OperatorsSetupComplete = true;	
+}
+		
 // gets today's chat data incase system was started during the day
 function getInactiveChatData() {
 	if(ApiDataNotReady)
