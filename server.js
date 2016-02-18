@@ -692,7 +692,6 @@ function allInactiveChats(chats) {
 	}
 }
 
-
 function updateCconc(tchat) {
 	var sh,sm,eh,em,sindex,eindex;
 	var conc = new Array();
@@ -708,7 +707,10 @@ function updateCconc(tchat) {
 	{
 		conc[count]++; // save chat activity for the closed chats
 	}			
-	OperatorCconc[tchat.operator] = conc;		// save it back for next time	
+	OperatorCconc[tchat.operator] = conc;		// save it back for next time
+	// debug
+	if(eindex - sindex > 20)
+		console.log("Chat time is > 20: "+eindex-sindex);
 }
 
 // calculate ACT and Chat per hour - both are done after chats are complete (ended)
@@ -1021,7 +1023,11 @@ function calculateOperatorConc() {
 	for(var op in OperatorCconc)
 	{
 		opobj = Operators[op];
-		if(typeof(opobj) === 'undefined') continue;
+		if(typeof(opobj) === 'undefined')
+		{
+			console.log("undefined operator");
+			continue;
+		}
 		chattime=0;
 		mchattime=0;	
 		conc = new Array();
@@ -1031,8 +1037,10 @@ function calculateOperatorConc() {
 			if(conc[i] > 0) chattime++;		// all chats
 			if(conc[i] > 1) mchattime++;	// multichats
 		}
-		opobj.tct = chattime*60000;			// minutes to milliseconds
-		opobj.mct = mchattime*60000;		// minutes to milliseconds
+		opobj.tct = chattime*60;			// minutes to seconds
+		opobj.mct = mchattime*60;		// minutes to seconds
+		if(chattime > 20)		// debug
+			console.log("chattime is "+chattime);	// debug
 	}
 }
 
