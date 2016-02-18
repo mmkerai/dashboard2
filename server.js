@@ -382,6 +382,7 @@ function setupOperatorDepts() {
 
 			depts.push(did);	// add dept to list of operators
 			OperatorDepts[ops[k]] = depts;
+			console.log("Operator: "+ops[k]+" is "+depts);
 		}
 	} 
 	OperatorsSetupComplete = true;	
@@ -558,7 +559,7 @@ function processClosedChat(chat) {
 		debugLog("*****Error Operator obj is null",chat);
 		return;
 	}
-	opobj.tcan++;	// chats answered
+	opobj.tcan++;	// chats answered and closed
 
 	var speed = anstime - starttime;
 	if(speed < (SLATHRESHOLD*1000))		// sla threshold in milliseconds
@@ -567,19 +568,12 @@ function processClosedChat(chat) {
 		deptobj.csla++;
 		sgobj.csla++;
 		opobj.csla++;
-		if(Overall.tcan != 0)
-			Overall.psla = Math.round((Overall.csla/Overall.tcan)*100);
-		if(deptobj.tcan != 0)
-			deptobj.psla = Math.round((deptobj.csla/deptobj.tcan)*100);
-		if(sgobj.tcan != 0)
-			sgobj.psla = Math.round((sgobj.csla/sgobj.tcan)*100);
 	}
-	
 	
 	// now remove from active chat list and update stats
 	var achats = new Array();
 	achats = opobj.activeChats;
-	if(achats.length == 1)		// single chat
+/*	if(achats.length == 1)		// single chat
 	{
 		if(achats[0].chatid == chat.ChatID)			// this is the chat that has closed
 			opobj.activeChats == new Array();		// remove from list by re-initiasing variable
@@ -587,7 +581,7 @@ function processClosedChat(chat) {
 			console.log("Active chat not in list: "+ActiveChatNotInList++);	// shouldnt happen
 	}
 	else if(achats.length > 1)				// must be multi chat
-	{
+	{*/
 		for(var x in achats) // go through each multichat
 		{
 			if(achats[x].chatid == chat.ChatID)
@@ -596,7 +590,7 @@ function processClosedChat(chat) {
 				opobj.activeChats = achats;		// save back after removing
 			}
 		}
-	}
+//	}
 	
 	if(tchat.answered != 0 && tchat.closed != 0) 	// chat answered and closed so update conc
 		updateCconc(tchat);
@@ -819,17 +813,25 @@ function calculateASA() {
 	if(count != 0)	// dont divide by 0
 		Overall.asa = Math.round((anstime / count)/1000);
 	Overall.tac = tac;
+	if(Overall.tcan != 0)
+		Overall.psla = Math.round((Overall.csla/Overall.tcan)*100);
+	
 	for(var i in dcount)
 	{
 		if(dcount[i] != 0)	// musnt divide by 0
 			Departments[i].asa = Math.round((danstime[i] / dcount[i])/1000);
 		Departments[i].tac = dtac[i];
+		if(Departments[i].tcan != 0)
+			Departments[i].psla = Math.round((Departments[i].csla/Departments[i].tcan)*100);
 	}
+	
 	for(var i in sgcount)
 	{
 		if(sgcount[i] != 0)	// musnt divide by 0
 			SkillGroups[i].asa = Math.round((sganstime[i] / sgcount[i])/1000);
 		SkillGroups[i].tac = sgtac[i];
+		if(SkillGroups[i].tcan != 0)
+			SkillGroups[i].psla = Math.round((SkillGroups[i].csla/SkillGroups[i].tcan)*100);
 	}	
 }
 
@@ -1172,5 +1174,5 @@ function tidyUp() {
 	setTimeout(tidyUp,60000);			// tidy up every minute
 }
 doStartOfDay();		// initialise everything
-setTimeout(updateChatStats,5000);	// updates socket io data at infinitum
+//setTimeout(updateChatStats,5000);	// updates socket io data at infinitum
 //setTimeout(tidyUp,60000);			// tidy up every minute
