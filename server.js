@@ -692,6 +692,7 @@ function allInactiveChats(chats) {
 	}
 }
 
+
 function updateCconc(tchat) {
 	var sh,sm,eh,em,sindex,eindex;
 	var conc = new Array();
