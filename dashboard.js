@@ -185,7 +185,6 @@ console.log("did is "+did);
 			}
 		}
 	});
-});
 	
 	socket.on('departmentStats', function(ddata){
 		var ttable = document.getElementById("topTable");

@@ -626,11 +626,11 @@ function processOperatorStatusChanged(ostatus) {
 		for(var did in depts)
 		{
 			Departments[depts[did]].oaway++;
-			SkillGroups[depts[did].skillgroup].oaway++;
+			SkillGroups[Departments[depts[did]].skillgroup].oaway++;
 			if(cstatus == 2) 		// if operator was available
 			{
 				Departments[depts[did]].oavail--;
-				SkillGroups[depts[did].skillgroup].oavail--;
+				SkillGroups[Departments[depts[did]].skillgroup].oavail--;
 			}
 		}
 	}
@@ -642,11 +642,11 @@ function processOperatorStatusChanged(ostatus) {
 		for(var did in depts)
 		{
 			Departments[depts[did]].oavail++;
-			SkillGroups[depts[did].skillgroup].oavail++;
+			SkillGroups[Departments[depts[did]].skillgroup].oavail++;
 			if(cstatus == 1) 		// if operator was away
 			{
 				Departments[depts[did]].oaway--;
-				SkillGroups[depts[did].skillgroup].oaway--;
+				SkillGroups[Departments[depts[did]].skillgroup].oaway--;
 			}
 		}
 	}
@@ -662,12 +662,12 @@ function processOperatorStatusChanged(ostatus) {
 			if(cstatus == 1) 		// if operator was away
 			{
 				Departments[depts[did]].oaway--;
-				SkillGroups[depts[did].skillgroup].oaway--;
+				SkillGroups[Departments[depts[did]].skillgroup].oaway--;
 			}
 			else if(cstatus == 2)	// or available previously
 			{
 				Departments[depts[did]].oavail--;
-				SkillGroups[depts[did].skillgroup].oavail--;
+				SkillGroups[Departments[depts[did]].skillgroup].oavail--;
 			}
 		}
 	}
