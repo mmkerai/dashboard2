@@ -283,7 +283,7 @@ function deptsCallback(dlist) {
 		newname = dname.substring(ch2+1);	// remainder of the name 
 		Departments[dlist[i].DepartmentID] = new DashMetrics(dlist[i].DepartmentID,newname,sg);
 		SkillGroups[sg] = new DashMetrics(sg,sg,"n/a");*/
-		sg="mygroup";
+		sg="mygroup"; 
 		Departments[dlist[i].DepartmentID] = new DashMetrics(dlist[i].DepartmentID,dname,sg);
 		SkillGroups[sg] = new DashMetrics(sg,sg,"n/a");
 	}
