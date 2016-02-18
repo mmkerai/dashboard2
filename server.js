@@ -5,7 +5,8 @@
 // lwt - longest waiting time
 // tco - chats offered (chats active, answered and abandoned)
 // tac - total active chats (answered)
-// tcan - total chats answered complete and active
+// tclc - total closed/complete chats
+// tcan - total chats answered complete and active (tac+tclc)
 // tcuq - total chats unanswered/abandoned in queue
 // tcua - total chats unanswered/abandoned after assigned
 // tcun - total chats unavailable
@@ -115,6 +116,7 @@ var DashMetrics = function(did,name,sg) {
 		this.lwt = 0;
 		this.tco = 0;
 		this.tac = 0;
+		this.tclc = 0;
 		this.tcan = 0;
 		this.tcuq = 0;
 		this.tcua = 0;
@@ -275,17 +277,17 @@ function deptsCallback(dlist) {
 	for(var i in dlist) 
 	{
 		dname = dlist[i].Name;
-/*		sg = dname.match("\\[(.*)]");	// match square brackets
+		sg = dname.match("\\[(.*)]");	// match square brackets
 		if(sg == null) continue				// dept name does not match a skillgroup in square brackets
 		ch1 = dname.indexOf("[");
 		ch2 = dname.indexOf("]");
 		sg = dname.substring(ch1+1,ch2);	// name between the brackets
-		newname = dname.substring(ch2+1);	// remainder of the name 
+		newname = dname.substring(ch2+3);	// remainder of the name (skip " - ")
 		Departments[dlist[i].DepartmentID] = new DashMetrics(dlist[i].DepartmentID,newname,sg);
-		SkillGroups[sg] = new DashMetrics(sg,sg,"n/a");*/
-		sg="mygroup"; 
-		Departments[dlist[i].DepartmentID] = new DashMetrics(dlist[i].DepartmentID,dname,sg);
 		SkillGroups[sg] = new DashMetrics(sg,sg,"n/a");
+/*		sg="mygroup"; 
+		Departments[dlist[i].DepartmentID] = new DashMetrics(dlist[i].DepartmentID,dname,sg);
+		SkillGroups[sg] = new DashMetrics(sg,sg,"n/a");*/
 	}
 	console.log("No of Skillgroup Depts: "+Object.keys(Departments).length);
 	for(var did in Departments)
@@ -538,9 +540,9 @@ function processClosedChat(chat) {
 		return;	// all done 
 	}
 
-	Overall.tcan++;
-	sgobj.tcan++;
-	deptobj.tcan++;
+	Overall.tclc++;	// closed chats
+	sgobj.tclc++;
+	deptobj.tclc++;
 
 	tchat.answered = anstime;
 	tchat.ended = endtime;
@@ -565,9 +567,12 @@ function processClosedChat(chat) {
 		deptobj.csla++;
 		sgobj.csla++;
 		opobj.csla++;
-		Overall.psla = Math.round((Overall.csla/Overall.tcan)*100);
-		deptobj.psla = Math.round((deptobj.csla/deptobj.tcan)*100);
-		sgobj.psla = Math.round((sgobj.csla/sgobj.tcan)*100);
+		if(Overall.tcan != 0)
+			Overall.psla = Math.round((Overall.csla/Overall.tcan)*100);
+		if(deptobj.tcan != 0)
+			deptobj.psla = Math.round((deptobj.csla/deptobj.tcan)*100);
+		if(sgobj.tcan != 0)
+			sgobj.psla = Math.round((sgobj.csla/sgobj.tcan)*100);
 	}
 	
 	// now remove from active chat list and update stats
@@ -798,10 +803,7 @@ function calculateASA() {
 			count++;
 			dcount[tchat.department]++;
 			sgcount[sgid]++;
-			speed = tchat.answered - tchat.started;
-//			if(speed < SLATHRESHOLD)	// asa is within threshold
-//				Overall.sla++;
-				
+			speed = tchat.answered - tchat.started;				
 			anstime = anstime + speed;
 			danstime[tchat.department] = danstime[tchat.department] + speed;
 			sganstime[sgid] = sganstime[sgid] + speed;
@@ -895,14 +897,13 @@ function calculateACC_CCONC() {
 
 	calculateOperatorConc();
 	var acc;
-	var cont = 0, cont1 = 0;
 	for(var i in OperatorDepts)
 	{
 		depts = OperatorDepts[i];
-		if(typeof(depts) === 'undefined') {cont1++; continue;}	// operator not recognised
+		if(typeof(depts) === 'undefined') continue;	// operator not recognised
 		
 		opobj = Operators[i];
-		if(typeof(opobj) === 'undefined') {cont++; continue;}	// operator not recognised
+		if(typeof(opobj) === 'undefined') continue;	// operator not recognised
 		
 		otct = otct + opobj.tct;
 		omct = omct + opobj.mct;
@@ -929,7 +930,7 @@ function calculateACC_CCONC() {
 			}
 		}
 	}
-	console.log("****tct and mct is " +otct+","+omct+","+cont+","+cont1);
+//	console.log("****tct and mct is " +otct+","+omct+");
 	if(otct != 0)
 		Overall.cconc = ((otct+omct)/otct).toFixed(2);
 	Overall.acc = ocap;
@@ -1140,14 +1141,17 @@ function updateChatStats() {
 	calculateASA();
 	calculateACT_CPH();
 	calculateACC_CCONC();
-	Overall.tco = Overall.tcan + Overall.tcuq + Overall.tcua;
+	Overall.tcan = Overall.tac + Overall.tclc;
+	Overall.tco = Overall.tac + Overall.tclc + Overall.tcuq + Overall.tcua;
 	for(var did in Departments)
 	{
+		Departments[did].tcan = Departments[did].tac + Departments[did].tclc;
 		Departments[did].tco = Departments[did].tcan + Departments[did].tcuq + Departments[did].tcua;
 	}
 	
 	for(var sgid in SkillGroups)
 	{
+		SkillGroups[sgid].tcan = SkillGroups[sgid].tac + SkillGroups[sgid].tclc;
 		SkillGroups[sgid].tco = SkillGroups[sgid].tcan + SkillGroups[sgid].tcuq + SkillGroups[sgid].tcua;
 	}
 	
@@ -1155,7 +1159,8 @@ function updateChatStats() {
 	{
 		socketid = LoggedInUsers[i];
 		io.sockets.connected[socketid].emit('overallStats', Overall);
-		io.sockets.connected[socketid].emit('departmentStats', Departments);
+		io.sockets.connected[socketid].emit('skillGroupStats', SkillGroups);
+//		io.sockets.connected[socketid].emit('departmentStats', Departments);
 	}
 //	debugLog("Overall", Overall);
 	setTimeout(updateChatStats, 2000);	// send update every second
