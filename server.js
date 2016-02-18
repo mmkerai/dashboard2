@@ -403,7 +403,7 @@ function doStartOfDay() {
 	sleep(1000);
 	getApiData("getFolders", "FolderType=5", foldersCallback);	// get only chat folders
 	sleep(1000);
-//	getOperatorAvailabilityData();
+	getOperatorAvailabilityData();
 	getInactiveChatData();
 	getActiveChatData();
 //	calculateInactiveConc();		// concurrency for all closed/inactive chats
@@ -711,9 +711,6 @@ function updateCconc(tchat) {
 		conc[count]++; // save chat activity for the closed chats
 	}			
 	OperatorCconc[tchat.operator] = conc;		// save it back for next time
-	// debug
-	if(eindex - sindex > 20)
-		console.log("Chat time is > 20: "+eindex-sindex);
 }
 
 // calculate ACT and Chat per hour - both are done after chats are complete (ended)
