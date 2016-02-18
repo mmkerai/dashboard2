@@ -403,7 +403,7 @@ function doStartOfDay() {
 //	getOperatorAvailabilityData();
 	getInactiveChatData();
 	getActiveChatData();
-	calculateInactiveConc();		// concurrency for all closed/inactive chats
+//	calculateInactiveConc();		// concurrency for all closed/inactive chats
 }
 
 // process started chat object and update all relevat dept, operator and global metrics
