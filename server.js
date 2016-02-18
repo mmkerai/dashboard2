@@ -294,7 +294,6 @@ function deptsCallback(dlist) {
 	}
 	console.log("No of Depts: "+Object.keys(Departments).length);
 	console.log("No of Skillgroups: "+Object.keys(SkillGroups).length);
-	debugLog("Skillgroups are:",SkillGroups);
 	for(var did in Departments)
 	{
 		parameters = "DepartmentID="+did;
@@ -341,7 +340,8 @@ function operatorAvailabilityCallback(dlist) {
 	for(var i in dlist)
 	{
 		operator = dlist[i].LoginID;
-		if(Operators[operator] !== 'undefined')		// check operator id is valid
+//		if(Operators[operator] !== 'undefined')		// check operator id is valid
+		if(OperatorSkills[operator] !== 'undefined')		// check operator id is valid
 		{
 			Operators[operator].status = dlist[i].StatusType;
 			Operators[operator].tcs = Math.round((TimeNow - new Date(dlist[i].Created))/1000);
@@ -350,7 +350,7 @@ function operatorAvailabilityCallback(dlist) {
 			{
 				Overall.oaway++;
 				console.log("Skill is "+OperatorSkills[operator]);
-//				SkillGroups[OperatorSkills[operator]].oaway++;
+				SkillGroups[OperatorSkills[operator]].oaway++;
 				depts = new Array();
 				depts = OperatorDepts[operator];
 				for(var did in depts)
@@ -663,19 +663,9 @@ function processOperatorStatusChanged(ostatus) {
 
 // process all inactive (closed) chat objects
 function allInactiveChats(chats) {
-	var sh,sm,eh,em,sindex,eindex;
-//	var conc = new Array();
-	var opobj;
 	for(var i in chats)
 	{
 		processClosedChat(chats[i]);	// add the chat to AllChats object
-		
-/*		// now save time/duration the chat was active to help calculate concurrency later
-		tchat = AllChats[chats[i].ChatID];		// get the sanitized chat details
-		if(typeof(tchat) === 'undefined') continue;		// if this chat did not exist 
-		if(tchat.operator == 0) continue;		// operator id not set - go to next one
-		if(tchat.answered == 0 || tchat.closed == 0) continue; // not answered and closed so go to next one
-		updateCconc(tchat);*/
 	}
 }
 
@@ -1071,7 +1061,7 @@ function setUpDeptAndSkillGroups() {
 		ops = new Array();
 		ops = DeptOperators[did];
 		for(var k in ops)
-		{		
+		{
 			depts = OperatorDepts[ops[k]];
 			if(typeof(depts) === 'undefined')
 				depts = new Array();
@@ -1081,7 +1071,7 @@ function setUpDeptAndSkillGroups() {
 			OperatorSkills[ops[k]] = Departments[did].skillgroup;	// not an array so will be overwritten by subsequent 
 																	// values. i.e. operator can only belong to 1 skill group
 		}
-	} 
+	}
 //	debugLog("Operator skillgroups:",OperatorSkills);
 	OperatorsSetupComplete = true;
 //	console.log("operator setup complete");
