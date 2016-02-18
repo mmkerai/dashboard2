@@ -1169,6 +1169,7 @@ function updateChatStats() {
 	setTimeout(updateChatStats, 2000);	// send update every second
 }
 
+
 function tidyUp() {
 	getApiData("getOperatorAvailability", "ServiceTypeID=1", operatorAvailabilityCallback);
 	setTimeout(tidyUp,60000);			// tidy up every minute
