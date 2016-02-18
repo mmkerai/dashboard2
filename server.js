@@ -336,6 +336,7 @@ function operatorAvailabilityCallback(dlist) {
 	// StatusType 0, 1 and 2 is Logged out, logged in as away, logged in as available respectively
 	var operator;
 	var depts;
+	debugLog("Skillgroups",SkillGroups);
 	for(var i in dlist)
 	{
 		operator = dlist[i].LoginID;
@@ -347,7 +348,8 @@ function operatorAvailabilityCallback(dlist) {
 			if(dlist[i].StatusType == 1)
 			{
 				Overall.oaway++;
-				SkillGroups[OperatorSkills[operator]].oaway++;
+				console.log("Skill is "+OperatorSkills[operator]);
+//				SkillGroups[OperatorSkills[operator]].oaway++;
 				depts = new Array();
 				depts = OperatorDepts[operator];
 				for(var did in depts)
@@ -1079,7 +1081,7 @@ function setUpDeptAndSkillGroups() {
 																	// values. i.e. operator can only belong to 1 skill group
 		}
 	} 
-	debugLog("Operator skillgroups:",OperatorSkills);
+//	debugLog("Operator skillgroups:",OperatorSkills);
 	OperatorsSetupComplete = true;
 //	console.log("operator setup complete");
 }
