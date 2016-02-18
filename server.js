@@ -379,9 +379,9 @@ function doStartOfDay() {
 	getApiData("getFolders", "FolderType=5", foldersCallback);	// get only chat folders
 	sleep(1000);
 	setUpDeptAndSkillGroups();
-//	getOperatorAvailabilityData();
-//	getInactiveChatData();
-//	getActiveChatData();
+	getOperatorAvailabilityData();
+	getInactiveChatData();
+	getActiveChatData();
 }
 
 // process started chat object and update all relevat dept, operator and global metrics
@@ -1078,7 +1078,7 @@ function setUpDeptAndSkillGroups() {
 																	// values. i.e. operator can only belong to 1 skill group
 		}
 	} 
-	debugLog("Operator skillgroups:",OperatorSkills);
+//	debugLog("Operator skillgroups:",OperatorSkills);
 	OperatorsSetupComplete = true;	
 }
 		
