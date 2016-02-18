@@ -403,10 +403,10 @@ function doStartOfDay() {
 	sleep(1000);
 	getApiData("getFolders", "FolderType=5", foldersCallback);	// get only chat folders
 	sleep(1000);
+
 	getOperatorAvailabilityData();
 	getInactiveChatData();
 	getActiveChatData();
-//	calculateInactiveConc();		// concurrency for all closed/inactive chats
 }
 
 // process started chat object and update all relevat dept, operator and global metrics
