@@ -924,7 +924,7 @@ function calculateACC_CCONC() {
 			{
 				acc = opobj.ccap - opobj.activeChats.length;
 				if(acc < 0) acc = 0;		// make sure this is never negative which can occur sometimes
-				Departments[sgid].acc = Departments[sgid].acc + acc;
+				Departments[depts[x]].acc = Departments[depts[x]].acc + acc;
 				SkillGroups[sgid].acc = SkillGroups[sgid].acc + acc;
 			}
 		}
