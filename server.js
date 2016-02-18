@@ -292,7 +292,9 @@ function deptsCallback(dlist) {
 		Departments[dlist[i].DepartmentID] = new DashMetrics(dlist[i].DepartmentID,dname,sg);
 		SkillGroups[sg] = new DashMetrics(sg,sg,"n/a");*/
 	}
-	console.log("No of Skillgroup Depts: "+Object.keys(Departments).length);
+	console.log("No of Depts: "+Object.keys(Departments).length);
+	console.log("No of Skillgroups: "+Object.keys(SkillGroups).length);
+	debugLog("Skillgroups are:",SkillGroups);
 	for(var did in Departments)
 	{
 		parameters = "DepartmentID="+did;
@@ -336,7 +338,6 @@ function operatorAvailabilityCallback(dlist) {
 	// StatusType 0, 1 and 2 is Logged out, logged in as away, logged in as available respectively
 	var operator;
 	var depts;
-	debugLog("Skillgroups",SkillGroups);
 	for(var i in dlist)
 	{
 		operator = dlist[i].LoginID;
