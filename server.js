@@ -575,6 +575,7 @@ function processClosedChat(chat) {
 			sgobj.psla = Math.round((sgobj.csla/sgobj.tcan)*100);
 	}
 	
+	
 	// now remove from active chat list and update stats
 	var achats = new Array();
 	achats = opobj.activeChats;
