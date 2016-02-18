@@ -1027,7 +1027,7 @@ function calculateOperatorConc() {
 
 // gets operator availability info 
 function getOperatorAvailabilityData() {
-	if(ApiDataNotReady || OperatorsSetupComplete == false)
+	if(ApiDataNotReady || OperatorsSetupComplete === false)
 	{
 		console.log("Static data not ready (OA): "+ApiDataNotReady);
 		setTimeout(getOperatorAvailabilityData, 1000);
@@ -1079,8 +1079,9 @@ function setUpDeptAndSkillGroups() {
 																	// values. i.e. operator can only belong to 1 skill group
 		}
 	} 
-//	debugLog("Operator skillgroups:",OperatorSkills);
-	OperatorsSetupComplete = true;	
+	debugLog("Operator skillgroups:",OperatorSkills);
+	OperatorsSetupComplete = true;
+//	console.log("operator setup complete");
 }
 		
 // gets today's chat data incase system was started during the day
