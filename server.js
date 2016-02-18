@@ -907,17 +907,15 @@ function calculateACC_CCONC() {
 
 	calculateOperatorConc();
 	var acc;
-	var cont = 0;
+	var cont = 0, cont1 = 0;
 	for(var i in OperatorDepts)
 	{
 		depts = OperatorDepts[i];
-		if(typeof(depts) === 'undefined') continue;	// operator not recognised
+		if(typeof(depts) === 'undefined') {cont1++; continue;}	// operator not recognised
 		
 		opobj = Operators[i];
-		if(typeof(opobj) === 'undefined') continue;	// operator not recognised
+		if(typeof(opobj) === 'undefined') {cont++; continue;}	// operator not recognised
 		
-		cont++;
-
 		otct = otct + opobj.tct;
 		omct = omct + opobj.mct;
 		if(opobj.status == 2)		// make sure operator is available
@@ -943,7 +941,7 @@ function calculateACC_CCONC() {
 			}
 		}
 	}
-	console.log("****tct and mct is " +otct+","+omct+","+cont);
+	console.log("****tct and mct is " +otct+","+omct+","+cont+","+cont1);
 	if(otct != 0)
 		Overall.cconc = ((otct+omct)/otct).toFixed(2);
 	Overall.acc = ocap;
