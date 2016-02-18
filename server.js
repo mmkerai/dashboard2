@@ -907,6 +907,7 @@ function calculateACC_CCONC() {
 
 	calculateOperatorConc();
 	var acc;
+	var cont = 0;
 	for(var i in OperatorDepts)
 	{
 		depts = OperatorDepts[i];
@@ -915,8 +916,7 @@ function calculateACC_CCONC() {
 		opobj = Operators[i];
 		if(typeof(opobj) === 'undefined') continue;	// operator not recognised
 		
-		if(opobj.mct > 240)		// debug
-			console.log("multi chattime is "+opobj.mct);	// debug
+		cont++;
 
 		otct = otct + opobj.tct;
 		omct = omct + opobj.mct;
@@ -943,7 +943,7 @@ function calculateACC_CCONC() {
 			}
 		}
 	}
-	console.log("****tct and mct is " +otct+","+omct);
+	console.log("****tct and mct is " +otct+","+omct+","+cont);
 	if(otct != 0)
 		Overall.cconc = ((otct+omct)/otct).toFixed(2);
 	Overall.acc = ocap;
