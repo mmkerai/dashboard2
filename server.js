@@ -106,7 +106,7 @@ var ChatData = function(chatid, dept, start) {
 var DashMetrics = function(did,name,sg) {
 		this.did = did;		// used only for departments
 		this.name = name;
-		this.skillgroup = sg; // used only for departments
+		this.skillgroup = sg; // used only by departments
 		this.cconc = 0;
 		this.tct = 0;
 		this.mct = 0;
@@ -288,9 +288,6 @@ function deptsCallback(dlist) {
 		newname = dname.substring(ch2+3);	// remainder of the name (skip " - ")
 		Departments[dlist[i].DepartmentID] = new DashMetrics(dlist[i].DepartmentID,newname,sg);
 		SkillGroups[sg] = new DashMetrics(sg,sg,"n/a");
-/*		sg="mygroup"; 
-		Departments[dlist[i].DepartmentID] = new DashMetrics(dlist[i].DepartmentID,dname,sg);
-		SkillGroups[sg] = new DashMetrics(sg,sg,"n/a");*/
 	}
 	console.log("No of Depts: "+Object.keys(Departments).length);
 	console.log("No of Skillgroups: "+Object.keys(SkillGroups).length);
@@ -345,12 +342,14 @@ function operatorAvailabilityCallback(dlist) {
 		{
 			Operators[operator].status = dlist[i].StatusType;
 			Operators[operator].tcs = Math.round((TimeNow - new Date(dlist[i].Created))/1000);
+				console.log("Skill is "+OperatorSkills[operator]);
+				var sgobj = SkillGroups[OperatorSkills[operator]];
 			// update metrics
 			if(dlist[i].StatusType == 1)
 			{
 				Overall.oaway++;
-				console.log("Skill is "+OperatorSkills[operator]);
-				SkillGroups[OperatorSkills[operator]].oaway++;
+				sgobj.oaway++;
+//				SkillGroups[OperatorSkills[operator]].oaway++;
 				depts = new Array();
 				depts = OperatorDepts[operator];
 				for(var did in depts)
