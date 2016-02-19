@@ -152,7 +152,7 @@ console.log("did is "+did);
 					row = ttable.insertRow();	// there is already a header row and top row
 					col = row.insertCell(0);
 					row.id = ddata[i].name;
-//					col.outerHTML = "<th scope='row' onClick=\"showDepartment('"+ddata[i].did+"','"+ddata[i].name+"')\">"+ddata[i].name+"</th>";
+					col.outerHTML = "<th scope='row' onClick=\"showDepartment('"+ddata[i].did+"','"+ddata[i].name+"')\">"+ddata[i].name+"</th>";
 					col = row.insertCell(1).innerHTML = ddata[i].cconc;
 					col = row.insertCell(2).innerHTML = ddata[i].psla +"%";
 					col = row.insertCell(3).innerHTML = ddata[i].ciq;
@@ -191,14 +191,6 @@ console.log("did is "+did);
 //		}
 	});
 });
-
-function showSkillGroup(skill,sname) {
-	console.log("Show Depts for skill group: "+sname);
-//	window.location.href = window.location.pathname+'?did='+skill;
-	var deptpage = NewWin("department.html?did="+did, "Department Dashboard");
-	var doc = deptpage.document;
-	doc.getElementById("dashheader").innerHTML = "Department: "+dname;
-}
 
 function showDepartment(dept,dname) {
 	console.log("Show Depts for skill group: "+dept+","+dname);
