@@ -182,56 +182,57 @@ console.log("did is "+did);
 		}
 	});
 	
-	if(did !== null)
-	{
-
 	socket.on('departmentStats', function(ddata){
 		var ttable = document.getElementById("topTable");
 //		for(cnt = 0; cnt < Object.keys(ddata).length; cnt++)
 		var row, col, rowid;
-		for(var i in ddata)
+		if(did !== null)
 		{
-			var tcanpc = ddata[i].tcan + " ("+Math.round((ddata[i].tcan/ddata[i].tco)*100)+"%)";
-			rowid = document.getElementById(ddata[i].name);
-			if(rowid === null)		// row doesnt exist so create one
+
+			for(var i in ddata)
 			{
-				row = ttable.insertRow();	// there is already a header row and top row
-				col = row.insertCell(0);
-				row.id = ddata[i].name;
-				col.outerHTML = "<th scope='row' onClick=\"showDepartment('"+ddata[i].did+"','"+ddata[i].name+"')\">"+ddata[i].name+"</th>";
-				col = row.insertCell(1).innerHTML = ddata[i].cconc;
-				col = row.insertCell(2).innerHTML = ddata[i].psla +"%";
-				col = row.insertCell(3).innerHTML = ddata[i].ciq;
-				col = row.insertCell(4).innerHTML = toHHMMSS(ddata[i].lwt);
-				col = row.insertCell(5).innerHTML = ddata[i].tco;
-				col = row.insertCell(6).innerHTML = ddata[i].tac;
-				col = row.insertCell(7).innerHTML = tcanpc;
-				col = row.insertCell(8).innerHTML = ddata[i].tcuq;
-				col = row.insertCell(9).innerHTML = ddata[i].tcua;
-				col = row.insertCell(10).innerHTML = Math.round((ddata[i].tcun/(ddata[i].tcun+ddata[i].tco))*100) +"%";
-				col = row.insertCell(11).innerHTML = toHHMMSS(ddata[i].asa);
-				col = row.insertCell(12).innerHTML = toHHMMSS(ddata[i].act);
-				col = row.insertCell(13).innerHTML = ddata[i].acc;
-				col = row.insertCell(14).innerHTML = ddata[i].oaway;
-				col = row.insertCell(15).innerHTML = ddata[i].oavail;
-			}
-			else
-			{
-				rowid.cells[1].innerHTML = ddata[i].cconc;
-				rowid.cells[2].innerHTML = ddata[i].psla +"%";
-				rowid.cells[3].innerHTML = ddata[i].ciq;
-				rowid.cells[4].innerHTML = toHHMMSS(ddata[i].lwt);
-				rowid.cells[5].innerHTML = ddata[i].tco;
-				rowid.cells[6].innerHTML = ddata[i].tac;
-				rowid.cells[7].innerHTML = tcanpc;
-				rowid.cells[8].innerHTML = ddata[i].tcuq;
-				rowid.cells[9].innerHTML = ddata[i].tcua;
-				rowid.cells[10].innerHTML = Math.round((ddata[i].tcun/(ddata[i].tcun+ddata[i].tco))*100) +"%";
-				rowid.cells[11].innerHTML = toHHMMSS(ddata[i].asa);
-				rowid.cells[12].innerHTML = toHHMMSS(ddata[i].act);
-				rowid.cells[13].innerHTML = ddata[i].acc;
-				rowid.cells[14].innerHTML = ddata[i].oaway;
-				rowid.cells[15].innerHTML = ddata[i].oavail;
+				var tcanpc = ddata[i].tcan + " ("+Math.round((ddata[i].tcan/ddata[i].tco)*100)+"%)";
+				rowid = document.getElementById(ddata[i].name);
+				if(rowid === null)		// row doesnt exist so create one
+				{
+					row = ttable.insertRow();	// there is already a header row and top row
+					col = row.insertCell(0);
+					row.id = ddata[i].name;
+					col.outerHTML = "<th scope='row' onClick=\"showDepartment('"+ddata[i].did+"','"+ddata[i].name+"')\">"+ddata[i].name+"</th>";
+					col = row.insertCell(1).innerHTML = ddata[i].cconc;
+					col = row.insertCell(2).innerHTML = ddata[i].psla +"%";
+					col = row.insertCell(3).innerHTML = ddata[i].ciq;
+					col = row.insertCell(4).innerHTML = toHHMMSS(ddata[i].lwt);
+					col = row.insertCell(5).innerHTML = ddata[i].tco;
+					col = row.insertCell(6).innerHTML = ddata[i].tac;
+					col = row.insertCell(7).innerHTML = tcanpc;
+					col = row.insertCell(8).innerHTML = ddata[i].tcuq;
+					col = row.insertCell(9).innerHTML = ddata[i].tcua;
+					col = row.insertCell(10).innerHTML = Math.round((ddata[i].tcun/(ddata[i].tcun+ddata[i].tco))*100) +"%";
+					col = row.insertCell(11).innerHTML = toHHMMSS(ddata[i].asa);
+					col = row.insertCell(12).innerHTML = toHHMMSS(ddata[i].act);
+					col = row.insertCell(13).innerHTML = ddata[i].acc;
+					col = row.insertCell(14).innerHTML = ddata[i].oaway;
+					col = row.insertCell(15).innerHTML = ddata[i].oavail;
+				}
+				else
+				{
+					rowid.cells[1].innerHTML = ddata[i].cconc;
+					rowid.cells[2].innerHTML = ddata[i].psla +"%";
+					rowid.cells[3].innerHTML = ddata[i].ciq;
+					rowid.cells[4].innerHTML = toHHMMSS(ddata[i].lwt);
+					rowid.cells[5].innerHTML = ddata[i].tco;
+					rowid.cells[6].innerHTML = ddata[i].tac;
+					rowid.cells[7].innerHTML = tcanpc;
+					rowid.cells[8].innerHTML = ddata[i].tcuq;
+					rowid.cells[9].innerHTML = ddata[i].tcua;
+					rowid.cells[10].innerHTML = Math.round((ddata[i].tcun/(ddata[i].tcun+ddata[i].tco))*100) +"%";
+					rowid.cells[11].innerHTML = toHHMMSS(ddata[i].asa);
+					rowid.cells[12].innerHTML = toHHMMSS(ddata[i].act);
+					rowid.cells[13].innerHTML = ddata[i].acc;
+					rowid.cells[14].innerHTML = ddata[i].oaway;
+					rowid.cells[15].innerHTML = ddata[i].oavail;
+				}
 			}
 		}
 	});
