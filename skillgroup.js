@@ -112,12 +112,30 @@ console.log("did is "+did);
 		$("#topTable").show();
 	});
 	
+	socket.on('overallStats', function(data){
+		var tcanpc = data.tcan + " ("+Math.round((data.tcan/data.tco)*100)+"%)";
+		$("#ocon").text(data.cconc);
+		$("#osla").text(data.psla +"%");
+		$("#ociq").text(data.ciq);
+		$("#olwt").text(toHHMMSS(data.lwt));
+		$("#ooff").text(data.tco);
+		$("#otac").text(data.tac);
+		$("#otcan").text(tcanpc);
+		$("#ouiq").text(data.tcuq);
+		$("#ouas").text(data.tcua);
+		$("#ocunavail").text(Math.round((data.tcun/(data.tcun+data.tco))*100)+ "%");
+		$("#oasa").text(toHHMMSS(data.asa));
+		$("#oact").text(toHHMMSS(data.act));
+		$("#oaccap").text(data.acc);
+		$("#oaway").text(data.oaway);
+		$("#oavail").text(data.oavail);
+	});
+		
 	socket.on('departmentStats', function(ddata){
 		var ttable = document.getElementById("topTable");
-//		for(cnt = 0; cnt < Object.keys(ddata).length; cnt++)
 		var row, col, rowid;
-		if(did !== null)
-		{
+//		if(did !== null)
+//		{
 
 			for(var i in ddata)
 			{
@@ -170,7 +188,7 @@ console.log("did is "+did);
 					rowid.cells[15].innerHTML = ddata[i].oavail;
 				}
 			}
-		}
+//		}
 	});
 });
 
