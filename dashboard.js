@@ -133,11 +133,10 @@ console.log("did is "+did);
 	
 	socket.on('skillGroupStats', function(ddata){
 		var ttable = document.getElementById("topTable");
-//		for(cnt = 0; cnt < Object.keys(ddata).length; cnt++)
 		var row, col, rowid;
 		for(var i in ddata)
 		{
-			var tcanpc = "0%";
+			var tcanpc = " (0%)";
 			var tcunpc = "0%";
 			if(ddata[i].tco != 0)
 			{
@@ -252,7 +251,7 @@ console.log("did is "+did);
 
 function showSkillGroup(skill,sname) {
 	console.log("Show Depts for skill group: "+sname);
-	window.location.href = window.location.pathname+'?did='+dept;
+	window.location.href = window.location.pathname+'?did='+skill;
 //	var deptpage = NewWin("department.html?did="+did, "Department Dashboard");
 //	var doc = deptpage.document;
 //	doc.getElementById("dashheader").innerHTML = "Department: "+dname;
