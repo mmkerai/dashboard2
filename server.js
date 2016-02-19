@@ -338,7 +338,7 @@ function operatorAvailabilityCallback(dlist) {
 	{
 		operator = dlist[i].LoginID;
 //		if(Operators[operator] !== 'undefined')		// check operator id is valid
-		if(OperatorSkills[operator] !== 'undefined')		// check operator id is valid
+		if(typeof(OperatorSkills[operator]) !== 'undefined')		// check operator id is valid
 		{
 			Operators[operator].status = dlist[i].StatusType;
 			Operators[operator].tcs = Math.round((TimeNow - new Date(dlist[i].Created))/1000);
@@ -348,8 +348,8 @@ function operatorAvailabilityCallback(dlist) {
 			if(dlist[i].StatusType == 1)
 			{
 				Overall.oaway++;
-				sgobj.oaway++;
-//				SkillGroups[OperatorSkills[operator]].oaway++;
+//				sgobj.oaway++;
+				SkillGroups[OperatorSkills[operator]].oaway++;
 				depts = new Array();
 				depts = OperatorDepts[operator];
 				for(var did in depts)
