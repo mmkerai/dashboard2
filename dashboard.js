@@ -137,7 +137,13 @@ console.log("did is "+did);
 		var row, col, rowid;
 		for(var i in ddata)
 		{
-			var tcanpc = ddata[i].tcan + " ("+Math.round((ddata[i].tcan/ddata[i].tco)*100)+"%)";
+			var tcanpc = "0%";
+			var tcunpc = "0%";
+			if(ddata[i].tco != 0)
+			{
+				tcanpc = " ("+Math.round((ddata[i].tcan/ddata[i].tco)*100)+"%)";
+				tcunpc = Math.round((ddata[i].tcun/(ddata[i].tcun+ddata[i].tco))*100) +"%";
+			}
 			rowid = document.getElementById(ddata[i].name);
 			if(rowid === null)		// row doesnt exist so create one
 			{
@@ -151,10 +157,10 @@ console.log("did is "+did);
 				col = row.insertCell(4).innerHTML = toHHMMSS(ddata[i].lwt);
 				col = row.insertCell(5).innerHTML = ddata[i].tco;
 				col = row.insertCell(6).innerHTML = ddata[i].tac;
-				col = row.insertCell(7).innerHTML = tcanpc;
+				col = row.insertCell(7).innerHTML = ddata[i].tcan + tcanpc;
 				col = row.insertCell(8).innerHTML = ddata[i].tcuq;
 				col = row.insertCell(9).innerHTML = ddata[i].tcua;
-				col = row.insertCell(10).innerHTML = Math.round((ddata[i].tcun/(ddata[i].tcun+ddata[i].tco))*100) +"%";
+				col = row.insertCell(10).innerHTML = tcunpc;
 				col = row.insertCell(11).innerHTML = toHHMMSS(ddata[i].asa);
 				col = row.insertCell(12).innerHTML = toHHMMSS(ddata[i].act);
 				col = row.insertCell(13).innerHTML = ddata[i].acc;
@@ -169,7 +175,7 @@ console.log("did is "+did);
 				rowid.cells[4].innerHTML = toHHMMSS(ddata[i].lwt);
 				rowid.cells[5].innerHTML = ddata[i].tco;
 				rowid.cells[6].innerHTML = ddata[i].tac;
-				rowid.cells[7].innerHTML = tcanpc;
+				rowid.cells[7].innerHTML = ddata[i].tcan + tcanpc;
 				rowid.cells[8].innerHTML = ddata[i].tcuq;
 				rowid.cells[9].innerHTML = ddata[i].tcua;
 				rowid.cells[10].innerHTML = Math.round((ddata[i].tcun/(ddata[i].tcun+ddata[i].tco))*100) +"%";
@@ -191,7 +197,13 @@ console.log("did is "+did);
 
 			for(var i in ddata)
 			{
-				var tcanpc = ddata[i].tcan + " ("+Math.round((ddata[i].tcan/ddata[i].tco)*100)+"%)";
+				var tcanpc = "0%";
+				var tcunpc = "0%";
+				if(ddata[i].tco != 0)
+				{
+					tcanpc = " ("+Math.round((ddata[i].tcan/ddata[i].tco)*100)+"%)";
+					tcunpc = Math.round((ddata[i].tcun/(ddata[i].tcun+ddata[i].tco))*100) +"%";
+				}
 				rowid = document.getElementById(ddata[i].name);
 				if(rowid === null)		// row doesnt exist so create one
 				{
@@ -205,7 +217,7 @@ console.log("did is "+did);
 					col = row.insertCell(4).innerHTML = toHHMMSS(ddata[i].lwt);
 					col = row.insertCell(5).innerHTML = ddata[i].tco;
 					col = row.insertCell(6).innerHTML = ddata[i].tac;
-					col = row.insertCell(7).innerHTML = tcanpc;
+					col = row.insertCell(7).innerHTML = ddata[i].tcan + tcanpc;
 					col = row.insertCell(8).innerHTML = ddata[i].tcuq;
 					col = row.insertCell(9).innerHTML = ddata[i].tcua;
 					col = row.insertCell(10).innerHTML = Math.round((ddata[i].tcun/(ddata[i].tcun+ddata[i].tco))*100) +"%";
@@ -223,10 +235,10 @@ console.log("did is "+did);
 					rowid.cells[4].innerHTML = toHHMMSS(ddata[i].lwt);
 					rowid.cells[5].innerHTML = ddata[i].tco;
 					rowid.cells[6].innerHTML = ddata[i].tac;
-					rowid.cells[7].innerHTML = tcanpc;
+					rowid.cells[7].innerHTML = ddata[i].tcan + tcanpc;
 					rowid.cells[8].innerHTML = ddata[i].tcuq;
 					rowid.cells[9].innerHTML = ddata[i].tcua;
-					rowid.cells[10].innerHTML = Math.round((ddata[i].tcun/(ddata[i].tcun+ddata[i].tco))*100) +"%";
+					rowid.cells[10].innerHTML = tcunpc;
 					rowid.cells[11].innerHTML = toHHMMSS(ddata[i].asa);
 					rowid.cells[12].innerHTML = toHHMMSS(ddata[i].act);
 					rowid.cells[13].innerHTML = ddata[i].acc;
@@ -238,7 +250,7 @@ console.log("did is "+did);
 	});
 });
 
-function showSkillGroups(skill,sname) {
+function showSkillGroup(skill,sname) {
 	console.log("Show Depts for skill group: "+sname);
 	window.location.href = window.location.pathname+'?did='+dept;
 //	var deptpage = NewWin("department.html?did="+did, "Department Dashboard");
