@@ -88,7 +88,12 @@ app.get('/favicon.ico', function(req, res){
 app.get('/threelogo.png', function(req, res){
 	res.sendFile(__dirname + '/threelogo.png');
 });
-
+app.get('/skillgroup.html', function(req, res){
+	res.sendFile(__dirname + '/skillgroup.html');
+});
+app.get('/skillgroup.js', function(req, res){
+	res.sendFile(__dirname + '/skillgroup.js');
+});
 //********************************* Global class for chat data
 var ChatData = function(chatid, dept, start) {
 		this.chatID = chatid;
