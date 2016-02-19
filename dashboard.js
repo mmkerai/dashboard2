@@ -112,28 +112,24 @@ console.log("did is "+did);
 		$("#topTable").show();
 	});
 	
-//	if(did === null)
-//	{
-//		showtableHeader();
-		socket.on('overallStats', function(data){
-			var tcanpc = data.tcan + " ("+Math.round((data.tcan/data.tco)*100)+"%)";
-			$("#ocon").text(data.cconc);
-			$("#osla").text(data.psla +"%");
-			$("#ociq").text(data.ciq);
-			$("#olwt").text(toHHMMSS(data.lwt));
-			$("#ooff").text(data.tco);
-			$("#otac").text(data.tac);
-			$("#otcan").text(tcanpc);
-			$("#ouiq").text(data.tcuq);
-			$("#ouas").text(data.tcua);
-			$("#ocunavail").text(Math.round((data.tcun/(data.tcun+data.tco))*100)+ "%");
-			$("#oasa").text(toHHMMSS(data.asa));
-			$("#oact").text(toHHMMSS(data.act));
-			$("#oaccap").text(data.acc);
-			$("#oaway").text(data.oaway);
-			$("#oavail").text(data.oavail);
-		});
-//	}
+	socket.on('overallStats', function(data){
+		var tcanpc = data.tcan + " ("+Math.round((data.tcan/data.tco)*100)+"%)";
+		$("#ocon").text(data.cconc);
+		$("#osla").text(data.psla +"%");
+		$("#ociq").text(data.ciq);
+		$("#olwt").text(toHHMMSS(data.lwt));
+		$("#ooff").text(data.tco);
+		$("#otac").text(data.tac);
+		$("#otcan").text(tcanpc);
+		$("#ouiq").text(data.tcuq);
+		$("#ouas").text(data.tcua);
+		$("#ocunavail").text(Math.round((data.tcun/(data.tcun+data.tco))*100)+ "%");
+		$("#oasa").text(toHHMMSS(data.asa));
+		$("#oact").text(toHHMMSS(data.act));
+		$("#oaccap").text(data.acc);
+		$("#oaway").text(data.oaway);
+		$("#oavail").text(data.oavail);
+	});
 	
 	socket.on('skillGroupStats', function(ddata){
 		var ttable = document.getElementById("topTable");
@@ -148,7 +144,7 @@ console.log("did is "+did);
 				row = ttable.insertRow();	// there is already a header row and top row
 				col = row.insertCell(0);
 				row.id = ddata[i].name;
-				col.outerHTML = "<th scope='row' onClick=\"showDepartment('"+ddata[i].did+"','"+ddata[i].name+"')\">"+ddata[i].name+"</th>";
+				col.outerHTML = "<th scope='row' onClick=\"showSkillGroup('"+ddata[i].did+"','"+ddata[i].name+"')\">"+ddata[i].name+"</th>";
 				col = row.insertCell(1).innerHTML = ddata[i].cconc;
 				col = row.insertCell(2).innerHTML = ddata[i].psla +"%";
 				col = row.insertCell(3).innerHTML = ddata[i].ciq;
@@ -186,6 +182,9 @@ console.log("did is "+did);
 		}
 	});
 	
+	if(did !== null)
+	{
+
 	socket.on('departmentStats', function(ddata){
 		var ttable = document.getElementById("topTable");
 //		for(cnt = 0; cnt < Object.keys(ddata).length; cnt++)
@@ -237,6 +236,14 @@ console.log("did is "+did);
 		}
 	});
 });
+
+function showSkillGroups(skill,sname) {
+	console.log("Show Depts for skill group: "+sname);
+	window.location.href = window.location.pathname+'?did='+dept;
+//	var deptpage = NewWin("department.html?did="+did, "Department Dashboard");
+//	var doc = deptpage.document;
+//	doc.getElementById("dashheader").innerHTML = "Department: "+dname;
+}
 
 function showDepartment(dept,dname) {
 	console.log("Show Depts for skill group: "+dept+","+dname);

@@ -342,13 +342,10 @@ function operatorAvailabilityCallback(dlist) {
 		{
 			Operators[operator].status = dlist[i].StatusType;
 			Operators[operator].tcs = Math.round((TimeNow - new Date(dlist[i].Created))/1000);
-				console.log("Skill is "+OperatorSkills[operator]);
-				var sgobj = SkillGroups[OperatorSkills[operator]];
 			// update metrics
 			if(dlist[i].StatusType == 1)
 			{
 				Overall.oaway++;
-//				sgobj.oaway++;
 				SkillGroups[OperatorSkills[operator]].oaway++;
 				depts = new Array();
 				depts = OperatorDepts[operator];
@@ -1181,5 +1178,5 @@ function tidyUp() {
 	setTimeout(tidyUp,60000);			// tidy up every minute
 }
 doStartOfDay();		// initialise everything
-//setTimeout(updateChatStats,5000);	// updates socket io data at infinitum
+setTimeout(updateChatStats,5000);	// updates socket io data at infinitum
 //setTimeout(tidyUp,60000);			// tidy up every minute
