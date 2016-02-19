@@ -275,7 +275,7 @@ function showTopTableHeader() {
 
 function NewWin(htmlfile, name)		// open a new window
 {
-	WIDTH = 1240;
+	WIDTH = 1280;
 	HEIGHT = 768;
 	var left = (screen.width/2)-(WIDTH/2);
 	var top = (screen.height/2)-(HEIGHT/2)-64;

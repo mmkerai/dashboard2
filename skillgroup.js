@@ -112,7 +112,7 @@ console.log("did is "+did);
 		$("#topTable").show();
 	});
 	
-	socket.on('overallStats', function(data){
+<!--	socket.on('overallStats', function(data){
 		var tcanpc = data.tcan + " ("+Math.round((data.tcan/data.tco)*100)+"%)";
 		$("#ocon").text(data.cconc);
 		$("#osla").text(data.psla +"%");
@@ -129,7 +129,7 @@ console.log("did is "+did);
 		$("#oaccap").text(data.acc);
 		$("#oaway").text(data.oaway);
 		$("#oavail").text(data.oavail);
-	});
+	}); -->
 		
 	socket.on('departmentStats', function(ddata){
 		var ttable = document.getElementById("topTable");

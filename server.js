@@ -1171,7 +1171,7 @@ function updateChatStats() {
 		socketid = LoggedInUsers[i];
 		io.sockets.connected[socketid].emit('overallStats', Overall);
 		io.sockets.connected[socketid].emit('skillGroupStats', SkillGroups);
-//		io.sockets.connected[socketid].emit('departmentStats', Departments);
+		io.sockets.connected[socketid].emit('departmentStats', Departments);
 	}
 //	debugLog("Overall", Overall);
 	setTimeout(updateChatStats, 2000);	// send update every second
