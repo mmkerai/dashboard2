@@ -376,21 +376,6 @@ function operatorAvailabilityCallback(dlist) {
 	}
 }
 
-// setup all globals TODO: add teams
-function doStartOfDay() {
-	initialiseGlobals();	// zero all memory
-	getApiData("getDepartments", 0, deptsCallback);
-	sleep(1000);
-	getApiData("getOperators", 0, operatorsCallback);
-	sleep(1000);
-	getApiData("getFolders", "FolderType=5", foldersCallback);	// get only chat folders
-	sleep(1000);
-	setUpDeptAndSkillGroups();
-	getOperatorAvailabilityData();
-	getInactiveChatData();
-	getActiveChatData();
-}
-
 // process started chat object and update all relevat dept, operator and global metrics
 function processStartedChat(chat) {
 	if(chat.DepartmentID == null || chat.DepartmentID == "") return;// should never be null at this stage but I have seen it
@@ -1168,6 +1153,20 @@ function updateChatStats() {
 	console.log("total chats: "+Object.keys(AllChats).length);
 }
 
+// setup all globals TODO: add teams
+function doStartOfDay() {
+	initialiseGlobals();	// zero all memory
+	getApiData("getDepartments", 0, deptsCallback);
+	sleep(1000);
+	getApiData("getOperators", 0, operatorsCallback);
+	sleep(1000);
+	getApiData("getFolders", "FolderType=5", foldersCallback);	// get only chat folders
+	sleep(1000);
+	setUpDeptAndSkillGroups();
+	getOperatorAvailabilityData();
+//	getInactiveChatData();
+	getActiveChatData();
+}
 
 function tidyUp() {
 	getApiData("getOperatorAvailability", "ServiceTypeID=1", operatorAvailabilityCallback);
