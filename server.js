@@ -530,6 +530,7 @@ function processClosedChat(chat) {
 		tchat.operator = opid;
 		tchat.started = starttime;
 		tchat.answered = anstime;
+		opobj = Operators[opid];
 		opobj.tcan++;
 		var speed = anstime - starttime;
 		if(speed < (SLATHRESHOLD*1000))		// sla threshold in milliseconds
