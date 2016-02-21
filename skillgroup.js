@@ -112,6 +112,7 @@ console.log("did is "+did);
 		$("#topTable").show();
 	});
 		
+		
 	socket.on('departmentStats', function(ddata){
 		var ttable = document.getElementById("topTable");
 		var row, col, rowid;
