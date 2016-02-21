@@ -252,7 +252,7 @@ console.log("did is "+did);
 function showSkillGroup(skill,sname) {
 	console.log("Show Depts for skill group: "+sname);
 //	window.location.href = window.location.pathname+'?did='+skill;
-	var deptpage = NewWin("skillgroup.html?did="+did, "Skillgroup Dashboard");
+	var deptpage = NewWin("skillgroup.html?did="+sname, "Skillgroup Dashboard");
 //	var doc = deptpage.document;
 //	doc.getElementById("dashheader").innerHTML = "Department: "+sname;
 }

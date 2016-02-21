@@ -451,6 +451,16 @@ function processAnsweredChat(chat) {
 	if(anstime != 0)		// make sure this was a chat that was answered
 	{
 		opobj.activeChats.push(chat.ChatID);
+		opobj.tcan++;
+	}
+
+	var speed = anstime - starttime;
+	if(speed < (SLATHRESHOLD*1000))		// sla threshold in milliseconds
+	{
+		Overall.csla++;
+		deptobj.csla++;
+		sgobj.csla++;
+		opobj.csla++;
 	}
 }
 
@@ -491,12 +501,6 @@ function processClosedChat(chat) {
 	if(chat.OperatorID != null && chat.OperatorID != "")
 		opid = chat.OperatorID;
 
-//	var messagecount = chat.OperatorMessageCount + chat.VisitorMessageCount
-	tchat = AllChats[chat.ChatID];
-	if(typeof(tchat) === 'undefined')		// if this chat did not exist 
-		tchat = new ChatData(chat.ChatID, chat.DepartmentID, deptobj.skillgroup);
-
-	tchat.status = 0;		// inactive/complete/cancelled/closed
 	if(anstime == 0)		// chat unanswered
 	{
 		if(opid == 0)	// operator unassigned
@@ -518,52 +522,43 @@ function processClosedChat(chat) {
 	sgobj.tclc++;
 	deptobj.tclc++;
 
-	tchat.started = starttime;
-	tchat.answered = anstime;
+	// update operator stats
+	tchat = AllChats[chat.ChatID];
+	if(typeof(tchat) === 'undefined')		// if this chat did not exist then must be from the inactive list
+	{
+		tchat = new ChatData(chat.ChatID, chat.DepartmentID, deptobj.skillgroup);
+		tchat.operator = opid;
+		tchat.started = starttime;
+		tchat.answered = anstime;
+		opobj.tcan++;
+		var speed = anstime - starttime;
+		if(speed < (SLATHRESHOLD*1000))		// sla threshold in milliseconds
+		{
+			Overall.csla++;
+			deptobj.csla++;
+			sgobj.csla++;
+			opobj.csla++;
+		}
+	}
+
+	tchat.status = 0;		// inactive/complete/cancelled/closed
 	tchat.ended = endtime;
 	tchat.closed = closetime;
-	tchat.operator = opid;
 	AllChats[chat.ChatID] = tchat;	// update chat
 
-	opobj = Operators[opid];	// if answered there will always be a operator assigned
-	if(typeof(opobj) === 'undefined') 	
-	{									// in case there isnt
-		console.log("Opid is "+opid);
-		debugLog("*****Error Operator obj is null",chat);
-		return;
-	}
-	opobj.tcan++;	// chats answered and closed
+	opobj = Operators[tchat.operator];	// if answered there will always be a operator assigned
 
-	var speed = anstime - starttime;
-	if(speed < (SLATHRESHOLD*1000))		// sla threshold in milliseconds
-	{
-		Overall.csla++;
-		deptobj.csla++;
-		sgobj.csla++;
-		opobj.csla++;
-	}
-	
 	// now remove from active chat list and update stats
 	var achats = new Array();
 	achats = opobj.activeChats;
-/*	if(achats.length == 1)		// single chat
+	for(var x in achats) // go through each chat
 	{
-		if(achats[0].chatid == chat.ChatID)			// this is the chat that has closed
-			opobj.activeChats == new Array();		// remove from list by re-initiasing variable
-		else
-			console.log("Active chat not in list: "+ActiveChatNotInList++);	// shouldnt happen
-	}
-	else if(achats.length > 1)				// must be multi chat
-	{*/
-		for(var x in achats) // go through each chat
+		if(achats[x] == chat.ChatID)
 		{
-			if(achats[x] == chat.ChatID)
-			{
-				achats.splice(x,1);
-				opobj.activeChats = achats;		// save back after removing
-			}
+			achats.splice(x,1);
+			opobj.activeChats = achats;		// save back after removing
 		}
-//	}
+	}
 	
 	if(tchat.answered != 0 && tchat.closed != 0) 	// chat answered and closed so update conc
 		updateCconc(tchat);
@@ -737,7 +732,7 @@ function calculateACT_CPH() {
 }
 
 function calculateASA() {
-	var tchat,sgid;
+	var tchat;
 	var count = 0, tac = 0, anstime = 0;
 	var danstime = new Object();
 	var dcount = new Object();
@@ -765,19 +760,18 @@ function calculateASA() {
 		tchat = AllChats[i];
 		if((tchat.status == 2 || tchat.status == 0) && tchat.answered != 0 && tchat.started != 0)
 		{
-			sgid = Departments[tchat.departmentID].skillgroup;
 			count++;
 			dcount[tchat.departmentID]++;
-			sgcount[sgid]++;
+			sgcount[tchat.skillgroup]++;
 			speed = tchat.answered - tchat.started;				
 			anstime = anstime + speed;
 			danstime[tchat.departmentID] = danstime[tchat.departmentID] + speed;
-			sganstime[sgid] = sganstime[sgid] + speed;
+			sganstime[tchat.skillgroup] = sganstime[tchat.skillgroup] + speed;
 			if(tchat.status == 2)	// active chat
 			{
 				tac++;
 				dtac[tchat.departmentID]++;
-				sgtac[sgid]++;
+				sgtac[tchat.skillgroup]++;
 			}
 		}
 	}
