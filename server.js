@@ -95,9 +95,10 @@ app.get('/skillgroup.js', function(req, res){
 	res.sendFile(__dirname + '/skillgroup.js');
 });
 //********************************* Global class for chat data
-var ChatData = function(chatid, dept, start) {
+var ChatData = function(chatid, dept, sg) {
 		this.chatID = chatid;
-		this.department = dept;
+		this.departmentID = dept;
+		this.skillgroup = sg;
 		this.started = start;		// times ISO times must be converted to epoch (milliseconds since 1 Jan 1970)
 		this.answered = 0;			// so it is easy to do the calculations
 		this.ended = 0;
@@ -181,8 +182,9 @@ for(var i in au)
 	var uname = au[i].name;
 	var pwd = au[i].pwd;
 	AuthUsers[uname] = pwd;
-	console.log("User: "+uname+" saved");
+//	console.log("User: "+uname+" saved");
 }
+console.log(Object.keys(AuthUsers).length +" user credentials loaded");
 
 function sleep(milliseconds) {
   var start = new Date().getTime();
@@ -395,8 +397,8 @@ function processStartedChat(chat) {
 	var deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
 
-	var starttime = new Date(chat.Started);
-	var tchat = new ChatData(chat.ChatID, chat.DepartmentID, starttime);
+	var tchat = new ChatData(chat.ChatID, chat.DepartmentID, deptobj.skillgroup);
+	tchat.started = new Date(chat.Started);
 	tchat.status = 1;	// waiting to be answered
 	AllChats[chat.ChatID] = tchat;		// save this chat details
 }
@@ -438,32 +440,17 @@ function processAnsweredChat(chat) {
 
 	tchat = AllChats[chat.ChatID];
 	if(typeof(tchat) === 'undefined')	// if this chat did not exist (only true if processing at startup not triggers)
-		tchat = new ChatData(chat.ChatID, chat.DepartmentID, starttime);
+		tchat = new ChatData(chat.ChatID, chat.DepartmentID, deptobj.skillgroup);
 
+	tchat.started = starttime;
 	tchat.answered = anstime;
 	tchat.operator = chat.OperatorID;
 	tchat.status = 2;		// active chat
 	AllChats[chat.ChatID] = tchat;		// save this chat info
 	
-	mcstime = anstime;
 	if(anstime != 0)		// make sure this was a chat that was answered
 	{
-		if(opobj.activeChats.length == 1) 	// already one chat so this is a multichat
-			opobj.activeChats[0].mcstarttime = mcstime;
-		
-		opobj.activeChats.push({chatid: chat.ChatID,
-						mcstarttime: mcstime,			// start time for a multichat
-						deptname: deptobj.name,
-						messages: chat.OperatorMessageCount + chat.VisitorMessageCount
-						});
-	}
-}
-
-// process all active chat objects 
-function allActiveChats(achats) {
-	for(var i in achats) 
-	{
-		processAnsweredChat(achats[i]);
+		opobj.activeChats.push(chat.ChatID);
 	}
 }
 
@@ -507,7 +494,7 @@ function processClosedChat(chat) {
 //	var messagecount = chat.OperatorMessageCount + chat.VisitorMessageCount
 	tchat = AllChats[chat.ChatID];
 	if(typeof(tchat) === 'undefined')		// if this chat did not exist 
-		tchat = new ChatData(chat.ChatID, chat.DepartmentID, starttime);
+		tchat = new ChatData(chat.ChatID, chat.DepartmentID, deptobj.skillgroup);
 
 	tchat.status = 0;		// inactive/complete/cancelled/closed
 	if(anstime == 0)		// chat unanswered
@@ -531,14 +518,14 @@ function processClosedChat(chat) {
 	sgobj.tclc++;
 	deptobj.tclc++;
 
+	tchat.started = starttime;
 	tchat.answered = anstime;
 	tchat.ended = endtime;
 	tchat.closed = closetime;
 	tchat.operator = opid;
 	AllChats[chat.ChatID] = tchat;	// update chat
 
-//	if(opid == 0) return;		// operator id not set if chat abandoned before answering
-	opobj = Operators[opid];		// if answered there will always be a operator assigned
+	opobj = Operators[opid];	// if answered there will always be a operator assigned
 	if(typeof(opobj) === 'undefined') 	
 	{									// in case there isnt
 		console.log("Opid is "+opid);
@@ -568,9 +555,9 @@ function processClosedChat(chat) {
 	}
 	else if(achats.length > 1)				// must be multi chat
 	{*/
-		for(var x in achats) // go through each multichat
+		for(var x in achats) // go through each chat
 		{
-			if(achats[x].chatid == chat.ChatID)
+			if(achats[x] == chat.ChatID)
 			{
 				achats.splice(x,1);
 				opobj.activeChats = achats;		// save back after removing
@@ -716,17 +703,17 @@ function calculateACT_CPH() {
 		if(tchat.status == 0 && tchat.ended != 0 && tchat.answered != 0)		// chat ended
 		{
 			count++;
-			sgid = Departments[tchat.department].skillgroup;
-			dcount[tchat.department]++;
+			sgid = Departments[tchat.departmentID].skillgroup;
+			dcount[tchat.departmentID]++;
 			sgcount[sgid]++; 
 			ctime = tchat.ended - tchat.answered;
 			chattime = chattime + ctime;
-			dchattime[tchat.department] = dchattime[tchat.department] + ctime;	
+			dchattime[tchat.departmentID] = dchattime[tchat.departmentID] + ctime;	
 			sgchattime[sgid] = sgchattime[sgid] + ctime;	
 			if(tchat.ended >= pastHour)
 			{
 				cph++;
-				dcph[tchat.department]++;
+				dcph[tchat.departmentID]++;
 			}
 		}
 	}
@@ -778,18 +765,18 @@ function calculateASA() {
 		tchat = AllChats[i];
 		if((tchat.status == 2 || tchat.status == 0) && tchat.answered != 0 && tchat.started != 0)
 		{
-			sgid = Departments[tchat.department].skillgroup;
+			sgid = Departments[tchat.departmentID].skillgroup;
 			count++;
-			dcount[tchat.department]++;
+			dcount[tchat.departmentID]++;
 			sgcount[sgid]++;
 			speed = tchat.answered - tchat.started;				
 			anstime = anstime + speed;
-			danstime[tchat.department] = danstime[tchat.department] + speed;
+			danstime[tchat.departmentID] = danstime[tchat.departmentID] + speed;
 			sganstime[sgid] = sganstime[sgid] + speed;
 			if(tchat.status == 2)	// active chat
 			{
 				tac++;
-				dtac[tchat.department]++;
+				dtac[tchat.departmentID]++;
 				sgtac[sgid]++;
 			}
 		}
@@ -839,13 +826,13 @@ function calculateLWT_CIQ() {
 		if(tchat.status == 1 && tchat.answered == 0 && tchat.started != 0 && tchat.ended == 0)		// chat not answered yet
 		{
 			tciq++;
-			Departments[tchat.department].ciq++;
-			SkillGroups[Departments[tchat.department].skillgroup].ciq++;
+			Departments[tchat.departmentID].ciq++;
+			SkillGroups[Departments[tchat.departmentID].skillgroup].ciq++;
 			waittime = Math.round((TimeNow - tchat.started)/1000);
-			if(Departments[tchat.department].lwt < waittime)
+			if(Departments[tchat.departmentID].lwt < waittime)
 			{
-				Departments[tchat.department].lwt = waittime;
-				SkillGroups[Departments[tchat.department].skillgroup].lwt = waittime;
+				Departments[tchat.departmentID].lwt = waittime;
+				SkillGroups[Departments[tchat.departmentID].skillgroup].lwt = waittime;
 			}
 			
 			if(maxwait < waittime)
@@ -1077,7 +1064,15 @@ function setUpDeptAndSkillGroups() {
 	OperatorsSetupComplete = true;
 //	console.log("operator setup complete");
 }
-		
+
+// process all active chat objects 
+function allActiveChats(achats) {
+	for(var i in achats) 
+	{
+		processAnsweredChat(achats[i]);
+	}
+}
+
 // gets today's chat data incase system was started during the day
 function getInactiveChatData() {
 	if(ApiDataNotReady)
@@ -1175,6 +1170,7 @@ function updateChatStats() {
 	}
 //	debugLog("Overall", Overall);
 	setTimeout(updateChatStats, 2000);	// send update every second
+	console.log("total chats: "+Object.keys(AllChats).length);
 }
 
 

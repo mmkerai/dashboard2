@@ -111,34 +111,15 @@ console.log("did is "+did);
 		$("#signinform").hide();
 		$("#topTable").show();
 	});
-	
-/*	socket.on('overallStats', function(data){
-		var tcanpc = data.tcan + " ("+Math.round((data.tcan/data.tco)*100)+"%)";
-		$("#ocon").text(data.cconc);
-		$("#osla").text(data.psla +"%");
-		$("#ociq").text(data.ciq);
-		$("#olwt").text(toHHMMSS(data.lwt));
-		$("#ooff").text(data.tco);
-		$("#otac").text(data.tac);
-		$("#otcan").text(tcanpc);
-		$("#ouiq").text(data.tcuq);
-		$("#ouas").text(data.tcua);
-		$("#ocunavail").text(Math.round((data.tcun/(data.tcun+data.tco))*100)+ "%");
-		$("#oasa").text(toHHMMSS(data.asa));
-		$("#oact").text(toHHMMSS(data.act));
-		$("#oaccap").text(data.acc);
-		$("#oaway").text(data.oaway);
-		$("#oavail").text(data.oavail);
-	}); */
 		
 	socket.on('departmentStats', function(ddata){
 		var ttable = document.getElementById("topTable");
 		var row, col, rowid;
-//		if(did !== null)
-//		{
-
+		if(did !== null)
+		{
 			for(var i in ddata)
 			{
+				if(ddata[i].skillgroup != did) continue;	// ignore dept if not in this skill group
 				var tcanpc = "0%";
 				var tcunpc = "0%";
 				if(ddata[i].tco != 0)
@@ -188,7 +169,7 @@ console.log("did is "+did);
 					rowid.cells[15].innerHTML = ddata[i].oavail;
 				}
 			}
-//		}
+		}
 	});
 });
 
