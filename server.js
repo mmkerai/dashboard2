@@ -787,9 +787,10 @@ function calculateASA() {
 }
 
 function calculateLWT_CIQ() {
-	var tchat, waittime, tciq = 0;
+	var tchat, waittime;
 	var maxwait = 0;
 	
+	Overall.ciq = 0;
 	// first zero out the lwt for all dept
 	for(var i in Departments)
 	{
@@ -803,9 +804,10 @@ function calculateLWT_CIQ() {
 	for(var i in AllChats)
 	{
 		tchat = AllChats[i];
-		if(tchat.status == 1 && tchat.answered == 0 && tchat.started != 0 && tchat.ended == 0)		// chat not answered yet
+//		if(tchat.status == 1 && tchat.answered == 0 && tchat.started != 0 && tchat.ended == 0)		// chat not answered yet
+		if(tchat.status == 1)		// chat not answered yet
 		{
-			tciq++;
+			Overall.ciq++;
 			Departments[tchat.departmentID].ciq++;
 			SkillGroups[Departments[tchat.departmentID].skillgroup].ciq++;
 			waittime = Math.round((TimeNow - tchat.started)/1000);
@@ -820,7 +822,6 @@ function calculateLWT_CIQ() {
 			}
 	}
 	Overall.lwt = maxwait;
-	Overall.ciq = tciq;
 }
 
 //use operators by dept to calc chat concurrency and available chat capacity
