@@ -542,7 +542,6 @@ function processClosedChat(chat) {
 		}
 	}
 
-	
 	tchat.status = 0;		// inactive/complete/cancelled/closed
 	tchat.ended = endtime;
 	tchat.closed = closetime;
