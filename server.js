@@ -249,7 +249,7 @@ app.post('/chat-closed', function(req, res){
 
 // Process incoming Boldchat triggered chat data
 app.post('/chat-window-closed', function(req, res){
-	debugLog("Chat-window-closed", req.body);
+//	debugLog("Chat-window-closed", req.body);
 	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
 		processWindowClosed(req.body);
 	res.send({ "result": "success" });
@@ -1206,7 +1206,7 @@ function doStartOfDay() {
 	sleep(1000);
 	setUpDeptAndSkillGroups();
 	getOperatorAvailabilityData();
-//	getInactiveChatData();
+	getInactiveChatData();
 	getActiveChatData();
 }
 
