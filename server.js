@@ -5,8 +5,7 @@
 // lwt - longest waiting time
 // tco - chats offered (chats active, answered and abandoned)
 // tac - total active chats (answered)
-// tclc - total closed/complete chats
-// tcan - total chats answered complete and active (tac+tclc)
+// tcan - total chats answered complete and active 
 // tcuq - total chats unanswered/abandoned in queue
 // tcua - total chats unanswered/abandoned after assigned
 // tcun - total chats unavailable
@@ -123,7 +122,6 @@ var DashMetrics = function(did,name,sg) {
 		this.lwt = 0;
 		this.tco = 0;
 		this.tac = 0;
-		this.tclc = 0;
 		this.tcan = 0;
 		this.tcuq = 0;
 		this.tcua = 0;
@@ -424,7 +422,11 @@ function processAnsweredChat(chat) {
 	sgobj = SkillGroups[deptobj.skillgroup];
 	opobj = Operators[chat.OperatorID];
 	if(typeof(opobj) === 'undefined') return;		// an operator that doesnt exist (may happen if created midday)
-	
+
+	Overall.tcan++;	// answered chats
+	sgobj.tcan++;
+	deptobj.tcan++;
+		
 	if(chat.Started != null && chat.Started != "")
 		starttime = new Date(chat.Started);
 
@@ -462,8 +464,8 @@ function processClosedChat(chat) {
 	var deptobj,opobj,sgobj,tchat;
 	var starttime=0,anstime=0,endtime=0,closetime=0,opid=0;
 
-	if(chat.DepartmentID === null)		// should never be null at this stage but I have seen it
-	{									// perhaps it is an abandoned chat
+	if(chat.DepartmentID === null)		// should never be null at this stage 
+	{		
 //		debugLog("Closed Chat, Dept null", chat);
 		return;
 	}
@@ -511,9 +513,7 @@ function processClosedChat(chat) {
 		return;	// all done 
 	}
 
-	Overall.tclc++;	// closed chats
-	sgobj.tclc++;
-	deptobj.tclc++;
+	opobj = Operators[tchat.operator];	// if answered there will always be a operator assigned
 
 	// update operator stats
 	tchat = AllChats[chat.ChatID];
@@ -523,15 +523,21 @@ function processClosedChat(chat) {
 		tchat.operator = opid;
 		tchat.started = starttime;
 		tchat.answered = anstime;
-		opobj = Operators[opid];
 		opobj.tcan++;
-		var speed = anstime - starttime;
-		if(speed < (SLATHRESHOLD*1000))		// sla threshold in milliseconds
+		if(anstime != 0 && starttime != 0)	// chat was answered
 		{
-			Overall.csla++;
-			deptobj.csla++;
-			sgobj.csla++;
-			opobj.csla++;
+			Overall.tcan++;	// answered chats
+			sgobj.tcan++;
+			deptobj.tcan++;
+
+			var speed = anstime - starttime;
+			if(speed < (SLATHRESHOLD*1000))		// sla threshold in milliseconds
+			{
+				Overall.csla++;
+				deptobj.csla++;
+				sgobj.csla++;
+				opobj.csla++;
+			}
 		}
 	}
 
@@ -539,8 +545,6 @@ function processClosedChat(chat) {
 	tchat.ended = endtime;
 	tchat.closed = closetime;
 	AllChats[chat.ChatID] = tchat;	// update chat
-
-	opobj = Operators[tchat.operator];	// if answered there will always be a operator assigned
 
 	// now remove from active chat list and update stats
 	var achats = new Array();
@@ -563,8 +567,8 @@ function processWindowClosed(chat) {
 	var deptobj,opobj,sgobj,tchat;
 	var starttime=0,anstime=0,endtime=0,closetime=0,opid=0;
 
-	if(chat.DepartmentID === null)		// should never be null at this stage but I have seen it
-	{									// perhaps it is an abandoned chat
+	if(chat.DepartmentID === null)		// will only be null for an abandoned chat
+	{								
 //		debugLog("Closed Chat, Dept null", chat);
 		return;
 	}
@@ -759,8 +763,8 @@ function calculateACT_CPH() {
 	}
 }
 
-function calculateASA() {
-	var tchat;
+function calculateASA_PSLA() {
+	var tchat,speed;
 	var count = 0, tac = 0, anstime = 0;
 	var danstime = new Object();
 	var dcount = new Object();
@@ -856,7 +860,11 @@ function calculateLWT_CIQ() {
 			if(Departments[tchat.departmentID].lwt < waittime)
 			{
 				Departments[tchat.departmentID].lwt = waittime;
-				SkillGroups[Departments[tchat.departmentID].skillgroup].lwt = waittime;
+			}
+			
+			if(SkillGroups[tchat.skillgroup].lwt < waittime)
+			{
+				SkillGroups[tchat.skillgroup].lwt = waittime;
 			}
 			
 			if(maxwait < waittime)
@@ -867,7 +875,7 @@ function calculateLWT_CIQ() {
 }
 
 //use operators by dept to calc chat concurrency and available chat capacity
-function calculateACC_CCONC() {
+function calculateACC_CCONC_TCO() {
 	var active;
 	var depts = new Array();
 	var opobj, sgid;
@@ -922,17 +930,21 @@ function calculateACC_CCONC() {
 			}
 		}
 	}
-//	console.log("****tct and mct is " +otct+","+omct+");
+	
+	//	console.log("****tct and mct is " +otct+","+omct+");
+	Overall.tco = Overall.tcan + Overall.tcuq + Overall.tcua;
 	if(Overall.tct != 0)
 		Overall.cconc = ((Overall.tct+Overall.mct)/Overall.tct).toFixed(2);
 
 	for(var did in Departments)
 	{
+		Departments[did].tco = Departments[did].tcan + Departments[did].tcuq + Departments[did].tcua;
 		if(Departments[did].tct != 0)		// dont divide by zero
 			Departments[did].cconc = ((Departments[did].tct+Departments[did].mct)/Departments[did].tct).toFixed(2);
 	}
 	for(var sgid in SkillGroups)
 	{
+		SkillGroups[sgid].tco = SkillGroups[sgid].tcan + SkillGroups[sgid].tcuq + SkillGroups[sgid].tcua;
 		if(SkillGroups[sgid].tct != 0)		// dont divide by zero
 			SkillGroups[sgid].cconc = ((SkillGroups[sgid].tct+SkillGroups[sgid].mct)/SkillGroups[sgid].tct).toFixed(2);
 	}	
@@ -1167,23 +1179,10 @@ function updateChatStats() {
 		return;
 	}
 	calculateLWT_CIQ();
-	calculateASA();
+	calculateASA_PSLA();
 	calculateACT_CPH();
-	calculateACC_CCONC();
-	Overall.tcan = Overall.tac + Overall.tclc;
-	Overall.tco = Overall.tac + Overall.tclc + Overall.tcuq + Overall.tcua;
-	for(var did in Departments)
-	{
-		Departments[did].tcan = Departments[did].tac + Departments[did].tclc;
-		Departments[did].tco = Departments[did].tcan + Departments[did].tcuq + Departments[did].tcua;
-	}
-	
-	for(var sgid in SkillGroups)
-	{
-		SkillGroups[sgid].tcan = SkillGroups[sgid].tac + SkillGroups[sgid].tclc;
-		SkillGroups[sgid].tco = SkillGroups[sgid].tcan + SkillGroups[sgid].tcuq + SkillGroups[sgid].tcua;
-	}
-	
+	calculateACC_CCONC_TCO();
+
 	for(var i in LoggedInUsers)
 	{
 		socketid = LoggedInUsers[i];
