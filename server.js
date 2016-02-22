@@ -497,7 +497,8 @@ function processClosedChat(chat) {
 		opid = chat.OperatorID;
 
 	opobj = Operators[opid];	// if answered there will always be a operator assigned
-
+	if(typeof(opobj) === 'undefined') return;	// however I have seen it. Not sure why it happens
+	
 	// update operator stats
 	tchat = AllChats[chat.ChatID];
 	if(typeof(tchat) === 'undefined')		// if this chat did not exist then must be from the inactive list
@@ -506,12 +507,12 @@ function processClosedChat(chat) {
 		tchat.operator = opid;
 		tchat.started = starttime;
 		tchat.answered = anstime;
-		opobj.tcan++;
 		if(anstime != 0 && starttime != 0)	// chat was answered
 		{
 			Overall.tcan++;	// answered chats
 			sgobj.tcan++;
 			deptobj.tcan++;
+			opobj.tcan++;
 
 			var speed = anstime - starttime;
 			if(speed < (SLATHRESHOLD*1000))		// sla threshold in milliseconds
@@ -608,7 +609,6 @@ function processWindowClosed(chat) {
 		AllChats[chat.ChatID] = tchat;	// update chat
 	}
 }
-
 
 // process operator status changed. or unavailable
 function processOperatorStatusChanged(ostatus) {
