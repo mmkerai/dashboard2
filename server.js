@@ -249,6 +249,14 @@ app.post('/chat-closed', function(req, res){
 	res.send({ "result": "success" });
 });
 
+// Process incoming Boldchat triggered chat data
+app.post('/chat-window-closed', function(req, res){
+	debugLog("Chat-window-closed", req.body);
+	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
+		processWindowClosed(req.body);
+	res.send({ "result": "success" });
+});
+
 // Process incoming Boldchat triggered operator data
 app.post('/operator-status-changed', function(req, res){ 
 //	debugLog("*****operator-status-changed post",req.body);
@@ -548,6 +556,40 @@ function processClosedChat(chat) {
 	
 	if(tchat.answered != 0 && tchat.closed != 0) 	// chat answered and closed so update conc
 		updateCconc(tchat);
+}
+
+// process window closed chat object.
+function processWindowClosed(chat) {
+	var deptobj,opobj,sgobj,tchat;
+	var starttime=0,anstime=0,endtime=0,closetime=0,opid=0;
+
+	if(chat.DepartmentID === null)		// should never be null at this stage but I have seen it
+	{									// perhaps it is an abandoned chat
+//		debugLog("Closed Chat, Dept null", chat);
+		return;
+	}
+	deptobj = Departments[chat.DepartmentID];
+	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
+	sgobj = SkillGroups[deptobj.skillgroup];
+
+	if(chat.ChatStatusType >= 7 && chat.ChatStatusType <= 18)		// unavailable chat
+	{
+		Overall.tcun++;
+		deptobj.tcun++;
+		sgobj.tcun++;
+		return;
+	}
+	
+	if(chat.Closed != null && chat.Closed != "")
+		closetime = new Date(chat.Closed);
+
+	tchat = AllChats[chat.ChatID];
+	if(typeof(tchat) !== 'undefined')		// if this chat did not exist then must be from the inactive list
+	{
+		tchat.status = 0;		// inactive/complete/cancelled/closed
+		tchat.closed = closetime;
+		AllChats[chat.ChatID] = tchat;	// update chat
+	}
 }
 
 // process operator status changed. or unavailable
