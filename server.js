@@ -473,13 +473,13 @@ function processClosedChat(chat) {
 	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
 	sgobj = SkillGroups[deptobj.skillgroup];
 
-	if(chat.ChatStatusType >= 7 && chat.ChatStatusType <= 18)		// unavailable chat
+/*	if(chat.ChatStatusType >= 7 && chat.ChatStatusType <= 15)		// unavailable chat
 	{
 		Overall.tcun++;
 		deptobj.tcun++;
 		sgobj.tcun++;
 		return;
-	}
+	}*/
 
 	if(chat.Started != null && chat.Started != "")
 		starttime = new Date(chat.Started);
@@ -495,23 +495,6 @@ function processClosedChat(chat) {
 
 	if(chat.OperatorID != null && chat.OperatorID != "")
 		opid = chat.OperatorID;
-
-	if(anstime == 0)		// chat unanswered
-	{
-		if(opid == 0)	// operator unassigned
-		{
-			Overall.tcuq++;
-			deptobj.tcuq++;
-			sgobj.tcuq++;
-		}
-		else
-		{
-			Overall.tcua++;
-			deptobj.tcua++;			
-			sgobj.tcua++;			
-		}
-		return;	// all done 
-	}
 
 	opobj = Operators[opid];	// if answered there will always be a operator assigned
 
@@ -576,7 +559,7 @@ function processWindowClosed(chat) {
 	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
 	sgobj = SkillGroups[deptobj.skillgroup];
 
-	if(chat.ChatStatusType >= 7 && chat.ChatStatusType <= 18)		// unavailable chat
+	if(chat.ChatStatusType >= 7 && chat.ChatStatusType <= 15)		// unavailable email
 	{
 		Overall.tcun++;
 		deptobj.tcun++;
@@ -584,13 +567,43 @@ function processWindowClosed(chat) {
 		return;
 	}
 	
+	if(chat.Started != null && chat.Started != "")
+		starttime = new Date(chat.Started);
+
+	if(chat.Answered != null && chat.Answered != "")
+		anstime = new Date(chat.Answered);
+
+	if(chat.Ended != null && chat.Ended != "")
+		endtime = new Date(chat.Ended);
+
 	if(chat.Closed != null && chat.Closed != "")
 		closetime = new Date(chat.Closed);
+
+	if(chat.OperatorID != null && chat.OperatorID != "")
+		opid = chat.OperatorID;
+	
+	if(anstime == 0 && starttime != 0)		// chat started and unanswered
+	{
+		if(opid == 0)	// operator unassigned
+		{
+			Overall.tcuq++;
+			deptobj.tcuq++;
+			sgobj.tcuq++;
+		}
+		else
+		{
+			Overall.tcua++;
+			deptobj.tcua++;			
+			sgobj.tcua++;			
+		}
+		return;	// all done 
+	}
 
 	tchat = AllChats[chat.ChatID];
 	if(typeof(tchat) !== 'undefined')		// if this chat did not exist then must be from the inactive list
 	{
 		tchat.status = 0;		// inactive/complete/cancelled/closed
+		tchat.ended = endtime;
 		tchat.closed = closetime;
 		AllChats[chat.ChatID] = tchat;	// update chat
 	}
@@ -680,7 +693,10 @@ function processOperatorStatusChanged(ostatus) {
 function allInactiveChats(chats) {
 	for(var i in chats)
 	{
-		processClosedChat(chats[i]);	// add the chat to AllChats object
+		if(chats[i].Answered == "")			// chat not answered but closed
+			processWindowClosed(chats[i]);
+		else
+			processClosedChat(chats[i]);
 	}
 }
 
