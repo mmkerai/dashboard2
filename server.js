@@ -515,7 +515,6 @@ function processClosedChat(chat) {
 
 	opobj = Operators[opid];	// if answered there will always be a operator assigned
 
-	
 	// update operator stats
 	tchat = AllChats[chat.ChatID];
 	if(typeof(tchat) === 'undefined')		// if this chat did not exist then must be from the inactive list
