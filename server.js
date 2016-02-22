@@ -609,6 +609,7 @@ function processWindowClosed(chat) {
 	}
 }
 
+
 // process operator status changed. or unavailable
 function processOperatorStatusChanged(ostatus) {
 	var depts = new Array();
