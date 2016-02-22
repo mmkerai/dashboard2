@@ -513,7 +513,7 @@ function processClosedChat(chat) {
 		return;	// all done 
 	}
 
-	opobj = Operators[tchat.operator];	// if answered there will always be a operator assigned
+	opobj = Operators[opid];	// if answered there will always be a operator assigned
 
 	// update operator stats
 	tchat = AllChats[chat.ChatID];
