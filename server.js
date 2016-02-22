@@ -694,7 +694,7 @@ function processOperatorStatusChanged(ostatus) {
 function allInactiveChats(chats) {
 	for(var i in chats)
 	{
-		if(chats[i].Answered == "")			// chat not answered but closed
+		if(chats[i].Answered == "" || chats[i].Answered == null)			// chat not answered but closed
 			processWindowClosed(chats[i]);
 		else
 			processClosedChat(chats[i]);
