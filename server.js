@@ -1005,7 +1005,6 @@ function getApiData(method, params, fcallback, cbparam) {
 
 			if(typeof next !== 'undefined') 
 			{
-//				console.log("*****Next required: "+next);
 				loadNext(method, next, fcallback);
 			}
 		});
