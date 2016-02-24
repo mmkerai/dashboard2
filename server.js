@@ -597,7 +597,7 @@ function processWindowClosed(chat) {
 			deptobj.tcua++;			
 			sgobj.tcua++;			
 		}
-		return;	// all done 
+//		return;	// all done 
 	}
 
 	tchat = AllChats[chat.ChatID];
