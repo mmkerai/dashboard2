@@ -53,4 +53,4 @@ $(document).ready(function() {
 		$('#link2').html("Download file");
 	});
 
-}
+});
