@@ -1193,9 +1193,10 @@ io.sockets.on('connection', function(socket){
 		console.log("Download chats requested");
 		var key, value;
 		var csvChats = "";
-//		var tchat = new Object();
+		var tchat = new Object();
 		// add csv header using first object
-		var tchat = Object.keys(AllChats)[0];
+		key = Object.keys(AllChats)[0];
+		tchat = AllChats[key];
 		for(key in tchat)
 		{
 			csvChats = csvChats +key+ ",";
