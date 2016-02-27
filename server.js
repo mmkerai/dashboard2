@@ -93,6 +93,9 @@ app.get('/skillgroup.html', function(req, res){
 app.get('/skillgroup.js', function(req, res){
 	res.sendFile(__dirname + '/skillgroup.js');
 });
+app.get('/monitor.html', function(req, res){
+	res.sendFile(__dirname + '/monitor.html');
+});
 //********************************* Global class for chat data
 var ChatData = function(chatid, dept, sg) {
 		this.chatID = chatid;
@@ -1177,8 +1180,33 @@ io.sockets.on('connection', function(socket){
 		if(index > -1) LoggedInUsers.splice(index, 1);	// remove from list of valid users
 	});
 	
-		socket.on('end', function(data){
+	socket.on('end', function(data){
 		console.log("connection ended");
+	});
+
+	socket.on('downloadChats', function(data){
+		console.log("Download chats requested");
+		var key;
+		var csvChats = "Chat Id";
+		var tchat = new Object();
+		// add csv header using first object
+		tchat = AllChats[i];
+		for(key in tchat)
+		{
+			csvChats = csvChats + ","+key;
+		}
+		csvChats = csvChats + "\r\n";
+		// now add the data
+		for(var i in AllChats)
+		{
+			tchat = AllChats[i];
+			for(key in tchat)
+			{
+				csvChats = csvChats + ","+tchat[key];
+			}
+			csvChats = csvChats + "\r\n";
+		}
+		socket.emit('chatsCsvResponse',csvChats);		
 	});
 
 });

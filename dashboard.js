@@ -79,6 +79,12 @@ function signin(uname, pwd)
 	socket.emit('authenticate', data);
 }
 
+function downloadChats()
+{
+	var data = new Object();
+	socket.emit('downloadChats', data);
+}
+
 $(document).ready(function() {
 did = getURLParameter("did");
 console.log("did is "+did);
@@ -248,6 +254,21 @@ console.log("did is "+did);
 			}
 		}
 	});
+	
+	socket.on('chatsCsvResponse', function(data){
+		$("#result").text("Creating csv file");
+		var filedata = new Blob([data],{type: 'text/plain'});
+		// If we are replacing a previously generated file we need to
+		// manually revoke the object URL to avoid memory leaks.
+		if (csvfile !== null)
+		{
+			window.URL.revokeObjectURL(csvfile);
+		}
+		csvfile = window.URL.createObjectURL(filedata);
+		$('#link2').attr('href', csvfile);
+		$('#link2').html("Download file");
+	});
+
 });
 
 function showSkillGroup(skill,sname) {
