@@ -3,6 +3,7 @@ var socket = io.connect();
 function downloadChats()
 {
 	var data = new Object();
+	$("#message").text("Creating csv file");
 	socket.emit('downloadChats', data);
 }
 
@@ -40,7 +41,7 @@ $(document).ready(function() {
 	socket.on('chatsCsvResponse', function(data){
 		var csvfile;
 		
-		$("#result").text("Creating csv file");
+		$("#result").text("Download csv file");
 		var filedata = new Blob([data],{type: 'text/plain'});
 		// If we are replacing a previously generated file we need to
 		// manually revoke the object URL to avoid memory leaks.

@@ -1192,13 +1192,13 @@ io.sockets.on('connection', function(socket){
 	socket.on('downloadChats', function(data){
 		console.log("Download chats requested");
 		var key;
-		var csvChats = "Chat Id";
+		var csvChats = "";
 		var tchat = new Object();
 		// add csv header using first object
-		tchat = AllChats[i];
+		tchat = AllChats[0];
 		for(key in tchat)
 		{
-			csvChats = csvChats + ","+key;
+			csvChats = csvChats +key+ ",";
 		}
 		csvChats = csvChats + "\r\n";
 		// now add the data
@@ -1207,7 +1207,12 @@ io.sockets.on('connection', function(socket){
 			tchat = AllChats[i];
 			for(key in tchat)
 			{
-				csvChats = csvChats + ","+tchat[key];
+				if(!isNaN(tchat[key]))
+					value = "\"=\"\"" + tchat[key] + "\"\"\"";
+				else
+					value = tchat[key];
+				
+				csvChats = csvChats + ","+value;
 			}
 			csvChats = csvChats + "\r\n";
 		}
