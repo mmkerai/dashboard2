@@ -1208,9 +1208,9 @@ io.sockets.on('connection', function(socket){
 			for(key in tchat)
 			{
 				if(key === "departmentID")
-					value = Departments(tchat[key]).name;
+					value = Departments[tchat[key]].name;
 				else if(key === "operator")
-					value = Operators(tchat[key]).name;
+					value = Operators[tchat[key]].name;
 				else if(!isNaN(tchat[key]))
 					value = "\"=\"\"" + tchat[key] + "\"\"\"";
 				else
