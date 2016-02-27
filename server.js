@@ -1191,11 +1191,11 @@ io.sockets.on('connection', function(socket){
 
 	socket.on('downloadChats', function(data){
 		console.log("Download chats requested");
-		var key;
+		var key, value;
 		var csvChats = "";
-		var tchat = new Object();
+//		var tchat = new Object();
 		// add csv header using first object
-		tchat = AllChats[0];
+		var tchat = Object.keys(AllChats)[0];
 		for(key in tchat)
 		{
 			csvChats = csvChats +key+ ",";
@@ -1207,12 +1207,16 @@ io.sockets.on('connection', function(socket){
 			tchat = AllChats[i];
 			for(key in tchat)
 			{
-				if(!isNaN(tchat[key]))
+				if(key === "departmentID")
+					value = Departments(tchat[key]).name;
+				else if(key === "operator")
+					value = Operators(tchat[key]).name;
+				else if(!isNaN(tchat[key]))
 					value = "\"=\"\"" + tchat[key] + "\"\"\"";
 				else
 					value = tchat[key];
 				
-				csvChats = csvChats + ","+value;
+				csvChats = csvChats +value+ ",";
 			}
 			csvChats = csvChats + "\r\n";
 		}
