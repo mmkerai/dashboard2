@@ -68,7 +68,9 @@ app.get(PAGEPATH, function(req, res){
 	debugLog("Session",req.session);
 	res.sendFile(__dirname + '/dashboard.html');
 });
-
+app.get('/h3g_utils.js', function(req, res){
+	res.sendFile(__dirname + '/h3g_utils.js');
+});
 app.get('/agents.html', function(req, res){
 	res.sendFile(__dirname + '/agents.html');
 });
@@ -95,6 +97,9 @@ app.get('/skillgroup.js', function(req, res){
 });
 app.get('/monitor.html', function(req, res){
 	res.sendFile(__dirname + '/monitor.html');
+});
+app.get('/monitor.js', function(req, res){
+	res.sendFile(__dirname + '/monitor.js');
 });
 //********************************* Global class for chat data
 var ChatData = function(chatid, dept, sg) {
