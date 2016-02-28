@@ -1234,7 +1234,10 @@ io.sockets.on('connection', function(socket){
 				if(key === "departmentID")
 					value = Departments[tchat[key]].name;
 				else if(key === "operator")
-					value = Operators[tchat[key]].name;
+				{
+					if(typeof(Operators[tchat[key]]) !== 'undefined')
+						value = Operators[tchat[key]].name;
+				}
 				else if(!isNaN(tchat[key]))
 					value = "\"=\"\"" + tchat[key] + "\"\"\"";
 				else
