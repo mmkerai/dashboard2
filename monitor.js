@@ -34,8 +34,13 @@ $(document).ready(function() {
 //		console.log("Save cookie: "+data.name+" and pwd "+data.pwd);
 		$('#error').text("");
 		$('#myname').text(data.name);
-		$("#signinform").hide();
-		$("#topTable").show();
+		$('#signinform').hide();
+		$('#topTable').show();
+	});
+
+	socket.on('consoleLogs', function(data){
+		$('#conlog').append(data);
+		document.getElementById("conlog").scrollTop = document.getElementById("conlog").scrollHeight	
 	});
 
 	socket.on('chatsCsvResponse', function(data){

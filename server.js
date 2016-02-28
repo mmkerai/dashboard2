@@ -191,6 +191,7 @@ for(var i in au)
 //	console.log("User: "+uname+" saved");
 }
 console.log(Object.keys(AuthUsers).length +" user credentials loaded");
+sendToLogs(Object.keys(AuthUsers).length +" user credentials loaded");
 
 function sleep(milliseconds) {
   var start = new Date().getTime();
@@ -226,6 +227,7 @@ function initialiseGlobals () {
 // Process incoming Boldchat triggered chat data
 app.post('/chat-started', function(req, res){
 //	debugLog("Chat-started",req.body);
+	sendToLogs("Chat-started, chat id: "+req.body.ChatID);
 	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
 		processStartedChat(req.body);
 	res.send({ "result": "success" });
@@ -234,6 +236,7 @@ app.post('/chat-started', function(req, res){
 // Process incoming Boldchat triggered chat data
 app.post('/chat-unavailable', function(req, res){
 //	debugLog("Chat-unavailable",req.body);
+	sendToLogs("Chat-unavailable, chat id: "+req.body.ChatID);
 	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
 		processUnavailableChat(req.body);
 	res.send({ "result": "success" });
@@ -242,6 +245,7 @@ app.post('/chat-unavailable', function(req, res){
 // Process incoming Boldchat triggered chat data
 app.post('/chat-answered', function(req, res){
 //	debugLog("Chat-answered",req.body);
+	sendToLogs("Chat-answered, chat id: "+req.body.ChatID);
 	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
 		processAnsweredChat(req.body);
 	res.send({ "result": "success" });
@@ -250,6 +254,7 @@ app.post('/chat-answered', function(req, res){
 // Process incoming Boldchat triggered chat data
 app.post('/chat-closed', function(req, res){
 //	debugLog("Chat-closed", req.body);
+	sendToLogs("Chat-closed, chat id: "+req.body.ChatID);
 	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
 		processClosedChat(req.body);
 	res.send({ "result": "success" });
@@ -258,6 +263,7 @@ app.post('/chat-closed', function(req, res){
 // Process incoming Boldchat triggered chat data
 app.post('/chat-window-closed', function(req, res){
 //	debugLog("Chat-window-closed", req.body);
+	sendToLogs("Chat-window-closed, chat id: "+req.body.ChatID);
 	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
 		processWindowClosed(req.body);
 	res.send({ "result": "success" });
@@ -265,7 +271,8 @@ app.post('/chat-window-closed', function(req, res){
 
 // Process incoming Boldchat triggered operator data
 app.post('/operator-status-changed', function(req, res){ 
-//	debugLog("*****operator-status-changed post",req.body);
+//	debugLog("operator-status-changed post",req.body);
+	sendToLogs("operator-status-changed, operator id: "+req.body.LoginID);
 	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
 		processOperatorStatusChanged(req.body);
 	res.send({ "result": "success" });
@@ -296,6 +303,14 @@ function debugLog(name, dataobj) {
 	}
 }
 
+function sendToLogs(text) {
+	for(var i in LoggedInUsers)
+	{
+		socketid = LoggedInUsers[i];
+		io.sockets.connected[socketid].emit('consoleLogs', text);
+	}
+}
+
 function deptsCallback(dlist) {
 	var dname, newname, sg,ch1,ch2;
 	for(var i in dlist) 
@@ -311,7 +326,9 @@ function deptsCallback(dlist) {
 		SkillGroups[sg] = new DashMetrics(sg,sg,"n/a");
 	}
 	console.log("No of Depts: "+Object.keys(Departments).length);
+	sendToLogs("No of Depts: "+Object.keys(Departments).length);
 	console.log("No of Skillgroups: "+Object.keys(SkillGroups).length);
+	sendToLogs("No of Skillgroups: "+Object.keys(SkillGroups).length);
 	for(var did in Departments)
 	{
 		parameters = "DepartmentID="+did;
@@ -327,6 +344,7 @@ function operatorsCallback(dlist) {
 		OperatorCconc[dlist[i].LoginID] = conc;
 	}
 	console.log("No of Operators: "+Object.keys(Operators).length);
+	sendToLogs("No of Operators: "+Object.keys(Operators).length);
 }
 
 function foldersCallback(dlist) {
@@ -338,6 +356,7 @@ function foldersCallback(dlist) {
 		}
 	}
 	console.log("No of Chat Folders: "+Object.keys(Folders).length);
+	sendToLogs("No of Chat Folders: "+Object.keys(Folders).length);
 }
 
 function deptOperatorsCallback(dlist, dept) {
@@ -349,6 +368,7 @@ function deptOperatorsCallback(dlist, dept) {
 	
 	DeptOperators[dept] = doperators;
 	console.log("Operators in dept: "+dept+" - "+DeptOperators[dept].length);
+	sendToLogs("Operators in dept: "+dept+" - "+DeptOperators[dept].length);
 }
 
 function operatorAvailabilityCallback(dlist) {
@@ -358,7 +378,6 @@ function operatorAvailabilityCallback(dlist) {
 	for(var i in dlist)
 	{
 		operator = dlist[i].LoginID;
-//		if(Operators[operator] !== 'undefined')		// check operator id is valid
 		if(typeof(OperatorSkills[operator]) !== 'undefined')		// check operator id is valid
 		{
 			Operators[operator].status = dlist[i].StatusType;
@@ -1006,7 +1025,8 @@ function getApiData(method, params, fcallback, cbparam) {
 			data = jsonObj.Data;
 			if(data === 'undefined' || data == null)
 			{
-				console.log("No data returned: "+str);
+				console.log("No API data returned: "+str);
+				sendToLogs("No API data returned: "+str);
 				return;		// exit out if error json message received
 			}
 			fcallback(data, cbparam);
@@ -1019,7 +1039,7 @@ function getApiData(method, params, fcallback, cbparam) {
 		// in case there is a html error
 		response.on('error', function(err) {
 			// handle errors with the request itself
-			console.error("*****Error with the request: ", err.message);
+			console.error("Error with the request: ", err.message);
 			ApiDataNotReady--;
 		});
 	});
@@ -1148,6 +1168,7 @@ function getInactiveChatData() {
 	startDate.setHours(0,0,0,0);
 
 	console.log("Getting inactive chat info from "+ Object.keys(Folders).length +" folders");
+	sendToLogs("Getting inactive chat info from "+ Object.keys(Folders).length +" folders");
 	var parameters;
 	for(var fid in Folders)	// Inactive chats are by folders
 	{
@@ -1163,6 +1184,7 @@ io.sockets.on('connection', function(socket){
 	//  authenticate user name and password
 	socket.on('authenticate', function(user){
 		console.log("authentication request received for: "+user.name);
+		sendToLogs("authentication request received for: "+user.name);
 		if(typeof(AuthUsers[user.name]) === 'undefined')
 		{
 			socket.emit('authErrorResponse',"Username not valid");
@@ -1176,6 +1198,7 @@ io.sockets.on('connection', function(socket){
 //			console.log("Save socket "+socket.id);
 			LoggedInUsers.push(socket.id);		// save the socket id so that updates can be sent
 			socket.emit('authResponse',{name: user.name, pwd: user.pwd});
+			sendToLogs("authentication successful: "+user.name);
 		}
 	});	
 	
@@ -1191,6 +1214,7 @@ io.sockets.on('connection', function(socket){
 
 	socket.on('downloadChats', function(data){
 		console.log("Download chats requested");
+		sendToLogs("Download chats requested");
 		var key, value;
 		var csvChats = "";
 		var tchat = new Object();
@@ -1242,16 +1266,18 @@ function updateChatStats() {
 	calculateACT_CPH();
 	calculateACC_CCONC_TCO();
 
+	var str = "total chats: "+Object.keys(AllChats).length;
+	console.log(str);
 	for(var i in LoggedInUsers)
 	{
 		socketid = LoggedInUsers[i];
 		io.sockets.connected[socketid].emit('overallStats', Overall);
 		io.sockets.connected[socketid].emit('skillGroupStats', SkillGroups);
 		io.sockets.connected[socketid].emit('departmentStats', Departments);
+		io.sockets.connected[socketid].emit('consoleLogs', str);
 	}
 //	debugLog("Overall", Overall);
 	setTimeout(updateChatStats, 2000);	// send update every second
-	console.log("total chats: "+Object.keys(AllChats).length);
 }
 
 // setup all globals TODO: add teams
@@ -1274,5 +1300,5 @@ function tidyUp() {
 	setTimeout(tidyUp,60000);			// tidy up every minute
 }
 doStartOfDay();		// initialise everything
-setTimeout(updateChatStats,5000);	// updates socket io data at infinitum
+setTimeout(updateChatStats,10000);	// updates socket io data at infinitum
 //setTimeout(tidyUp,60000);			// tidy up every minute
