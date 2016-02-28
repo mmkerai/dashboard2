@@ -1280,6 +1280,7 @@ function updateChatStats() {
 	setTimeout(updateChatStats, 2000);	// send update every second
 }
 
+
 // setup all globals TODO: add teams
 function doStartOfDay() {
 	initialiseGlobals();	// zero all memory
