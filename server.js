@@ -226,7 +226,7 @@ function initialiseGlobals () {
 app.post('/chat-started', function(req, res){
 //	debugLog("Chat-started",req.body);
 	sendToLogs("Chat-started, chat id: "+req.body.ChatID);
-	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
+	if(!OperatorsSetupComplete)		//make sure all static data has been obtained first
 		processStartedChat(req.body);
 	res.send({ "result": "success" });
 });
@@ -235,7 +235,7 @@ app.post('/chat-started', function(req, res){
 app.post('/chat-unavailable', function(req, res){
 //	debugLog("Chat-unavailable",req.body);
 	sendToLogs("Chat-unavailable, chat id: "+req.body.ChatID);
-	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
+	if(!OperatorsSetupComplete)		//make sure all static data has been obtained first
 		processUnavailableChat(req.body);
 	res.send({ "result": "success" });
 });
@@ -244,7 +244,7 @@ app.post('/chat-unavailable', function(req, res){
 app.post('/chat-answered', function(req, res){
 //	debugLog("Chat-answered",req.body);
 	sendToLogs("Chat-answered, chat id: "+req.body.ChatID);
-	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
+	if(!OperatorsSetupComplete)		//make sure all static data has been obtained first
 		processAnsweredChat(req.body);
 	res.send({ "result": "success" });
 });
@@ -253,7 +253,7 @@ app.post('/chat-answered', function(req, res){
 app.post('/chat-closed', function(req, res){
 //	debugLog("Chat-closed", req.body);
 	sendToLogs("Chat-closed, chat id: "+req.body.ChatID);
-	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
+	if(!OperatorsSetupComplete)		//make sure all static data has been obtained first
 		processClosedChat(req.body);
 	res.send({ "result": "success" });
 });
@@ -262,7 +262,7 @@ app.post('/chat-closed', function(req, res){
 app.post('/chat-window-closed', function(req, res){
 //	debugLog("Chat-window-closed", req.body);
 	sendToLogs("Chat-window-closed, chat id: "+req.body.ChatID);
-	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
+	if(!OperatorsSetupComplete)		//make sure all static data has been obtained first
 		processWindowClosed(req.body);
 	res.send({ "result": "success" });
 });
@@ -271,7 +271,7 @@ app.post('/chat-window-closed', function(req, res){
 app.post('/operator-status-changed', function(req, res){ 
 //	debugLog("operator-status-changed post",req.body);
 	sendToLogs("operator-status-changed, operator id: "+Operators[req.body.LoginID].name);
-	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
+	if(!OperatorsSetupComplete)		//make sure all static data has been obtained first
 		processOperatorStatusChanged(req.body);
 	res.send({ "result": "success" });
 });
@@ -1017,7 +1017,14 @@ function getApiData(method, params, fcallback, cbparam) {
 		//the whole response has been received, take final action.
 		response.on('end', function () {
 			ApiDataNotReady--;
-			var jsonObj = JSON.parse(str);
+			var jsonObj;
+			try {
+				jsonObj = JSON.parse(str);
+			}
+			catch (e){
+				console.log("JSON error");
+				return;
+			}
 //			console.log("Response received: "+str);
 			var data = new Array();
 			var next = jsonObj.Next;
@@ -1097,7 +1104,7 @@ function getOperatorAvailabilityData() {
 
 // gets current active chats 
 function getActiveChatData() {
-	if(ApiDataNotReady)
+	if(ApiDataNotReady || OperatorsSetupComplete === false)
 	{
 		console.log("Static data not ready (AC): "+ApiDataNotReady);
 		setTimeout(getActiveChatData, 1000);
@@ -1140,7 +1147,6 @@ function setUpDeptAndSkillGroups() {
 	}
 //	debugLog("Operator skillgroups:",OperatorSkills);
 	OperatorsSetupComplete = true;
-//	console.log("operator setup complete");
 }
 
 // process all active chat objects 
@@ -1153,7 +1159,7 @@ function allActiveChats(achats) {
 
 // gets today's chat data incase system was started during the day
 function getInactiveChatData() {
-	if(ApiDataNotReady)
+	if(ApiDataNotReady || OperatorsSetupComplete === false)
 	{
 		console.log("Static data not ready (IC): "+ApiDataNotReady);
 		setTimeout(getInactiveChatData, 1000);
@@ -1293,9 +1299,9 @@ function doStartOfDay() {
 	getApiData("getFolders", "FolderType=5", foldersCallback);	// get only chat folders
 	sleep(1000);
 	setUpDeptAndSkillGroups();
-	getOperatorAvailabilityData();
 	getInactiveChatData();
 	getActiveChatData();
+	getOperatorAvailabilityData();
 }
 
 function tidyUp() {
