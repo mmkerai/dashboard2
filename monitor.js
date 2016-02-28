@@ -39,7 +39,7 @@ $(document).ready(function() {
 	});
 
 	socket.on('consoleLogs', function(data){
-		$('#conlog').append(data);
+		$('#conlog').append(data+"\r\n");
 		document.getElementById("conlog").scrollTop = document.getElementById("conlog").scrollHeight	
 	});
 

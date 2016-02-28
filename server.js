@@ -168,7 +168,6 @@ var	OperatorCconc;	// chat concurrency for each operator
 var OperatorSkills;	// skill group each operator belongs to
 var	Folders;	// array of folder ids and folder name objects
 var	Operators;	// array of operator ids and name objects
-var	WaitingTimes;	// array of chat waiting times objects
 var	Teams;	// array of team names
 var ApiDataNotReady;	// Flag to show when data has been received from API so that data can be processed
 var TimeNow;			// global for current time
@@ -213,15 +212,14 @@ function initialiseGlobals () {
 	OperatorSkills = new Object();
 	Folders = new Object();	
 	Operators = new Object();
-	WaitingTimes = new Object();
 	Teams = new Object();
-	ApiDataNotReady = 0;
-	ActiveChatNotInList = 0;
 	TimeNow = new Date();
 	EndOfDay = new Date();
 	EndOfDay.setHours(23,59,59,0);	// last second of the day
 	Overall = new DashMetrics("Overall","Overall");	
 	OperatorsSetupComplete = false;
+	ApiDataNotReady = 0;
+	ActiveChatNotInList = 0;
 	OpStatusHasNotChanged = 0;
 }
 // Process incoming Boldchat triggered chat data
@@ -272,7 +270,7 @@ app.post('/chat-window-closed', function(req, res){
 // Process incoming Boldchat triggered operator data
 app.post('/operator-status-changed', function(req, res){ 
 //	debugLog("operator-status-changed post",req.body);
-	sendToLogs("operator-status-changed, operator id: "+req.body.LoginID);
+	sendToLogs("operator-status-changed, operator id: "+Operators[req.body.LoginID].name);
 	if(ApiDataNotReady == 0)		//make sure all static data has been obtained first
 		processOperatorStatusChanged(req.body);
 	res.send({ "result": "success" });
@@ -291,13 +289,14 @@ function BC_API_Request(api_method,params,callBackFunction) {
 		port : 443, 
 		path : '/aid/'+AID+'/data/rest/json/v1/'+api_method+'?auth='+authHash+'&'+params, 
 		method : 'GET'
-	};
+		};
 	https.request(options, callBackFunction).end();
 }
 
 function debugLog(name, dataobj) {
 	console.log(name+": ");
-	for(key in dataobj) {
+	for(key in dataobj) 
+	{
 		if(dataobj.hasOwnProperty(key))
 			console.log(key +":"+dataobj[key]);
 	}
