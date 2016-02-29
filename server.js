@@ -227,7 +227,7 @@ function initialiseGlobals () {
 app.post('/chat-started', function(req, res){
 //	debugLog("Chat-started",req.body);
 	sendToLogs("Chat-started, chat id: "+req.body.ChatID);
-	if(!OperatorsSetupComplete)		//make sure all static data has been obtained first
+	if(OperatorsSetupComplete)		//make sure all static data has been obtained first
 		processStartedChat(req.body);
 	res.send({ "result": "success" });
 });
@@ -236,7 +236,7 @@ app.post('/chat-started', function(req, res){
 app.post('/chat-unavailable', function(req, res){
 //	debugLog("Chat-unavailable",req.body);
 	sendToLogs("Chat-unavailable, chat id: "+req.body.ChatID);
-	if(!OperatorsSetupComplete)		//make sure all static data has been obtained first
+	if(OperatorsSetupComplete)		//make sure all static data has been obtained first
 		processUnavailableChat(req.body);
 	res.send({ "result": "success" });
 });
@@ -245,7 +245,7 @@ app.post('/chat-unavailable', function(req, res){
 app.post('/chat-answered', function(req, res){
 //	debugLog("Chat-answered",req.body);
 	sendToLogs("Chat-answered, chat id: "+req.body.ChatID);
-	if(!OperatorsSetupComplete)		//make sure all static data has been obtained first
+	if(OperatorsSetupComplete)		//make sure all static data has been obtained first
 		processAnsweredChat(req.body);
 	res.send({ "result": "success" });
 });
@@ -254,7 +254,7 @@ app.post('/chat-answered', function(req, res){
 app.post('/chat-closed', function(req, res){
 //	debugLog("Chat-closed", req.body);
 	sendToLogs("Chat-closed, chat id: "+req.body.ChatID);
-	if(!OperatorsSetupComplete)		//make sure all static data has been obtained first
+	if(OperatorsSetupComplete)		//make sure all static data has been obtained first
 		processClosedChat(req.body);
 	res.send({ "result": "success" });
 });
@@ -263,7 +263,7 @@ app.post('/chat-closed', function(req, res){
 app.post('/chat-window-closed', function(req, res){
 //	debugLog("Chat-window-closed", req.body);
 	sendToLogs("Chat-window-closed, chat id: "+req.body.ChatID);
-	if(!OperatorsSetupComplete)		//make sure all static data has been obtained first
+	if(OperatorsSetupComplete)		//make sure all static data has been obtained first
 		processWindowClosed(req.body);
 	res.send({ "result": "success" });
 });
@@ -272,7 +272,7 @@ app.post('/chat-window-closed', function(req, res){
 app.post('/operator-status-changed', function(req, res){ 
 //	debugLog("operator-status-changed post",req.body);
 	sendToLogs("operator-status-changed, operator id: "+Operators[req.body.LoginID].name);
-	if(!OperatorsSetupComplete)		//make sure all static data has been obtained first
+	if(OperatorsSetupComplete)		//make sure all static data has been obtained first
 		processOperatorStatusChanged(req.body);
 	res.send({ "result": "success" });
 });
@@ -1024,7 +1024,7 @@ function getApiData(method, params, fcallback, cbparam) {
 				jsonObj = JSON.parse(str);
 			}
 			catch (e){
-				console.log("JSON error");
+				console.log("API or JSON error");
 				return;
 			}
 //			console.log("Response received: "+str);
@@ -1312,6 +1312,8 @@ function checkOperatorAvailability() {
 	if(GetOperatorAvailabilitySuccess)
 		return;
 
+	console.log("Getting operator availability again");
+	sendToLogs("Getting operator availability again");
 	getOperatorAvailabilityData();	// try again
 }
 
