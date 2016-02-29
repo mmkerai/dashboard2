@@ -176,6 +176,7 @@ var Overall;		// top level stats
 var	OperatorsSetupComplete;
 var ActiveChatNotInList;
 var OpStatusHasNotChanged;
+var	GetOperatorAvailabilitySuccess = false;
 var AuthUsers = new Object();
 
 // load list of authorised users and their passwords
@@ -374,6 +375,7 @@ function operatorAvailabilityCallback(dlist) {
 	// StatusType 0, 1 and 2 is Logged out, logged in as away, logged in as available respectively
 	var operator;
 	var depts;
+	GetOperatorAvailabilitySuccess = true;
 	for(var i in dlist)
 	{
 		operator = dlist[i].LoginID;
@@ -1100,6 +1102,7 @@ function getOperatorAvailabilityData() {
 		return;
 	}
 	getApiData("getOperatorAvailability", "ServiceTypeID=1", operatorAvailabilityCallback);
+	setTimeout(checkOperatorAvailability,60000);		// check if successful after a minute
 }
 
 // gets current active chats 
@@ -1302,12 +1305,15 @@ function doStartOfDay() {
 	getInactiveChatData();
 	getActiveChatData();
 	getOperatorAvailabilityData();
+
 }
 
-function tidyUp() {
-	getApiData("getOperatorAvailability", "ServiceTypeID=1", operatorAvailabilityCallback);
-	setTimeout(tidyUp,60000);			// tidy up every minute
+function checkOperatorAvailability() {
+	if(GetOperatorAvailabilitySuccess)
+		return;
+
+	getOperatorAvailabilityData();	// try again
 }
+
 doStartOfDay();		// initialise everything
 setTimeout(updateChatStats,10000);	// updates socket io data at infinitum
-//setTimeout(tidyUp,60000);			// tidy up every minute
