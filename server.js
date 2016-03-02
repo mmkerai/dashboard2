@@ -557,7 +557,7 @@ function processWindowClosed(chat) {
 	
 	if(AllChats[chat.ChatID].answered == 0 && AllChats[chat.ChatID].started != 0)		// chat started and unanswered
 	{
-		if(chat[OperatorID] == 0)	// operator unassigned
+		if(chat.OperatorID == 0 || chat.OperatorID == null)	// operator unassigned
 		{
 			Overall.tcuq++;
 			deptobj.tcuq++;
@@ -1085,10 +1085,10 @@ function setUpDeptAndSkillGroups() {
 function allActiveChats(chats) {
 	for(var i in chats) 
 	{
-		if(chats[i].Started !== "" || chats[i].Started !== null)
+		if(chats[i].Started !== "" && chats[i].Started !== null)
 		{
 			processStartedChat(chats[i]);	// started, waiting to be answered
-			if(chats[i].Answered !== "" || chats[i].Answered !== null)
+			if(chats[i].Answered !== "" && chats[i].Answered !== null)
 				processAnsweredChat(chats[i]);	// chat was answered
 		}
 	}
@@ -1098,10 +1098,10 @@ function allActiveChats(chats) {
 function allInactiveChats(chats) {
 	for(var i in chats)
 	{
-		if(chats[i].Started !== "" || chats[i].Started !== null)
+		if(chats[i].Started !== "" && chats[i].Started !== null)
 		{
 			processStartedChat(chats[i]);	// started
-			if(chats[i].Answered !== "" || chats[i].Answered !== null)
+			if(chats[i].Answered !== "" && chats[i].Answered !== null)
 			{
 				processAnsweredChat(chats[i]);	//  answered
 				processClosedChat(chats[i]);	// and closed
@@ -1114,7 +1114,7 @@ function allInactiveChats(chats) {
 
 // gets today's chat data incase system was started during the day
 function getInactiveChatData() {
-	if(ApiDataNotReady || OperatorsSetupComplete === false)
+	if(ApiDataNotReady > 0 || OperatorsSetupComplete === false)
 	{
 		console.log("Static data not ready (IC): "+ApiDataNotReady);
 		setTimeout(getInactiveChatData, 1000);
