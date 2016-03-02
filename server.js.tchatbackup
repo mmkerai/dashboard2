@@ -101,16 +101,6 @@ app.get('/monitor.html', function(req, res){
 app.get('/monitor.js', function(req, res){
 	res.sendFile(__dirname + '/monitor.js');
 });
-
-//********************************* Global class exceptions
-var Exception = function() {
-		this.chatAnsweredIsBlank = 0;
-		this.chatAnsweredNotInList = 0;
-		this.chatEndedIsBlank = 0;
-		this.chatClosedIsBlank = 0;		
-		this.chatClosedNotInList = 0;
-};
-
 //********************************* Global class for chat data
 var ChatData = function(chatid, dept, sg) {
 		this.chatID = chatid;
@@ -123,6 +113,7 @@ var ChatData = function(chatid, dept, sg) {
 		this.operator = 0;	
 		this.status = 0;	// 0 is closed, 1 is waiting (started), 2 is active (answered)
 };
+
 
 //******************* Global class for dashboard metrics
 var DashMetrics = function(did,name,sg) {
@@ -187,7 +178,6 @@ var ActiveChatNotInList;
 var OpStatusHasNotChanged;
 var	GetOperatorAvailabilitySuccess = false;
 var AuthUsers = new Object();
-var Exceptions;
 
 // load list of authorised users and their passwords
 //console.log("Authusers: "+AUTHUSERS);
@@ -232,7 +222,6 @@ function initialiseGlobals () {
 	ApiDataNotReady = 0;
 	ActiveChatNotInList = 0;
 	OpStatusHasNotChanged = 0;
-	Exceptions = new Exception();
 }
 // Process incoming Boldchat triggered chat data
 app.post('/chat-started', function(req, res){
@@ -440,7 +429,7 @@ function processUnavailableChat(chat) {
 	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
 	var sgobj = SkillGroups[deptobj.skillgroup];
 	// make sure that this is genuine and sometime this event is triggered for an old closed chat
-	if((chat.Started == "" || chat.Started == null) && (chat.Answered == "" || chat.Answered == null))
+	if(chat.Started == "" && chat.Answered == "")
 	{
 		deptobj.tcun++;
 		sgobj.tcun++;
@@ -450,7 +439,8 @@ function processUnavailableChat(chat) {
 
 // active chat means a started chat has been answered by an operator so it is no longer in the queue
 function processAnsweredChat(chat) {
-	var deptobj, opobj, sgobj;
+	var deptobj, opobj, sgobj, tchat;
+	var anstime=0, starttime=0;
 	
 	if(chat.DepartmentID == null || chat.DepartmentID == "") return;	// should never be null at this stage but I have seen it
 	if(chat.OperatorID == null || chat.OperatorID == "") return;		// operator id not set for some strange reason
@@ -461,30 +451,33 @@ function processAnsweredChat(chat) {
 	opobj = Operators[chat.OperatorID];
 	if(typeof(opobj) === 'undefined') return;		// an operator that doesnt exist (may happen if created midday)
 
-	if(chat.Answered == null && chat.Answered == "")
-	{
-		Exceptions.chatAnsweredIsBlank++;
-		return;
-	}
-	
-	if(typeof(AllChats[chat.ChatID]) === 'undefined')	// if this chat did not exist (only happens if missed it during startup)
-	{
-		Exceptions.chatAnsweredNotInList++;
-		return;
-	}
-	
-	AllChats[chat.ChatID].answered = new Date(chat.Answered);
-	AllChats[chat.ChatID].operator = chat.OperatorID;
-	AllChats[chat.ChatID].status = 2;		// active chat
-	
 	Overall.tcan++;	// answered chats
 	sgobj.tcan++;
 	deptobj.tcan++;
-	opobj.tcan++;
+		
+	if(chat.Started != null && chat.Started != "")
+		starttime = new Date(chat.Started);
 
-	opobj.activeChats.push(chat.ChatID);
+	if(chat.Answered != null && chat.Answered != "")
+		anstime = new Date(chat.Answered);
 
-	var speed = AllChats[chat.ChatID].answered - AllChats[chat.ChatID].started;
+	tchat = AllChats[chat.ChatID];
+	if(typeof(tchat) === 'undefined')	// if this chat did not exist (only true if processing at startup not triggers)
+		tchat = new ChatData(chat.ChatID, chat.DepartmentID, deptobj.skillgroup);
+
+	tchat.started = starttime;
+	tchat.answered = anstime;
+	tchat.operator = chat.OperatorID;
+	tchat.status = 2;		// active chat
+	AllChats[chat.ChatID] = tchat;		// save this chat info
+	
+	if(anstime != 0)		// make sure this was a chat that was answered
+	{
+		opobj.activeChats.push(chat.ChatID);
+		opobj.tcan++;
+	}
+
+	var speed = anstime - starttime;
 	if(speed < (SLATHRESHOLD*1000))		// sla threshold in milliseconds
 	{
 		Overall.csla++;
@@ -494,35 +487,76 @@ function processAnsweredChat(chat) {
 	}
 }
 
-// process closed chat object. closed chat is one that is started and answered. Otherwise go to processwindowclosed
+// process closed chat object. closed chat may not be started or answered if it was abandoned or unavailable
 function processClosedChat(chat) {
-	var deptobj,opobj,sgobj;
+	var deptobj,opobj,sgobj,tchat;
+	var starttime=0,anstime=0,endtime=0,closetime=0,opid=0;
 
+	if(chat.DepartmentID === null)		// should never be null at this stage 
+	{		
+//		debugLog("Closed Chat, Dept null", chat);
+		return;
+	}
 	deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
 	sgobj = SkillGroups[deptobj.skillgroup];
-	opobj = Operators[chat.OperatorID];
-	if(typeof(opobj) === 'undefined') return;		// an operator that doesnt exist (may happen if created during startup)
 
-	if(chat.Ended == null || chat.Ended == "")
+/*	if(chat.ChatStatusType >= 7 && chat.ChatStatusType <= 15)		// unavailable chat
 	{
-		Exceptions.chatEndedIsBlank++;
+		Overall.tcun++;
+		deptobj.tcun++;
+		sgobj.tcun++;
 		return;
-	}
-	if(chat.Closed == null || chat.Closed == "")
+	}*/
+
+	if(chat.Started != null && chat.Started != "")
+		starttime = new Date(chat.Started);
+
+	if(chat.Answered != null && chat.Answered != "")
+		anstime = new Date(chat.Answered);
+
+	if(chat.Ended != null && chat.Ended != "")
+		endtime = new Date(chat.Ended);
+
+	if(chat.Closed != null && chat.Closed != "")
+		closetime = new Date(chat.Closed);
+
+	if(chat.OperatorID != null && chat.OperatorID != "")
+		opid = chat.OperatorID;
+
+	opobj = Operators[opid];	// if answered there will always be a operator assigned
+	if(typeof(opobj) === 'undefined') return;	// however I have seen it. Not sure why it happens
+	
+	// update operator stats
+	tchat = AllChats[chat.ChatID];
+	if(typeof(tchat) === 'undefined')		// if this chat did not exist then must be from the inactive list
 	{
-		Exceptions.chatClosedIsBlank++;
-		return;
+		tchat = new ChatData(chat.ChatID, chat.DepartmentID, deptobj.skillgroup);
+		tchat.operator = opid;
+		tchat.started = starttime;
+		tchat.answered = anstime;
+		if(anstime != 0 && starttime != 0)	// chat was answered
+		{
+			Overall.tcan++;	// answered chats
+			sgobj.tcan++;
+			deptobj.tcan++;
+			opobj.tcan++;
+
+			var speed = anstime - starttime;
+			if(speed < (SLATHRESHOLD*1000))		// sla threshold in milliseconds
+			{
+				Overall.csla++;
+				deptobj.csla++;
+				sgobj.csla++;
+				opobj.csla++;
+			}
+		}
 	}
-	if(typeof(AllChats[chat.ChatID]) === 'undefined')	// if this chat did not exist (only happens if missed it during startup)
-	{
-		Exceptions.chatClosedNotInList++;
-		return;
-	}
-		
-	AllChats[chat.ChatID].status = 0;		// inactive/complete/cancelled/closed
-	AllChats[chat.ChatID].ended = new Date(chat.Ended);
-	AllChats[chat.ChatID].closed = new Date(chat.Closed);
+
+	tchat.status = 0;		// inactive/complete/cancelled/closed
+	tchat.ended = endtime;
+	tchat.closed = closetime;
+	AllChats[chat.ChatID] = tchat;	// update chat
 
 	// now remove from active chat list and update stats
 	var achats = new Array();
@@ -536,13 +570,20 @@ function processClosedChat(chat) {
 		}
 	}
 	
-	updateCconc(AllChats[chat.ChatID]);	// update chat conc now that it is closed
+	if(tchat.answered != 0 && tchat.closed != 0) 	// chat answered and closed so update conc
+		updateCconc(tchat);
 }
 
-// process window closed chat object. This happens if visitor closes chat by closing the window
+// process window closed chat object.
 function processWindowClosed(chat) {
-	var deptobj,opobj,sgobj;
+	var deptobj,opobj,sgobj,tchat;
+	var starttime=0,anstime=0,endtime=0,closetime=0,opid=0;
 
+	if(chat.DepartmentID === null)		// will only be null for an abandoned chat
+	{								
+//		debugLog("Closed Chat, Dept null", chat);
+		return;
+	}
 	deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
 	sgobj = SkillGroups[deptobj.skillgroup];
@@ -555,9 +596,24 @@ function processWindowClosed(chat) {
 		return;
 	}
 	
-	if(AllChats[chat.ChatID].answered == 0 && AllChats[chat.ChatID].started != 0)		// chat started and unanswered
+	if(chat.Started != null && chat.Started != "")
+		starttime = new Date(chat.Started);
+
+	if(chat.Answered != null && chat.Answered != "")
+		anstime = new Date(chat.Answered);
+
+	if(chat.Ended != null && chat.Ended != "")
+		endtime = new Date(chat.Ended);
+
+	if(chat.Closed != null && chat.Closed != "")
+		closetime = new Date(chat.Closed);
+
+	if(chat.OperatorID != null && chat.OperatorID != "")
+		opid = chat.OperatorID;
+	
+	if(anstime == 0 && starttime != 0)		// chat started and unanswered
 	{
-		if(chat[OperatorID] == 0)	// operator unassigned
+		if(opid == 0)	// operator unassigned
 		{
 			Overall.tcuq++;
 			deptobj.tcuq++;
@@ -569,13 +625,16 @@ function processWindowClosed(chat) {
 			deptobj.tcua++;			
 			sgobj.tcua++;			
 		}
+//		return;	// all done 
 	}
 
-	if(typeof(AllChats[chat.ChatID]) !== 'undefined')		// if this chat did not exist then must be from the inactive list
+	tchat = AllChats[chat.ChatID];
+	if(typeof(tchat) !== 'undefined')		// if this chat did not exist then must be from the inactive list
 	{
-		AllChats[chat.ChatID].status = 0;		// inactive/complete/cancelled/closed
-		AllChats[chat.ChatID].ended = new Date(chat.Ended);
-		AllChats[chat.ChatID].closed = new Date(chat.Closed);
+		tchat.status = 0;		// inactive/complete/cancelled/closed
+		tchat.ended = endtime;
+		tchat.closed = closetime;
+		AllChats[chat.ChatID] = tchat;	// update chat
 	}
 }
 
@@ -657,6 +716,17 @@ function processOperatorStatusChanged(ostatus) {
 		}
 	}
 	Operators[operator].status = ostatus.StatusType;
+}
+
+// process all inactive (closed) chat objects
+function allInactiveChats(chats) {
+	for(var i in chats)
+	{
+		if(chats[i].Answered == "" || chats[i].Answered == null)			// chat not answered but closed
+			processWindowClosed(chats[i]);
+		else
+			processClosedChat(chats[i]);
+	}
 }
 
 function updateCconc(tchat) {
@@ -1027,7 +1097,7 @@ function getOperatorAvailabilityData() {
 	if(ApiDataNotReady || OperatorsSetupComplete === false)
 	{
 		console.log("Static data not ready (OA): "+ApiDataNotReady);
-		setTimeout(getOperatorAvailabilityData, 2000);
+		setTimeout(getOperatorAvailabilityData, 1000);
 		return;
 	}
 	getApiData("getOperatorAvailability", "ServiceTypeID=1", operatorAvailabilityCallback);
@@ -1082,33 +1152,10 @@ function setUpDeptAndSkillGroups() {
 }
 
 // process all active chat objects 
-function allActiveChats(chats) {
-	for(var i in chats) 
+function allActiveChats(achats) {
+	for(var i in achats) 
 	{
-		if(chats[i].Started !== "" || chats[i].Started !== null)
-		{
-			processStartedChat(chats[i]);	// started, waiting to be answered
-			if(chats[i].Answered !== "" || chats[i].Answered !== null)
-				processAnsweredChat(chats[i]);	// chat was answered
-		}
-	}
-}
-
-// process all inactive (closed) chat objects
-function allInactiveChats(chats) {
-	for(var i in chats)
-	{
-		if(chats[i].Started !== "" || chats[i].Started !== null)
-		{
-			processStartedChat(chats[i]);	// started
-			if(chats[i].Answered !== "" || chats[i].Answered !== null)
-			{
-				processAnsweredChat(chats[i]);	//  answered
-				processClosedChat(chats[i]);	// and closed
-			}
-			else
-				processWindowClosed(chats[i]);	// closed before being answered
-		}
+		processAnsweredChat(achats[i]);
 	}
 }
 
@@ -1238,7 +1285,6 @@ function updateChatStats() {
 		io.sockets.connected[socketid].emit('skillGroupStats', SkillGroups);
 		io.sockets.connected[socketid].emit('departmentStats', Departments);
 		io.sockets.connected[socketid].emit('consoleLogs', str);
-		io.sockets.connected[socketid].emit('exceptions', Exceptions);
 	}
 //	debugLog("Overall", Overall);
 	setTimeout(updateChatStats, 2000);	// send update every second

@@ -43,6 +43,14 @@ $(document).ready(function() {
 		document.getElementById("conlog").scrollTop = document.getElementById("conlog").scrollHeight	
 	});
 
+	socket.on('exceptions', function(data){
+		for(var key in data)
+		{
+			str = key + ":" + data.key +"\r\n";
+		}
+		$('#exp').text(str+"\r\n");
+	});
+
 	socket.on('chatsCsvResponse', function(data){
 		var csvfile;
 		
