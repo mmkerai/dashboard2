@@ -44,9 +44,10 @@ $(document).ready(function() {
 	});
 
 	socket.on('exceptions', function(data){
+		var str = "";
 		for(var key in data)
 		{
-			str = key + ":" + data.key +"\r\n";
+			str = str + key + ":" + data[key] +"\r\n";
 		}
 		$('#exp').text(str+"\r\n");
 	});
