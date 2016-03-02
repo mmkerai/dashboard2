@@ -555,6 +555,9 @@ function processWindowClosed(chat) {
 		return;
 	}
 	
+	if(typeof(AllChats[chat.ChatID]) === 'undefined')		// abandoned chat as not in list
+		return;
+	
 	if(AllChats[chat.ChatID].answered == 0 && AllChats[chat.ChatID].started != 0)		// chat started and unanswered
 	{
 		if(chat.OperatorID == 0 || chat.OperatorID == null)	// operator unassigned
