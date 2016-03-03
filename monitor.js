@@ -47,7 +47,7 @@ $(document).ready(function() {
 		var str = "";
 		for(var key in data)
 		{
-			str = str + key + ":" + data[key] +"<br/>";
+			str = str + key + ":" + data[key] +"\r\n";
 		}
 		$('#exp').text(str+"\r\n");
 	});

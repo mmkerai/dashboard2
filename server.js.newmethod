@@ -552,7 +552,7 @@ function processWindowClosed(chat) {
 		Overall.tcun++;
 		deptobj.tcun++;
 		sgobj.tcun++;
-//		return;
+		return;
 	}
 	
 	if(typeof(AllChats[chat.ChatID]) === 'undefined')		// abandoned chat as not in list
@@ -574,12 +574,12 @@ function processWindowClosed(chat) {
 		}
 	}
 
-//	if(typeof(AllChats[chat.ChatID]) !== 'undefined')		// if this chat did not exist then must be from the inactive list
-//	{
+	if(typeof(AllChats[chat.ChatID]) !== 'undefined')		// if this chat did not exist then must be from the inactive list
+	{
 		AllChats[chat.ChatID].status = 0;		// inactive/complete/cancelled/closed
 		AllChats[chat.ChatID].ended = new Date(chat.Ended);
 		AllChats[chat.ChatID].closed = new Date(chat.Closed);
-//	}
+	}
 }
 
 // process operator status changed. or unavailable
