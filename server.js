@@ -109,6 +109,7 @@ var Exception = function() {
 		this.chatEndedIsBlank = 0;
 		this.chatClosedIsBlank = 0;		
 		this.chatClosedNotInList = 0;
+		this.chatsAbandoned = 0;
 };
 
 //********************************* Global class for chat data
@@ -201,7 +202,6 @@ for(var i in au)
 //	console.log("User: "+uname+" saved");
 }
 console.log(Object.keys(AuthUsers).length +" user credentials loaded");
-sendToLogs(Object.keys(AuthUsers).length +" user credentials loaded");
 
 function sleep(milliseconds) {
   var start = new Date().getTime();
@@ -543,6 +543,12 @@ function processClosedChat(chat) {
 function processWindowClosed(chat) {
 	var deptobj,opobj,sgobj;
 
+	if(chat.Started == "" || chat.Started == null)	// if chat not started then it is abandoned
+	{
+		Exceptions.chatsAbandoned++;
+		return;
+	}
+	
 	deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
 	sgobj = SkillGroups[deptobj.skillgroup];
@@ -1131,7 +1137,6 @@ function getInactiveChatData() {
 	startDate.setHours(0,0,0,0);
 
 	console.log("Getting inactive chat info from "+ Object.keys(Folders).length +" folders");
-	sendToLogs("Getting inactive chat info from "+ Object.keys(Folders).length +" folders");
 	var parameters;
 	for(var fid in Folders)	// Inactive chats are by folders
 	{
