@@ -36,6 +36,7 @@ console.log("did is "+did);
 	
 	socket.on('overallStats', function(data){
 		var tcanpc = data.tcan + " ("+Math.round((data.tcan/data.tco)*100)+"%)";
+		var tcunpc = data.tcun + " ("+Math.round((data.tcun/(data.tcun+data.tco))*100) +"%)";
 		$("#ocon").text(data.cconc);
 		$("#osla").text(data.psla +"%");
 		$("#ociq").text(data.ciq);
@@ -45,8 +46,7 @@ console.log("did is "+did);
 		$("#otcan").text(tcanpc);
 		$("#ouiq").text(data.tcuq);
 		$("#ouas").text(data.tcua);
-		$("#ocunavail").text(Math.round((data.tcun/(data.tcun+data.tco))*100)+ "%");
-//		$("#ocunavail").text(data.tcun);
+		$("#ocunavail").text(tcunpc);
 		$("#oasa").text(toHHMMSS(data.asa));
 		$("#oact").text(toHHMMSS(data.act));
 		$("#oaccap").text(data.acc);
@@ -64,7 +64,7 @@ console.log("did is "+did);
 			if(ddata[i].tco != 0)
 			{
 				tcanpc = " ("+Math.round((ddata[i].tcan/ddata[i].tco)*100)+"%)";
-				tcunpc = Math.round((ddata[i].tcun/(ddata[i].tcun+ddata[i].tco))*100) +"%";
+				tcunpc = " ("+Math.round((ddata[i].tcun/(ddata[i].tcun+ddata[i].tco))*100) +"%)";
 			}
 			rowid = document.getElementById(ddata[i].name);
 			if(rowid === null)		// row doesnt exist so create one
@@ -82,7 +82,7 @@ console.log("did is "+did);
 				col = row.insertCell(7).innerHTML = ddata[i].tcan + tcanpc;
 				col = row.insertCell(8).innerHTML = ddata[i].tcuq;
 				col = row.insertCell(9).innerHTML = ddata[i].tcua;
-				col = row.insertCell(10).innerHTML = tcunpc;
+				col = row.insertCell(10).innerHTML = ddata[i].tcun + tcunpc;
 				col = row.insertCell(11).innerHTML = toHHMMSS(ddata[i].asa);
 				col = row.insertCell(12).innerHTML = toHHMMSS(ddata[i].act);
 				col = row.insertCell(13).innerHTML = ddata[i].acc;
@@ -100,7 +100,7 @@ console.log("did is "+did);
 				rowid.cells[7].innerHTML = ddata[i].tcan + tcanpc;
 				rowid.cells[8].innerHTML = ddata[i].tcuq;
 				rowid.cells[9].innerHTML = ddata[i].tcua;
-				rowid.cells[10].innerHTML = tcunpc;
+				rowid.cells[10].innerHTML = ddata[i].tcun + tcunpc;
 				rowid.cells[11].innerHTML = toHHMMSS(ddata[i].asa);
 				rowid.cells[12].innerHTML = toHHMMSS(ddata[i].act);
 				rowid.cells[13].innerHTML = ddata[i].acc;
@@ -124,7 +124,7 @@ console.log("did is "+did);
 				if(ddata[i].tco != 0)
 				{
 					tcanpc = " ("+Math.round((ddata[i].tcan/ddata[i].tco)*100)+"%)";
-					tcunpc = Math.round((ddata[i].tcun/(ddata[i].tcun+ddata[i].tco))*100) +"%";
+					tcunpc = " ("+Math.round((ddata[i].tcun/(ddata[i].tcun+ddata[i].tco))*100) +"%)";
 				}
 				rowid = document.getElementById(ddata[i].name);
 				if(rowid === null)		// row doesnt exist so create one
@@ -142,7 +142,7 @@ console.log("did is "+did);
 					col = row.insertCell(7).innerHTML = ddata[i].tcan + tcanpc;
 					col = row.insertCell(8).innerHTML = ddata[i].tcuq;
 					col = row.insertCell(9).innerHTML = ddata[i].tcua;
-					col = row.insertCell(10).innerHTML = tcunpc;
+					col = row.insertCell(10).innerHTML = ddata[i].tcun + tcunpc;
 					col = row.insertCell(11).innerHTML = toHHMMSS(ddata[i].asa);
 					col = row.insertCell(12).innerHTML = toHHMMSS(ddata[i].act);
 					col = row.insertCell(13).innerHTML = ddata[i].acc;
@@ -160,7 +160,7 @@ console.log("did is "+did);
 					rowid.cells[7].innerHTML = ddata[i].tcan + tcanpc;
 					rowid.cells[8].innerHTML = ddata[i].tcuq;
 					rowid.cells[9].innerHTML = ddata[i].tcua;
-					rowid.cells[10].innerHTML = tcunpc;
+					rowid.cells[10].innerHTML = ddata[i].tcun + tcunpc;
 					rowid.cells[11].innerHTML = toHHMMSS(ddata[i].asa);
 					rowid.cells[12].innerHTML = toHHMMSS(ddata[i].act);
 					rowid.cells[13].innerHTML = ddata[i].acc;

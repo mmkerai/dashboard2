@@ -110,6 +110,7 @@ var Exception = function() {
 		this.chatClosedIsBlank = 0;		
 		this.chatClosedNotInList = 0;
 		this.chatsAbandoned = 0;
+		this.chatsBlocked = 0;
 };
 
 //********************************* Global class for chat data
@@ -553,12 +554,15 @@ function processWindowClosed(chat) {
 	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
 	sgobj = SkillGroups[deptobj.skillgroup];
 
-	if(chat.ChatStatusType >= 7 && chat.ChatStatusType <= 15)		// unavailable email
+	if(chat.ChatStatusType == 10 || chat.ChatStatusType == 18)		// unavailable email
+	{
+		Exceptions.chatsBlocked++;
+	}
+	else if(chat.ChatStatusType >= 7 && chat.ChatStatusType <= 15)		// unavailable email
 	{
 		Overall.tcun++;
 		deptobj.tcun++;
 		sgobj.tcun++;
-//		return;
 	}
 	
 	if(typeof(AllChats[chat.ChatID]) === 'undefined')		// abandoned chat as not in list
