@@ -47,9 +47,9 @@ $(document).ready(function() {
 		var str = "";
 		for(var key in data)
 		{
-			str = str + key + ":" + data[key] +"\r\n";
+			str = str + key + ":" + data[key] +"<br/>";
 		}
-		$('#exp').text(str+"\r\n");
+		$('#exp').html(str+"<br/>");
 	});
 
 	socket.on('chatsCsvResponse', function(data){

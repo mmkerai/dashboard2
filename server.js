@@ -248,8 +248,8 @@ app.post('/chat-started', function(req, res){
 app.post('/chat-unavailable', function(req, res){
 //	debugLog("Chat-unavailable",req.body);
 	sendToLogs("Chat-unavailable, chat id: "+req.body.ChatID);
-	if(OperatorsSetupComplete)		//make sure all static data has been obtained first
-		processUnavailableChat(req.body);
+//	if(OperatorsSetupComplete)		//make sure all static data has been obtained first
+//		processUnavailableChat(req.body);
 	res.send({ "result": "success" });
 });
 
@@ -544,17 +544,11 @@ function processClosedChat(chat) {
 function processWindowClosed(chat) {
 	var deptobj,opobj,sgobj;
 
-	if(chat.Started == "" || chat.Started == null)	// if chat not started then it is abandoned
-	{
-		Exceptions.chatsAbandoned++;
-		return;
-	}
-	
 	deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
 	sgobj = SkillGroups[deptobj.skillgroup];
 
-	if(chat.ChatStatusType == 10 || chat.ChatStatusType == 18)		// unavailable email
+	if(chat.ChatStatusType == 10 || chat.ChatStatusType == 18)		// blocked chats
 	{
 		Exceptions.chatsBlocked++;
 	}
@@ -564,7 +558,12 @@ function processWindowClosed(chat) {
 		deptobj.tcun++;
 		sgobj.tcun++;
 	}
-	
+	else if(chat.Started == "" || chat.Started == null)	// if chat not started then it is abandoned
+	{
+		Exceptions.chatsAbandoned++;
+		return;
+	}
+		
 	if(typeof(AllChats[chat.ChatID]) === 'undefined')		// abandoned chat as not in list
 		return;
 	
@@ -1241,7 +1240,7 @@ function updateChatStats() {
 	calculateACT_CPH();
 	calculateACC_CCONC_TCO();
 
-	var str = "total chats: "+Object.keys(AllChats).length;
+	var str = "Chats started today: "+Object.keys(AllChats).length;
 	console.log(str);
 	for(var i in LoggedInUsers)
 	{
