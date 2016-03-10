@@ -1273,7 +1273,7 @@ function updateChatStats() {
 		var csvdata = getCsvChatData();
 		postToArchive(csvdata);
 		doStartOfDay();
-		setTimeout(updateChatStats, 5000);
+		setTimeout(updateChatStats, 2000);
 		return;
 	}
 	calculateLWT_CIQ();
@@ -1312,7 +1312,7 @@ function doStartOfDay() {
 	setUpDeptAndSkillGroups();
 	getInactiveChatData();
 	getActiveChatData();
-//	getOperatorAvailabilityData();
+	getOperatorAvailabilityData();
 
 }
 
