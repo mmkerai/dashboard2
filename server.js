@@ -114,6 +114,7 @@ var Exception = function() {
 		this.chatClosedNotInList = 0;
 		this.chatsAbandoned = 0;
 		this.opStatusHasNotChanged = 0;
+		this.chatsBlocked = 0;
 };
 
 //********************************* Global class for chat data
@@ -282,7 +283,7 @@ app.post('/chat-window-closed', function(req, res){
 
 // Process incoming Boldchat triggered operator data
 app.post('/operator-status-changed', function(req, res){ 
-	debugLog("operator-status-changed post",req.body);
+//	debugLog("operator-status-changed post",req.body);
 	sendToLogs("operator-status-changed, operator id: "+Operators[req.body.LoginID].name);
 	if(OperatorsSetupComplete)		//make sure all static data has been obtained first
 		processOperatorStatusChanged(req.body);
