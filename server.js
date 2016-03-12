@@ -122,12 +122,12 @@ var ChatData = function(chatid, dept, sg) {
 		this.chatID = chatid;
 		this.departmentID = dept;
 		this.skillgroup = sg;
+		this.opid = 0;	// operator id of this chat
+		this.status = 0;	// 0 is closed, 1 is waiting (started), 2 is active (answered)
 		this.started = 0;		// times ISO times must be converted to epoch (milliseconds since 1 Jan 1970)
 		this.answered = 0;			// so it is easy to do the calculations
 		this.ended = 0;
 		this.closed = 0;
-		this.operator = 0;	
-		this.status = 0;	// 0 is closed, 1 is waiting (started), 2 is active (answered)
 };
 
 //******************* Global class for dashboard metrics
@@ -164,6 +164,7 @@ var OpMetrics  = function(id,name) {
 		this.ccap = 2;		// assume chat capacity of 2
 		this.cconc = 0;		// chat concurrency
 		this.tcan = 0;		// total chats answered
+		this.cph = 0;
 		this.csla = 0;		// chats answered within SLA
 		this.status = 0;	// 0 - logged out, 1 - away, 2 - available
 		this.statusdtime = 0;	// start time of current status
@@ -499,7 +500,7 @@ function processAnsweredChat(chat) {
 	}
 	
 	AllChats[chat.ChatID].answered = new Date(chat.Answered);
-	AllChats[chat.ChatID].operator = chat.OperatorID;
+	AllChats[chat.ChatID].opid = chat.OperatorID;
 	AllChats[chat.ChatID].status = 2;		// active chat
 	
 	Overall.tcan++;	// answered chats
@@ -529,12 +530,12 @@ function processClosedChat(chat) {
 	opobj = Operators[chat.OperatorID];
 	if(typeof(opobj) === 'undefined') return;		// an operator that doesnt exist (may happen if created during startup)
 
-	if(chat.Ended == null || chat.Ended == "")
+	if(chat.Ended == null || chat.Ended == "")		// should not happen
 	{
 		Exceptions.chatEndedIsBlank++;
 		return;
 	}
-	if(chat.Closed == null || chat.Closed == "")
+	if(chat.Closed == null || chat.Closed == "")	// should not happen
 	{
 		Exceptions.chatClosedIsBlank++;
 		return;
@@ -699,7 +700,7 @@ function processOperatorStatusChanged(ostatus) {
 function updateCconc(tchat) {
 	var sh,sm,eh,em,sindex,eindex;
 	var conc = new Array();
-	conc = OperatorCconc[tchat.operator];		// chat concurrency array
+	conc = OperatorCconc[tchat.opid];		// chat concurrency array
 		
 	sh = tchat.answered.getHours();
 	sm = tchat.answered.getMinutes();
@@ -711,7 +712,7 @@ function updateCconc(tchat) {
 	{
 		conc[count]++; // save chat activity for the closed chats
 	}			
-	OperatorCconc[tchat.operator] = conc;		// save it back for next time
+	OperatorCconc[tchat.opid] = conc;		// save it back for next time
 }
 
 // calculate ACT and Chat per hour - both are done after chats are complete (ended)
@@ -1152,8 +1153,6 @@ function allInactiveChats(chats) {
 			else
 				processWindowClosed(chats[i]);	// closed before being answered
 		}
-		else
-			Exceptions.chatsAbandoned++;
 	}
 }
 

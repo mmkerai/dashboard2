@@ -126,9 +126,15 @@ function createDeptRow(tableid,index,sg,did,name) {
 	{
 		row.insertCell(i);
 	}
-	row.cells[0].outerHTML = "<td onClick=\"showOperators('"+did+"','"+name+"')\">"+name+"</td>";
+	row.cells[0].outerHTML = "<td onClick=\"showDepartment('"+did+"','"+name+"')\">"+name+"</td>";
 	
 	return row;
+}
+
+function showDepartment(did,dname) {
+	console.log("Show Dept : "+dname);
+	var deptpage = NewWin("department.html?did="+did, "Department "+dname+" Dashboard");
+
 }
 
 function NewWin(htmlfile, name)		// open a new window

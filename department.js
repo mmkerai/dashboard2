@@ -1,137 +1,125 @@
 var socket = io.connect();
-var auth2;
-var Gid_token;
-var profile;
-
-function onSignIn(googleUser) {
-// Useful data for your client-side scripts:
-	profile = googleUser.getBasicProfile();
-//	console.log("ID: " + profile.getId()); // Don't send this directly to your server!
-//	console.log("Name: " + profile.getName());
-//	console.log("Image URL: " + profile.getImageUrl());
-	console.log("Email: " + profile.getEmail());
-
-	// The ID token you need to pass to your backend:
-	Gid_token = googleUser.getAuthResponse().id_token;
-	socket.emit('authenticate', {token: Gid_token, email: profile.getEmail()});
-}
+var did;
+var DeptOperators = new Array();
 
 $(document).ready(function() {
-
-var did = decodeURIComponent(window.location.search.match(/(\?|&)did\=([^&]*)/)[2]);
+did = getURLParameter("did");
 console.log("did is "+did);
 
-  	$("#g-signout").hide();
+	checksignedin();
 
-	socket.on('authResponse', function(data){
-		$("#g-signout").show();
-		$("#gname").text(profile.getName());
-		$("#gprofile-image").attr({src: profile.getImageUrl()});
-		$("#error").text("");
+	$('#signinform').submit(function(event) {
+		event.preventDefault();
+		var name = $('#username').val();
+		var pwd = $('#password').val();
+		signin(name,pwd);
+	});
+		
+ 	socket.on('authErrorResponse', function(data){
+		$("#error").text(data);
+		$("#topTable").hide();
+		$("#signinform").show();
 	});
 
-	socket.on('errorResponse', function(data){
+ 	socket.on('errorResponse', function(data){
 		$("#error").text(data);
 	});
 
-	socket.on('departmentStats', function(ddata){
-		var ttable = document.getElementById("topTable");
-//		for(cnt = 0; cnt < Object.keys(ddata).length; cnt++)
-		var row, col, rowid;
+	socket.on('authResponse', function(data){
+		saveCookie("username", data.name, 1);	// save as cookie for 1 day
+		saveCookie("password", data.pwd, 1);
+//		console.log("Save cookie: "+data.name+" and pwd "+data.pwd);
+		$('#error').text("");
+		$('#myname').text(data.name);
+		$("#signinform").hide();
+		$("#deptTable").show();
+	});
+	
+	socket.on('deptOperators', function(ddata){
+
+		DeptOperators = ddata[did];	// get dept operators
+
+	});
+	
+	socket.on('operatorStats', function(ddata){
+
 		for(var i in ddata)
 		{
-			var tcanpc = ddata[i].tcan + "("+Math.round((ddata[i].tcan/ddata[i].tco)*100)+"%)";
-			var tcunpc = ddata[i].tcun + "("Math.round((ddata[i].tcun/(ddata[i].tcun+ddata[i].tco))*100) +"%)";
-			rowid = document.getElementById(ddata[i].name);
-			if(rowid === null)		// row doesnt exist so create one
+			if(DeptOperators.indexOf(ddata[i].oid) != -1)		// only of this operator belongs to this dept
 			{
-				row = ttable.insertRow();	// there is already a header row and top row
-				col = row.insertCell(0);
-				row.id = ddata[i].name;
-				col.outerHTML = "<th scope='row' onClick='showDepartment("+ddata[i].did+","+ddata[i].name+")>"+ddata[i].name+"</th>";
-				col = row.insertCell(1).innerHTML = ddata[i].cconc;
-				col = row.insertCell(2).innerHTML = ddata[i].psla +"%";
-				col = row.insertCell(3).innerHTML = ddata[i].cph;
-				col = row.insertCell(4).innerHTML = ddata[i].ciq;
-				col = row.insertCell(5).innerHTML = toHHMMSS(ddata[i].lwt);
-				col = row.insertCell(6).innerHTML = ddata[i].tco;
-				col = row.insertCell(7).innerHTML = ddata[i].tac;
-				col = row.insertCell(8).innerHTML = tcanpc;
-				col = row.insertCell(9).innerHTML = ddata[i].tcuq;
-				col = row.insertCell(10).innerHTML = ddata[i].tcua;
-				col = row.insertCell(11).innerHTML = tcunpc;
-				col = row.insertCell(12).innerHTML = toHHMMSS(ddata[i].asa);
-				col = row.insertCell(13).innerHTML = toHHMMSS(ddata[i].act);
-				col = row.insertCell(14).innerHTML = ddata[i].acc;
-				col = row.insertCell(15).innerHTML = ddata[i].oaway;
-				col = row.insertCell(16).innerHTML = ddata[i].oavail;
-			}
-			else
-			{
-				rowid.cells[1].innerHTML = ddata[i].cconc;
-				rowid.cells[2].innerHTML = ddata[i].psla +"%";
-				rowid.cells[3].innerHTML = ddata[i].cph;
-				rowid.cells[4].innerHTML = ddata[i].ciq;
-				rowid.cells[5].innerHTML = toHHMMSS(ddata[i].lwt);
-				rowid.cells[6].innerHTML = ddata[i].tco;
-				rowid.cells[7].innerHTML = ddata[i].tac;
-				rowid.cells[8].innerHTML = tcanpc;
-				rowid.cells[9].innerHTML = ddata[i].tcuq;
-				rowid.cells[10].innerHTML = ddata[i].tcua;
-				rowid.cells[11].innerHTML = tcunpc;
-				rowid.cells[12].innerHTML = toHHMMSS(ddata[i].asa);
-				rowid.cells[13].innerHTML = toHHMMSS(ddata[i].act);
-				rowid.cells[14].innerHTML = ddata[i].acc;
-				rowid.cells[15].innerHTML = ddata[i].oaway;
-				rowid.cells[16].innerHTML = ddata[i].oavail;
+				if(ddata[i].status == 0 && ddata[i].tcan == 0)	// if logged out and have not answered some chats today
+					continue;
+				else	
+					showOpStats(ddata[i]);
 			}
 		}
 	});
-		
+	
 });
 
-function showDepartments(did,dname) {
-	console.log("Show Dept: "+did+","+dname);
-	var deptpage = NewWin("departments.html?did="+did, "Department Dashboard");
-	var doc = deptpage.document;
-	doc.getElementById("dashheader").innerHTML = "Department: "+dname;
+function showOpStats(data) {
+	var rowid;
+	var ttable = document.getElementById("deptTable");
+	rowid = document.getElementById(data.name);
+	if(rowid === null)		// row doesnt exist so create one
+	{
+		rowid = createRow(ttable, data.oid, data.name);
+	}
+	showMetrics(rowid,data);
 }
 
-function NewWin(htmlfile, name)		// open a new window
-{
-	WIDTH = 1200;
-	HEIGHT = 512;
-	var left = (screen.width/2)-(WIDTH/2);
-	var top = (screen.height/2)-(HEIGHT/2)-64;
-	var winpop = window.open(htmlfile, name,
-				'toolbar=yes,location=no,status=no,menubar=yes,scrollbars=yes,resizable=yes,width='+WIDTH+',height='+HEIGHT+',top='+top+',left='+left);
-	winpop.focus();
-	return winpop;
-}
+function showMetrics(rowid, data) {
 
-function signOut() {
-	auth2 = gapi.auth2.getAuthInstance();
-	if(auth2 === 'undefined')
-		console.log("auth2 is undefined");
+	var act;
+	if(data.tct > 0)
+		act = Math.round(data.tct/data.tcan);
 	
-	auth2.signOut().then(function () {
-		console.log('User signed out.');
-		$("#g-signout").hide();
+	rowid.cells[1].innerHTML = ChatStatus[data.status];
+	rowid.cells[2].innerHTML = toHHMMSS(data.tcs);
+	rowid.cells[3].innerHTML = data.ccap;
+	rowid.cells[4].innerHTML = data.activeChats.length;
+	rowid.cells[5].innerHTML = data.ccap - data.activeChats.length;
+	rowid.cells[6].innerHTML = data.tcan;
+	rowid.cells[7].innerHTML = data.cph;
+	rowid.cells[8].innerHTML = toHHMMSS(act);
+	rowid.cells[9].innerHTML = data.cconc;
 
-	if(Gid_token !== 'undefined')
-		socket.emit('un-authenticate', {token: Gid_token, email: profile.getEmail()});
-	});
 }
 
-function toHHMMSS(seconds) {
-    var sec_num = parseInt(seconds, 10); // don't forget the second param
-    var hours   = Math.floor(sec_num / 3600);
-    var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
-    var seconds = sec_num - (hours * 3600) - (minutes * 60);
-
-    if (hours   < 10) {hours   = "0"+hours;}
-    if (minutes < 10) {minutes = "0"+minutes;}
-    if (seconds < 10) {seconds = "0"+seconds;}
-    var time    = hours+':'+minutes+':'+seconds;
-    return time;
+function createRow(tableid, id, name) {
+	
+	row = tableid.insertRow();	// there is already a header row and top row
+	row.id = name;
+	var cols = tableid.rows[0].cells.length;
+	for(var i=0; i < cols; i++)
+	{
+		row.insertCell(i);
+	}
+	row.cells[0].outerHTML = "<th onClick=\"showDepartments('"+name+"')\">"+name+"</th>";
+	return row;
 }
+
+function createDeptRow(tableid,index,sg,name) {
+
+	var sgid = "SG"+sg.replace(/\s/g,"");		// prefix tbody element id with SG so doesnt clash with toplevelmetrics row
+	var tb = document.getElementById(sgid);
+	if(tb === null)
+	{
+		tb = tableid.appendChild(document.createElement('tbody'));
+		tb.id = sgid;
+	}
+	row = tb.insertRow();
+//	row = tableid.insertRow(index+1);
+	row.id = name;
+	var cols = tableid.rows[0].cells.length;
+	for(var i=0; i < cols; i++)
+	{
+		row.insertCell(i);
+	}
+	row.cells[0].outerHTML = "<td onClick=\"showOperators('"+name+"')\">"+name+"</td>";
+	$("#"+sgid).hide();		// start of hiding it
+	ShowDept[sg] = false;
+			
+	return row;
+}
+

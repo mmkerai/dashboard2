@@ -106,12 +106,6 @@ function showMetrics(rowid, data) {
 	rowid.cells[15].innerHTML = data.oavail;
 }
 
-function showOperators(did,dname) {
-	console.log("Show Dept : "+dname);
-//	window.location.href = window.location.pathname+'?did='+skill;
-	var deptpage = NewWin("operators.html?did="+did, "Department "+dname+" Dashboard");
-
-}
 
 function createRow(tableid, id, name) {
 	
