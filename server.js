@@ -750,6 +750,11 @@ function calculateACT_CPH() {
 		sgchattime[Departments[i].skillgroup] = 0;
 	}
 	
+	for(var i in Operators)
+	{
+		Operators[i].cph = 0;
+	}
+
 	for(var i in AllChats)
 	{
 		tchat = AllChats[i];
@@ -767,6 +772,7 @@ function calculateACT_CPH() {
 			{
 				cph++;
 				dcph[tchat.departmentID]++;
+				Operators[tchat.opid].cph++;
 			}
 		}
 	}
@@ -937,8 +943,11 @@ function calculateACC_CCONC_TCO() {
 			opobj.cconc = ((opobj.tct+opobj.mct)/opobj.tct).toFixed(2);
 		
 		if(opobj.statusdtime != 0)
-			opobj.tcs = Math.round(((TimeNow - opobj.statusdtime))/1000);
-
+		{
+//			opobj.tcs = Math.round(((TimeNow - opobj.statusdtime))/1000);
+			sendToLogs("Operator:status:tcs="+opobj.name+":"+opobj.status+":"+Math.round(((TimeNow - opobj.statusdtime))/1000));
+		}
+		
 		Overall.tct = Overall.tct + opobj.tct;
 		Overall.mct = Overall.mct + opobj.mct;
 		sgid = OperatorSkills[i];
