@@ -1,4 +1,7 @@
 // H3G utilities for use in dashboard and custom reports
+
+var ChatStatus = ["Logged Out","Away","Available"];
+
 function readCookie(name)
 {
   name += '=';

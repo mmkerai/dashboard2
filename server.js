@@ -254,9 +254,9 @@ app.post('/chat-started', function(req, res){
 // Process incoming Boldchat triggered chat data
 app.post('/chat-unavailable', function(req, res){
 //	debugLog("Chat-unavailable",req.body);
-	sendToLogs("Chat-unavailable, chat id: "+req.body.ChatID);
-	if(OperatorsSetupComplete)		//make sure all static data has been obtained first
-		processUnavailableChat(req.body);
+//	sendToLogs("Chat-unavailable, chat id: "+req.body.ChatID);
+//	if(OperatorsSetupComplete)		//make sure all static data has been obtained first
+//		processUnavailableChat(req.body);
 	res.send({ "result": "success" });
 });
 
@@ -558,7 +558,7 @@ function processClosedChat(chat) {
 
 	// add the total chat time for this chat
 	sendToLogs("TCT by minute is "+(opobj.tct+opobj.mct)+", TCT by calc is "+opobj.tcta);
-	var chattime = Math.round((AllChats[chat.ChatID].closed - AllChats[chat.ChatID].started)/60000);
+	var chattime = Math.round((AllChats[chat.ChatID].closed - AllChats[chat.ChatID].started)/1000);
 	opobj.tcta = opobj.tcta + chattime;
 	// now remove from active chat list and update stats
 	var achats = new Array();
@@ -589,16 +589,15 @@ function processWindowClosed(chat) {
 		return;
 	}
 
-	if(chat.ChatStatusType == 10 || chat.ChatStatusType == 18)		// blocked chats
-	{
-		Exceptions.chatsBlocked++;
-	}
-
 	deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
 	sgobj = SkillGroups[deptobj.skillgroup];
 
-	if(chat.ChatStatusType >= 7 && chat.ChatStatusType <= 15)		// unavailable email
+	if(chat.ChatStatusType == 10 || chat.ChatStatusType == 18)		// blocked chats
+	{
+		Exceptions.chatsBlocked++;
+	}
+	else if(chat.ChatStatusType >= 7 && chat.ChatStatusType <= 15)		// unavailable email
 	{
 		Overall.tcun++;
 		deptobj.tcun++;

@@ -38,7 +38,6 @@ console.log("did is "+did);
 	socket.on('deptOperators', function(ddata){
 
 		DeptOperators = ddata[did];	// get dept operators
-
 	});
 	
 	socket.on('operatorStats', function(ddata){
@@ -53,8 +52,7 @@ console.log("did is "+did);
 					showOpStats(ddata[i]);
 			}
 		}
-	});
-	
+	});	
 });
 
 function showOpStats(data) {
