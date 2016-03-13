@@ -86,6 +86,9 @@ app.get('/dashboard.js', function(req, res){
 app.get('/skillgroup.js', function(req, res){
 	res.sendFile(__dirname + '/skillgroup.js');
 });
+app.get('/department.js', function(req, res){
+	res.sendFile(__dirname + '/department.js');
+});
 app.get('/favicon.ico', function(req, res){
 	res.sendFile(__dirname + '/favicon.ico');
 });
@@ -170,6 +173,8 @@ var OpMetrics  = function(id,name) {
 		this.statusdtime = 0;	// start time of current status
 		this.activeChats = new Array();
 		this.tcs = 0;	// time in current status	
+		this.tcta = 0;	// total chat time for all chats
+		this.act = 0;	// average chat time per chat
 		this.tct = 0;	// total chat time with atleast one chat
 		this.mct = 0;	// multi chat time i.e. more than 1 chat
 };																				
@@ -520,7 +525,8 @@ function processAnsweredChat(chat) {
 	}
 }
 
-// process closed chat object. closed chat is one that is started and answered. Otherwise go to processwindowclosed
+// process closed chat object. closed chat is one that is started and answered.
+// Otherwise go to processwindowclosed
 function processClosedChat(chat) {
 	var deptobj,opobj,sgobj;
 
@@ -550,6 +556,10 @@ function processClosedChat(chat) {
 	AllChats[chat.ChatID].ended = new Date(chat.Ended);
 	AllChats[chat.ChatID].closed = new Date(chat.Closed);
 
+	// add the total chat time for this chat
+	sendToLogs("TCT by minute is "+(opobj.tct+opobj.mct)+", TCT by calc is "+opobj.tcta);
+	var chattime = Math.round((AllChats[chat.ChatID].closed - AllChats[chat.ChatID].started)/60000);
+	opobj.tcta = opobj.tcta + chattime;
 	// now remove from active chat list and update stats
 	var achats = new Array();
 	achats = opobj.activeChats;
@@ -561,6 +571,10 @@ function processClosedChat(chat) {
 			opobj.activeChats = achats;		// save back after removing
 		}
 	}
+	
+	var closedchats = opobj.tcan - achats.length;
+	if(closedchats > 0)
+		opobj.act = Math.round(opobj.tcta/closedchats);
 	
 	updateCconc(AllChats[chat.ChatID]);	// update chat conc now that it is closed
 }
