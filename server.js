@@ -424,7 +424,8 @@ function operatorAvailabilityCallback(dlist) {
 		if(typeof(OperatorSkills[operator]) !== 'undefined')		// check operator id is valid
 		{
 			Operators[operator].status = dlist[i].StatusType;
-			Operators[operator].statusdtime = TimeNow;
+			if(dlist[i].StatusType != 0)						// dont bother is logged out
+				Operators[operator].statusdtime = TimeNow;
 			// update metrics
 			if(dlist[i].StatusType == 1)
 			{
@@ -638,7 +639,6 @@ function processOperatorStatusChanged(ostatus) {
 	depts = OperatorDepts[operator];
 	if(typeof(depts) === 'undefined') return;	// operator not recognised
 
-	Operators[operator].statusdtime = TimeNow;
 	var cstatus = Operators[operator].status
 	if(cstatus == ostatus.StatusType)		// shouldnt happen but I am dubious
 	{
@@ -646,8 +646,10 @@ function processOperatorStatusChanged(ostatus) {
 		return;
 	}
 	// update metrics
+	Operators[operator].status = ostatus.StatusType;
 	if(ostatus.StatusType == 1)	// away
 	{
+		Operators[operator].statusdtime = TimeNow;
 		Overall.oaway++;
 		SkillGroups[OperatorSkills[operator]].oaway++;
 		if(cstatus == 2) 		// if operator was available
@@ -666,6 +668,7 @@ function processOperatorStatusChanged(ostatus) {
 	}
 	else if(ostatus.StatusType == 2)	// available
 	{
+		Operators[operator].statusdtime = TimeNow;
 		Overall.oavail++;
 		SkillGroups[OperatorSkills[operator]].oavail++;
 		if(cstatus == 1) 		// if operator was away
@@ -684,6 +687,7 @@ function processOperatorStatusChanged(ostatus) {
 	}
 	else if(ostatus.StatusType == 0)		// logged out
 	{
+	Operators[operator].statusdtime = 0;	// reset if operator logged out
 		if(cstatus == 1) 		// if operator was away
 		{
 			Overall.oaway--;
@@ -707,7 +711,6 @@ function processOperatorStatusChanged(ostatus) {
 			}
 		}
 	}
-	Operators[operator].status = ostatus.StatusType;
 }
 
 function updateCconc(tchat) {
@@ -1056,7 +1059,6 @@ function calculateInactiveConc() {
 		setTimeout(calculateInactiveConc, 1000);
 		return;
 	}
-	
 	calculateOperatorConc();
 }
 
@@ -1280,10 +1282,7 @@ io.sockets.on('connection', function(socket){
 		var csvdata = getCsvChatData();
 		socket.emit('chatsCsvResponse',csvdata);	
 		});
-		
 });
-
-
 
 function updateChatStats() {
 	var socketid;
@@ -1295,7 +1294,7 @@ function updateChatStats() {
 		var csvdata = getCsvChatData();
 		postToArchive(csvdata);
 		doStartOfDay();
-		setTimeout(updateChatStats, 2000);
+		setTimeout(updateChatStats, 5000);
 		return;
 	}
 	calculateLWT_CIQ();
@@ -1317,8 +1316,7 @@ function updateChatStats() {
 		io.sockets.connected[socketid].emit('exceptions', Exceptions);
 	}
 //	debugLog("Overall", Overall);
-
-	setTimeout(updateChatStats, 5000);	// send update every second
+	setTimeout(updateChatStats, 2000);	// send update every 2 second
 }
 
 
