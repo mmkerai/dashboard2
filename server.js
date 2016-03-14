@@ -558,7 +558,7 @@ function processClosedChat(chat) {
 	AllChats[chat.ChatID].closed = new Date(chat.Closed);
 
 	// add the total chat time for this chat
-	sendToLogs("TCT by minute is "+(opobj.tct+opobj.mct)+", TCT by calc is "+opobj.tcta);
+//	sendToLogs("TCT by minute is "+(opobj.tct+opobj.mct)+", TCT by calc is "+opobj.tcta);
 	var chattime = Math.round((AllChats[chat.ChatID].closed - AllChats[chat.ChatID].started)/1000);
 	opobj.tcta = opobj.tcta + chattime;
 	// now remove from active chat list and update stats
