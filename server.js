@@ -254,7 +254,7 @@ app.post('/chat-started', function(req, res){
 // Process incoming Boldchat triggered chat data
 app.post('/chat-unavailable', function(req, res){
 //	debugLog("Chat-unavailable",req.body);
-//	sendToLogs("Chat-unavailable, chat id: "+req.body.ChatID);
+	sendToLogs("Chat-unavailable, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
 //	if(OperatorsSetupComplete)		//make sure all static data has been obtained first
 //		processUnavailableChat(req.body);
 	res.send({ "result": "success" });
@@ -947,8 +947,8 @@ function calculateACC_CCONC_TCO() {
 		
 		if(opobj.statusdtime != 0)
 		{
-//			opobj.tcs = Math.round(((TimeNow - opobj.statusdtime))/1000);
-			sendToLogs("Operator:status:tcs="+opobj.name+":"+opobj.status+":"+Math.round(((TimeNow - opobj.statusdtime))/1000));
+			opobj.tcs = Math.round(((TimeNow - opobj.statusdtime))/1000);
+//			sendToLogs("Operator:status:tcs="+opobj.name+":"+opobj.status+":"+Math.round(((TimeNow - opobj.statusdtime))/1000));
 		}
 		
 		Overall.tct = Overall.tct + opobj.tct;
