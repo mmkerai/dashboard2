@@ -1162,6 +1162,7 @@ function allActiveChats(chats) {
 	}
 }
 
+
 // process all inactive (closed) chat objects
 function allInactiveChats(chats) {
 	for(var i in chats)
