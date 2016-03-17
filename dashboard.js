@@ -94,7 +94,7 @@ function showMetrics(rowid, data) {
 		slapc = Math.round((data.csla/data.tcan)*100) +"%";
 
 	rowid.cells[1].innerHTML = data.cconc;
-	rowid.cells[2].innerHTML = data.slapc;
+	rowid.cells[2].innerHTML = slapc;
 	rowid.cells[3].innerHTML = data.ciq;
 	rowid.cells[4].innerHTML = toHHMMSS(data.lwt);
 	rowid.cells[5].innerHTML = data.tco;
