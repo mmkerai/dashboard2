@@ -19,8 +19,6 @@
 // tct - total chat time
 // mct - multi chat time
 // csla - no of chats within sla
-// psla - percent of chats within sla (csla/tcan * 100)
-
 
 //********************************* Set up Express Server 
 http = require('http');
@@ -125,7 +123,7 @@ var ChatData = function(chatid, dept, sg) {
 		this.chatID = chatid;
 		this.departmentID = dept;
 		this.skillgroup = sg;
-		this.opid = 0;	// operator id of this chat
+		this.operatorID = 0;	// operator id of this chat
 		this.status = 0;	// 0 is closed, 1 is waiting (started), 2 is active (answered)
 		this.started = 0;		// times ISO times must be converted to epoch (milliseconds since 1 Jan 1970)
 		this.answered = 0;			// so it is easy to do the calculations
@@ -142,7 +140,6 @@ var DashMetrics = function(did,name,sg) {
 		this.tct = 0;
 		this.mct = 0;
 		this.csla = 0;		// number
-		this.psla = 0;		// percent
 		this.cph = 0;
 		this.ciq = 0;
 		this.lwt = 0;
@@ -506,7 +503,7 @@ function processAnsweredChat(chat) {
 	}
 	
 	AllChats[chat.ChatID].answered = new Date(chat.Answered);
-	AllChats[chat.ChatID].opid = chat.OperatorID;
+	AllChats[chat.ChatID].operatorID = chat.OperatorID;
 	AllChats[chat.ChatID].status = 2;		// active chat
 	
 	Overall.tcan++;	// answered chats
@@ -716,7 +713,7 @@ function processOperatorStatusChanged(ostatus) {
 function updateCconc(tchat) {
 	var sh,sm,eh,em,sindex,eindex;
 	var conc = new Array();
-	conc = OperatorCconc[tchat.opid];		// chat concurrency array
+	conc = OperatorCconc[tchat.operatorID];		// chat concurrency array
 		
 	sh = tchat.answered.getHours();
 	sm = tchat.answered.getMinutes();
@@ -728,7 +725,7 @@ function updateCconc(tchat) {
 	{
 		conc[count]++; // save chat activity for the closed chats
 	}			
-	OperatorCconc[tchat.opid] = conc;		// save it back for next time
+	OperatorCconc[tchat.operatorID] = conc;		// save it back for next time
 }
 
 // calculate ACT and Chat per hour - both are done after chats are complete (ended)
@@ -775,7 +772,7 @@ function calculateACT_CPH() {
 			{
 				cph++;
 				dcph[tchat.departmentID]++;
-				Operators[tchat.opid].cph++;
+				Operators[tchat.operatorID].cph++;
 			}
 		}
 	}
@@ -798,7 +795,7 @@ function calculateACT_CPH() {
 	}
 }
 
-function calculateASA_PSLA() {
+function calculateASA_SLA() {
 	var tchat,speed;
 	var count = 0, tac = 0, anstime = 0;
 	var danstime = new Object();
@@ -845,16 +842,12 @@ function calculateASA_PSLA() {
 	if(count != 0)	// dont divide by 0
 		Overall.asa = Math.round((anstime / count)/1000);
 	Overall.tac = tac;
-	if(Overall.tcan != 0)
-		Overall.psla = Math.round((Overall.csla/Overall.tcan)*100);
 	
 	for(var i in dcount)
 	{
 		if(dcount[i] != 0)	// musnt divide by 0
 			Departments[i].asa = Math.round((danstime[i] / dcount[i])/1000);
 		Departments[i].tac = dtac[i];
-		if(Departments[i].tcan != 0)
-			Departments[i].psla = Math.round((Departments[i].csla/Departments[i].tcan)*100);
 	}
 	
 	for(var i in sgcount)
@@ -862,8 +855,6 @@ function calculateASA_PSLA() {
 		if(sgcount[i] != 0)	// musnt divide by 0
 			SkillGroups[i].asa = Math.round((sganstime[i] / sgcount[i])/1000);
 		SkillGroups[i].tac = sgtac[i];
-		if(SkillGroups[i].tcan != 0)
-			SkillGroups[i].psla = Math.round((SkillGroups[i].csla/SkillGroups[i].tcan)*100);
 	}	
 }
 
@@ -1162,7 +1153,6 @@ function allActiveChats(chats) {
 	}
 }
 
-
 // process all inactive (closed) chat objects
 function allInactiveChats(chats) {
 	for(var i in chats)
@@ -1299,7 +1289,7 @@ function updateChatStats() {
 		return;
 	}
 	calculateLWT_CIQ();
-	calculateASA_PSLA();
+	calculateASA_SLA();
 	calculateACT_CPH();
 	calculateACC_CCONC_TCO();
 

@@ -83,14 +83,18 @@ function showDeptLevelStats(data) {
 function showMetrics(rowid, data) {
 	var tcanpc = " (0%)";
 	var tcunpc = " (0%)";
+	var slapc = "0%";
+	
 	if(data.tco != 0)
 	{
 		tcanpc = " ("+Math.round((data.tcan/data.tco)*100)+"%)";
 		tcunpc = " ("+Math.round((data.tcun/(data.tcun+data.tco))*100) +"%)";
 	}
+	if(data.tcan != 0)
+		slapc = Math.round((data.csla/data.tcan)*100) +"%";
 
 	rowid.cells[1].innerHTML = data.cconc;
-	rowid.cells[2].innerHTML = data.psla +"%";
+	rowid.cells[2].innerHTML = data.slapc;
 	rowid.cells[3].innerHTML = data.ciq;
 	rowid.cells[4].innerHTML = toHHMMSS(data.lwt);
 	rowid.cells[5].innerHTML = data.tco;
