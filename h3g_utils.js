@@ -96,3 +96,16 @@ function toHHMMSS(seconds) {
 function getURLParameter(name) {
   return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null
 }
+
+function NewWin(htmlfile)		// open a new window
+{
+	WIDTH = 1280;
+	HEIGHT = 768;
+	var left = (screen.width/2)-(WIDTH/2);
+	var top = (screen.height/2)-(HEIGHT/2)-64;
+	var winpop = window.open(htmlfile, '_blank',
+				'toolbar=yes,location=no,status=no,menubar=yes,scrollbars=yes,resizable=yes,width='+WIDTH+',height='+HEIGHT+',top='+top+',left='+left);
+	winpop.focus();
+	return winpop;
+}
+

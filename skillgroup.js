@@ -104,7 +104,7 @@ function showMetrics(rowid, data) {
 	rowid.cells[12].innerHTML = toHHMMSS(data.act);
 	rowid.cells[13].innerHTML = data.acc;
 	rowid.cells[14].innerHTML = data.oaway;
-	rowid.cells[15].innerHTML = data.oavail;
+	rowid.cells[15].innerHTML = data.oavail + data.oaway;
 }
 
 function createRow(tableid, id, name) {
@@ -137,20 +137,8 @@ function createDeptRow(tableid,index,sg,did,name) {
 
 function showDepartment(did,dname) {
 	console.log("Show Dept : "+dname);
-	var deptpage = NewWin("department.html?did="+did, "Department "+dname+" Dashboard");
+	var deptpage = NewWin("department.html?did="+did);
 
-}
-
-function NewWin(htmlfile, name)		// open a new window
-{
-	WIDTH = 1200;
-	HEIGHT = 768;
-	var left = (screen.width/2)-(WIDTH/2);
-	var top = (screen.height/2)-(HEIGHT/2)-64;
-	var winpop = window.open(htmlfile, name,
-				'toolbar=yes,location=no,status=no,menubar=yes,scrollbars=yes,resizable=yes,width='+WIDTH+',height='+HEIGHT+',top='+top+',left='+left);
-	winpop.focus();
-	return winpop;
 }
 
 function toHHMMSS(seconds) {
