@@ -19,20 +19,20 @@ $(document).ready(function() {
 	});
 		
  	socket.on('authErrorResponse', function(data){
-		$("#error").text(data);
+		$("#message1").text(data);
 		$("#topTable").hide();
 		$("#signinform").show();
 	});
 
  	socket.on('errorResponse', function(data){
-		$("#error").text(data);
+		$("#message1").text(data);
 	});
 
 	socket.on('authResponse', function(data){
 		saveCookie("username", data.name, 1);	// save as cookie for 1 day
 		saveCookie("password", data.pwd, 1);
 //		console.log("Save cookie: "+data.name+" and pwd "+data.pwd);
-		$('#error').text("");
+		$('#message1').text("");
 		$('#myname').text(data.name);
 		$('#signinform').hide();
 		$('#topTable').show();

@@ -12,13 +12,15 @@
 <body>
 <h2><center><img src="threelogo.png"/>&nbsp;Dashboard Monitor</center></h2>
 <div class="wrapper col-xs-12">
-	<span id="myname" class="btn btn-success">Not signed in</span>
-	<span class="btn btn-info" onClick='clearCredentials()'>Clear Credentials</span>
-	<div class="container">
-		<p class="text-left" id="error"></p>
-	</div>
+	<button type="button" id="myname" class="btn btn-primary">Not signed in</button>
+	<button type="button" class="btn btn-secondary" onClick='clearCredentials()'>Clear Credentials</button>
+	<span class="col-xs-offset-1" id="message1"></span>
+</div>
+<div class="wrapper col-xs-12">
+<span>&nbsp;</span>
+</div>
+<div class="form-horizontal col-xs-9 col-xs-offset-3">
 	<form id="signinform">
-	<div class="form-horizontal col-xs-9 col-xs-offset-3">
 		<div class="form-group">
 			<label class="control-label col-xs-2">Username:</label>
 			<div class="col-xs-3">
@@ -34,8 +36,8 @@
 				<input class="btn btn-primary" type="submit" value="Sign In"></input>
 			</div>
 		</div>
-	</div>
 	</form>
+</div>
 	<textarea id="conlog" cols="64" rows="20" class="col-xs-6 bg-info">log:</textarea>
 	<div class="container">
 		<p id="exp"></p>
