@@ -93,12 +93,6 @@ app.get('/favicon.ico', function(req, res){
 app.get('/threelogo.png', function(req, res){
 	res.sendFile(__dirname + '/threelogo.png');
 });
-app.get('/operators.html', function(req, res){
-	res.sendFile(__dirname + '/operators.html');
-});
-app.get('/operators.js', function(req, res){
-	res.sendFile(__dirname + '/operators.js');
-});
 app.get('/monitor.html', function(req, res){
 	res.sendFile(__dirname + '/monitor.html');
 });
@@ -353,6 +347,17 @@ function sendToLogs(text) {
 
 function deptsCallback(dlist) {
 	var dname, newname, sg,ch1,ch2;
+// sort alphabetically first
+	dlist.sort(function(a,b) {
+		var nameA=a.Name.toLowerCase();
+		var nameB=b.Name.toLowerCase();
+		if (nameA < nameB) //sort string ascending
+			return -1;
+		if (nameA > nameB)
+			return 1;
+		return 0; //default return value (no sorting)
+	});
+	
 	for(var i in dlist)
 	{
 		dname = dlist[i].Name;
@@ -377,6 +382,18 @@ function deptsCallback(dlist) {
 }
 
 function operatorsCallback(dlist) {
+	
+// sort alphabetically first
+	dlist.sort(function(a,b) {
+		var nameA=a.Name.toLowerCase();
+		var nameB=b.Name.toLowerCase();
+		if (nameA < nameB) //sort string ascending
+			return -1;
+		if (nameA > nameB)
+			return 1;
+		return 0; //default return value (no sorting)
+	});
+
 	for(var i in dlist) 
 	{
 		Operators[dlist[i].LoginID] = new OpMetrics(dlist[i].LoginID,dlist[i].Name);																			
@@ -597,14 +614,14 @@ function processWindowClosed(chat) {
 	{
 		Exceptions.chatsBlocked++;
 	}
-	else if(chat.ChatStatusType >= 7 && chat.ChatStatusType <= 15)		// unavailable email
+	else if(chat.ChatStatusType >= 7 && chat.ChatStatusType <= 15)		// unavailable chat
 	{
 		Overall.tcun++;
 		deptobj.tcun++;
 		sgobj.tcun++;
 	}
 	
-	if(typeof(AllChats[chat.ChatID]) === 'undefined')		// abandoned chat as not in list
+	if(typeof(AllChats[chat.ChatID]) === 'undefined')		// abandoned and available chats not in list
 		return;
 	
 	if(AllChats[chat.ChatID].answered == 0 && AllChats[chat.ChatID].started != 0)		// chat started but unanswered
@@ -626,7 +643,6 @@ function processWindowClosed(chat) {
 	AllChats[chat.ChatID].status = 0;		// inactive/complete/cancelled/closed
 	AllChats[chat.ChatID].ended = new Date(chat.Ended);
 	AllChats[chat.ChatID].closed = new Date(chat.Closed);
-
 }
 
 // process operator status changed. or unavailable
@@ -1166,8 +1182,10 @@ function allInactiveChats(chats) {
 				processClosedChat(chats[i]);	// and closed
 			}
 			else
-				processWindowClosed(chats[i]);	// closed before being answered
+				processWindowClosed(chats[i]);	// closed after starting before being answered
 		}
+		else
+			processWindowClosed(chats[i]);	// closed because unavailable
 	}
 }
 

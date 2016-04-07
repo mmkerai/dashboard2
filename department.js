@@ -18,7 +18,7 @@ console.log("did is "+did);
 		
  	socket.on('authErrorResponse', function(data){
 		$("#message1").text(data);
-		$("#topTable").hide();
+		$("#deptTable").hide();
 		$("#signinform").show();
 	});
 
@@ -95,11 +95,12 @@ function createRow(tableid, id, name) {
 	{
 		row.insertCell(i);
 	}
-	row.cells[0].outerHTML = "<th onClick=\"showDepartments('"+name+"')\">"+name+"</th>";
+//	row.cells[0].outerHTML = "<th onClick=\"showDepartments('"+name+"')\">"+name+"</th>";
+	row.cells[0].outerHTML = "<th>"+name+"</th>";
 	return row;
 }
 
-function createDeptRow(tableid,index,sg,name) {
+/*function createDeptRow(tableid,index,sg,name) {
 
 	var sgid = "SG"+sg.replace(/\s/g,"");		// prefix tbody element id with SG so doesnt clash with toplevelmetrics row
 	var tb = document.getElementById(sgid);
@@ -121,9 +122,10 @@ function createDeptRow(tableid,index,sg,name) {
 	ShowDept[sg] = false;
 			
 	return row;
-}
+}*/
 
 function exportMetrics() {
 	console.log("Exporting operator metrics");
-	buildCsvFile(Operators[0], Operators);
+//	buildCsvFile(Operators[0], Operators);
+	tableToCsvFile("deptTable");
 }

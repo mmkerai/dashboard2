@@ -145,10 +145,12 @@ function createDeptRow(tableid,index,sg,did,name) {
 
 function showDepartment(did,dname) {
 	console.log("Show Dept : "+dname);
-	var deptpage = NewWin("department.html?did="+did);
+//	var deptpage = NewWin("department.html?did="+did);
+	window.open("department.html?did="+did, '_blank');
 }
 
 function exportMetrics() {
 	console.log("Exporting department metrics");
-	buildCsvFile(SkillGroup, Departments);
+//	buildCsvFile(SkillGroup, Departments);
+	tableToCsvFile("topTable");
 }

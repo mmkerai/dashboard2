@@ -60,6 +60,7 @@ function checksignedin()
 {
 	var name = readCookie("username");
 	var pwd = readCookie("password");
+	$('#rtaversion').text("RTA Dashboard v0.8");
 	$('#download').hide();	
 //	console.log("User cookie: "+name+" and pwd "+pwd);
 	if(name == null || pwd == null)
@@ -111,6 +112,30 @@ function NewWin(htmlfile)		// open a new window
 	return winpop;
 }
 
+/* build csvfile from table to export snapshot
+ */
+function tableToCsvFile(dashTable) {
+	var key, keys, j, i, k;
+	var str = "";
+
+	$('#download').hide();	
+	$("#message1").text("Preparing file for export");
+	var exportData = "Dashboard Metrics Export "+new Date().toUTCString()+"\r\n";
+	exportData = exportData + "\r\n";
+	var ttable = document.getElementById(dashtable);
+	for(var x = 0; x < ttable.rows.length; x++)
+	{
+		row = ttable.rows[x];
+		for (var j = 0, col; col = row.cells[j]; j++)
+		{
+			str = str +"\""+ col.innerHTML + "\",";
+		} 
+		str = str + "\r\n";
+	}
+	exportData = exportData + str +"\r\n";		
+	prepareDownloadFile(exportData);
+}
+
 /* build csvfile to export snapshot
  * First param is an object and second is an array of same objects
  * e.g. Overall and Skillgroups or Skillgroup and Departments
@@ -130,6 +155,7 @@ function buildCsvFile(fdata, sdata) {
 	{
 		exportData = exportData +key+ ",";
 	}
+	exportData = exportData + "\r\n";
 	// now add the data
 	for(i in fdata)
 	{
@@ -166,7 +192,7 @@ function prepareDownloadFile(data)
 	}
 
     csvfile = window.URL.createObjectURL(filedata);
-	$("#message1").text("Snapshot export "+ new Date().toUTCString());
+	$("#message1").text("Snapshot exported "+ new Date().toUTCString());
 	$('#download').attr("href",csvfile);
 	$('#download').show(300);
 }

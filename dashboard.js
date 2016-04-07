@@ -50,14 +50,6 @@ $(document).ready(function() {
 		}
 	});
 	
-/*	socket.on('departmentStats', function(ddata){
-
-		for(var i in ddata)
-		{
-			showDeptLevelStats(ddata[i]);
-		}
-	}); */
-	
 });
 
 function showTopLevelStats(data) {
@@ -70,19 +62,6 @@ function showTopLevelStats(data) {
 	}
 	showMetrics(rowid,data);
 }
-
-/*function showDeptLevelStats(data) {
-	var rowid;
-	var ttable = document.getElementById("topTable");
-
-	rowid = document.getElementById(data.name);
-	if(rowid === null)		// row doesnt exist so create one
-	{
-		var sgrowid = document.getElementById(data.skillgroup);
-		rowid = createDeptRow(ttable,sgrowid.rowIndex,data.skillgroup,data.did,data.name);
-	}
-	showMetrics(rowid,data);
-}*/
 
 function showMetrics(rowid, data) {
 	var tcanpc = " (0%)";
@@ -128,36 +107,14 @@ function createRow(tableid, id, name) {
 	return row;
 }
 
-function createDeptRow(tableid,index,sg,did,name) {
-
-	var sgid = "SG"+sg.replace(/\s/g,"");		// prefix tbody element id with SG so doesnt clash with toplevelmetrics row
-	var tb = document.getElementById(sgid);
-	if(tb === null)
-	{
-		tb = tableid.appendChild(document.createElement('tbody'));
-		tb.id = sgid;
-	}
-	row = tb.insertRow();
-//	row = tableid.insertRow(index+1);
-	row.id = name;
-	var cols = tableid.rows[0].cells.length;
-	for(var i=0; i < cols; i++)
-	{
-		row.insertCell(i);
-	}
-	row.cells[0].outerHTML = "<td onClick=\"showOperators('"+did+"','"+name+"')\">"+name+"</td>";
-	$("#"+sgid).hide();		// start of hiding it
-	ShowDept[sg] = false;
-			
-	return row;
-}
-
 function showSkillGroup(skill,sname) {
 	console.log("Show Depts for skill group: "+sname);
-	NewWin("skillgroup.html?sgid="+sname);
+//	NewWin("skillgroup.html?sgid="+sname);
+	window.open("skillgroup.html?sgid="+sname, '_blank');
 }
 
 function exportMetrics() {
 	console.log("Exporting top-level metrics");
-	buildCsvFile(Overall, SkillGroups);
+//	buildCsvFile(Overall, SkillGroups);
+	tableToCsvFile("topTable");
 }
