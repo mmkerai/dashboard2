@@ -1,6 +1,8 @@
 var socket = io.connect();
 var did;
 var ShowDept = new Object();	// used for toggling department metrics
+var Overall = new Object();
+var SkillGroups = new Array();
 
 $(document).ready(function() {
 
@@ -14,20 +16,19 @@ $(document).ready(function() {
 	});
 		
  	socket.on('authErrorResponse', function(data){
-		$("#error").text(data);
+		$("#message1").text(data);
 		$("#topTable").hide();
 		$("#signinform").show();
 	});
 
  	socket.on('errorResponse', function(data){
-		$("#error").text(data);
+		$("#message1").text(data);
 	});
 
 	socket.on('authResponse', function(data){
 		saveCookie("username", data.name, 1);	// save as cookie for 1 day
 		saveCookie("password", data.pwd, 1);
-//		console.log("Save cookie: "+data.name+" and pwd "+data.pwd);
-		$('#error').text("");
+		$('#message1').text("");
 		$('#myname').text(data.name);
 		$("#signinform").hide();
 		$("#topTable").show();
@@ -35,24 +36,26 @@ $(document).ready(function() {
 	
 	socket.on('overallStats', function(data){
 		
+		Overall = data;
 		showTopLevelStats(data);
 	});
 	
 	socket.on('skillGroupStats', function(ddata){
 
+		SkillGroups = ddata;
 		for(var i in ddata)
 		{
 			showTopLevelStats(ddata[i]);
 		}
 	});
 	
-	socket.on('departmentStats', function(ddata){
+/*	socket.on('departmentStats', function(ddata){
 
 		for(var i in ddata)
 		{
 			showDeptLevelStats(ddata[i]);
 		}
-	});
+	}); */
 	
 });
 
@@ -67,7 +70,7 @@ function showTopLevelStats(data) {
 	showMetrics(rowid,data);
 }
 
-function showDeptLevelStats(data) {
+/*function showDeptLevelStats(data) {
 	var rowid;
 	var ttable = document.getElementById("topTable");
 
@@ -78,7 +81,7 @@ function showDeptLevelStats(data) {
 		rowid = createDeptRow(ttable,sgrowid.rowIndex,data.skillgroup,data.did,data.name);
 	}
 	showMetrics(rowid,data);
-}
+}*/
 
 function showMetrics(rowid, data) {
 	var tcanpc = " (0%)";
@@ -151,4 +154,9 @@ function createDeptRow(tableid,index,sg,did,name) {
 function showSkillGroup(skill,sname) {
 	console.log("Show Depts for skill group: "+sname);
 	NewWin("skillgroup.html?sgid="+sname);
+}
+
+function exportMetrics() {
+	console.log("Exporting top-level metrics");
+	buildCsvFile(Overall, SkillGroups);
 }

@@ -1,5 +1,7 @@
 var socket = io.connect();
 var sgid;
+var SkillGroup = new Object();
+var Departments = new Array();
 
 $(document).ready(function() {
 sgid = getURLParameter("sgid");
@@ -15,20 +17,20 @@ console.log("sgid is "+sgid);
 	});
 		
  	socket.on('authErrorResponse', function(data){
-		$("#error").text(data);
+		$("#message1").text(data);
 		$("#topTable").hide();
 		$("#signinform").show();
 	});
 
  	socket.on('errorResponse', function(data){
-		$("#error").text(data);
+		$("#message1").text(data);
 	});
 
 	socket.on('authResponse', function(data){
 		saveCookie("username", data.name, 1);	// save as cookie for 1 day
 		saveCookie("password", data.pwd, 1);
 //		console.log("Save cookie: "+data.name+" and pwd "+data.pwd);
-		$('#error').text("");
+		$('#message1').text("");
 		$('#myname').text(data.name);
 		$("#signinform").hide();
 		$("#topTable").show();
@@ -39,7 +41,10 @@ console.log("sgid is "+sgid);
 		for(var i in ddata)
 		{
 			if(ddata[i].name == sgid)
+			{
+				SkillGroup = ddata[i];
 				showTopLevelStats(ddata[i]);
+			}
 		}
 	});	
 });
@@ -49,7 +54,10 @@ console.log("sgid is "+sgid);
 		for(var i in ddata)
 		{
 			if(ddata[i].skillgroup == sgid) 	// show dept if in this skill group
+			{
+				Departments.push(ddata[i]);
 				showDeptLevelStats(ddata[i]);
+			}
 		}
 	});
 	
@@ -138,22 +146,9 @@ function createDeptRow(tableid,index,sg,did,name) {
 function showDepartment(did,dname) {
 	console.log("Show Dept : "+dname);
 	var deptpage = NewWin("department.html?did="+did);
-
 }
 
-function toHHMMSS(seconds) {
-    var sec_num = parseInt(seconds, 10); // don't forget the second param
-    var hours   = Math.floor(sec_num / 3600);
-    var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
-    var seconds = sec_num - (hours * 3600) - (minutes * 60);
-
-    if (hours   < 10) {hours   = "0"+hours;}
-    if (minutes < 10) {minutes = "0"+minutes;}
-    if (seconds < 10) {seconds = "0"+seconds;}
-    var time    = hours+':'+minutes+':'+seconds;
-    return time;
-}
-
-function getURLParameter(name) {
-  return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null
+function exportMetrics() {
+	console.log("Exporting department metrics");
+	buildCsvFile(SkillGroup, Departments);
 }

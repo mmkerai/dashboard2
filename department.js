@@ -1,6 +1,7 @@
 var socket = io.connect();
 var did;
 var DeptOperators = new Array();
+var Operators = new Array();
 
 $(document).ready(function() {
 did = getURLParameter("did");
@@ -16,20 +17,19 @@ console.log("did is "+did);
 	});
 		
  	socket.on('authErrorResponse', function(data){
-		$("#error").text(data);
+		$("#message1").text(data);
 		$("#topTable").hide();
 		$("#signinform").show();
 	});
 
  	socket.on('errorResponse', function(data){
-		$("#error").text(data);
+		$("#message1").text(data);
 	});
 
 	socket.on('authResponse', function(data){
 		saveCookie("username", data.name, 1);	// save as cookie for 1 day
 		saveCookie("password", data.pwd, 1);
-//		console.log("Save cookie: "+data.name+" and pwd "+data.pwd);
-		$('#error').text("");
+		$('#message1').text("");
 		$('#myname').text(data.name);
 		$("#signinform").hide();
 		$("#deptTable").show();
@@ -49,7 +49,10 @@ console.log("did is "+did);
 				if(ddata[i].status == 0 && ddata[i].tcan == 0)	// if logged out and have not answered some chats today
 					continue;
 				else	
+				{
+					Operators.push(ddata[i]);
 					showOpStats(ddata[i]);
+				}
 			}
 		}
 	});	
@@ -68,7 +71,7 @@ function showOpStats(data) {
 
 function showMetrics(rowid, data) {
 
-	var act;
+	var act = 0;
 	if(data.tct > 0)
 		act = Math.round(data.tct/data.tcan);
 	
@@ -76,12 +79,11 @@ function showMetrics(rowid, data) {
 	rowid.cells[2].innerHTML = toHHMMSS(data.tcs);
 	rowid.cells[3].innerHTML = data.ccap;
 	rowid.cells[4].innerHTML = data.activeChats.length;
-	rowid.cells[5].innerHTML = data.ccap - data.activeChats.length;
+	rowid.cells[5].innerHTML = data.acc;
 	rowid.cells[6].innerHTML = data.tcan;
 	rowid.cells[7].innerHTML = data.cph;
 	rowid.cells[8].innerHTML = toHHMMSS(act);
 	rowid.cells[9].innerHTML = data.cconc;
-
 }
 
 function createRow(tableid, id, name) {
@@ -121,3 +123,7 @@ function createDeptRow(tableid,index,sg,name) {
 	return row;
 }
 
+function exportMetrics() {
+	console.log("Exporting operator metrics");
+	buildCsvFile(Operators[0], Operators);
+}

@@ -1,6 +1,7 @@
 // H3G utilities for use in dashboard and custom reports
 
 var ChatStatus = ["Logged Out","Away","Available"];
+var csvfile = null;
 
 function readCookie(name)
 {
@@ -109,3 +110,61 @@ function NewWin(htmlfile)		// open a new window
 	return winpop;
 }
 
+/* build csvfile to export snapshot
+ * First param is an object and second is an array of same objects
+ * e.g. Overall and Skillgroups or Skillgroup and Departments
+ */
+function buildCsvFile(fdata, sdata) {
+	var key, keys, j, i, k;
+	var str = "";
+
+	$('#download').hide();	
+	$("#message1").text("Preparing file for export");
+	var exportData = "Dashboard Metrics Export "+new Date().toUTCString()+"\r\n";
+	// add csv header using keys in first object
+	keys = Object.keys(fdata);
+	exportData = exportData + "\r\n";
+	for(key in keys)
+	{
+		exportData = exportData +key+ ",";
+	}
+	// now add the data
+	for(i in fdata)
+	{
+		str = str + fdata[i] ",";
+	}
+	str = str + "\r\n";
+	for(j in sdata)
+	{
+		var obj = new Object();
+		obj = sdata[j];
+		for(k in obj)
+		{
+			str = str + obj[k] ",";
+		}
+	str = str + "\r\n";
+	}
+
+	exportData = exportData + str +"\r\n";
+	prepareDownloadFile(exportData);
+}
+
+/*
+ *	This function makes data (typically csv format) available for download
+ *  using the DOM id "download" which should be labelled "download file"
+ */
+function prepareDownloadFile(data)
+{
+	var filedata = new Blob([data], {type: 'text/plain'});
+	// If we are replacing a previously generated file we need to
+	// manually revoke the object URL to avoid memory leaks.
+	if (csvfile !== null)
+	{
+		window.URL.revokeObjectURL(csvfile);
+	}
+
+    csvfile = window.URL.createObjectURL(filedata);
+	$("#message1").text("Export ready");
+	$('#download').attr("href",csvfile);
+	$('#download').show(300);
+}

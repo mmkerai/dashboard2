@@ -169,9 +169,10 @@ var OpMetrics  = function(id,name) {
 		this.status = 0;	// 0 - logged out, 1 - away, 2 - available
 		this.statusdtime = 0;	// start time of current status
 		this.activeChats = new Array();
+		this.acc = 0;	// available chat capacity - only valid if operator is available	
 		this.tcs = 0;	// time in current status	
 		this.tcta = 0;	// total chat time for all chats
-		this.act = 0;	// average chat time per chat
+		this.act = 0;	// average chat time for operator
 		this.tct = 0;	// total chat time with atleast one chat
 		this.mct = 0;	// multi chat time i.e. more than 1 chat
 };																				
@@ -193,7 +194,7 @@ var TimeNow;			// global for current time
 var EndOfDay;			// global time for end of the day before all stats are reset
 var Overall;		// top level stats
 var	OperatorsSetupComplete;
-var	GetOperatorAvailabilitySuccess = false;
+var	GetOperatorAvailabilitySuccess;
 var AuthUsers = new Object();
 var Exceptions;
 
@@ -230,19 +231,19 @@ function initialiseGlobals () {
 	OperatorSkills = new Object();
 	Folders = new Object();	
 	Operators = new Object();
-	Teams = new Object();
 	TimeNow = new Date();
 	EndOfDay = new Date();
-	EndOfDay.setHours(23,59,59,0);	// last second of the day
+	EndOfDay.setUTCHours(23,59,59,999);	// last milli second of the day
 	Overall = new DashMetrics("Overall","Overall");	
 	OperatorsSetupComplete = false;
 	ApiDataNotReady = 0;
 	Exceptions = new Exception();
+	GetOperatorAvailabilitySuccess = false;
 }
 // Process incoming Boldchat triggered chat data
 app.post('/chat-started', function(req, res){
 //	debugLog("Chat-started",req.body);
-	sendToLogs("Chat-started, chat id: "+req.body.ChatID);
+	sendToLogs("Chat-started, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
 	if(OperatorsSetupComplete)		//make sure all static data has been obtained first
 		processStartedChat(req.body);
 	res.send({ "result": "success" });
@@ -260,7 +261,7 @@ app.post('/chat-unavailable', function(req, res){
 // Process incoming Boldchat triggered chat data
 app.post('/chat-answered', function(req, res){
 //	debugLog("Chat-answered",req.body);
-	sendToLogs("Chat-answered, chat id: "+req.body.ChatID);
+	sendToLogs("Chat-answered, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
 	if(OperatorsSetupComplete)		//make sure all static data has been obtained first
 		processAnsweredChat(req.body);
 	res.send({ "result": "success" });
@@ -269,7 +270,7 @@ app.post('/chat-answered', function(req, res){
 // Process incoming Boldchat triggered chat data
 app.post('/chat-closed', function(req, res){
 //	debugLog("Chat-closed", req.body);
-	sendToLogs("Chat-closed, chat id: "+req.body.ChatID);
+	sendToLogs("Chat-closed, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
 	if(OperatorsSetupComplete)		//make sure all static data has been obtained first
 		processClosedChat(req.body);
 	res.send({ "result": "success" });
@@ -278,7 +279,7 @@ app.post('/chat-closed', function(req, res){
 // Process incoming Boldchat triggered chat data
 app.post('/chat-window-closed', function(req, res){
 //	debugLog("Chat-window-closed", req.body);
-	sendToLogs("Chat-window-closed, chat id: "+req.body.ChatID);
+	sendToLogs("Chat-window-closed, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
 	if(OperatorsSetupComplete)		//make sure all static data has been obtained first
 		processWindowClosed(req.body);
 	res.send({ "result": "success" });
@@ -352,11 +353,11 @@ function sendToLogs(text) {
 
 function deptsCallback(dlist) {
 	var dname, newname, sg,ch1,ch2;
-	for(var i in dlist) 
+	for(var i in dlist)
 	{
 		dname = dlist[i].Name;
 		sg = dname.match("\\[(.*)]");	// match square brackets
-		if(sg == null) continue				// dept name does not match a skillgroup in square brackets
+		if(sg == null) continue;		// dept name does not match a skillgroup in square brackets
 		ch1 = dname.indexOf("[");
 		ch2 = dname.indexOf("]");
 		sg = dname.substring(ch1+1,ch2);	// name between the brackets
@@ -570,7 +571,7 @@ function processClosedChat(chat) {
 		}
 	}
 	
-	var closedchats = opobj.tcan - achats.length;
+	var closedchats = opobj.tcan - achats.length;	// answered chat less active
 	if(closedchats > 0)
 		opobj.act = Math.round(opobj.tcta/closedchats);
 	
@@ -584,6 +585,7 @@ function processWindowClosed(chat) {
 	if(chat.ChatStatusType == 1)		// abandoned (closed during pre chat form) chats
 	{
 		Exceptions.chatsAbandoned++;
+		Overall.tcaban++;
 		return;
 	}
 
@@ -605,7 +607,7 @@ function processWindowClosed(chat) {
 	if(typeof(AllChats[chat.ChatID]) === 'undefined')		// abandoned chat as not in list
 		return;
 	
-	if(AllChats[chat.ChatID].answered == 0 && AllChats[chat.ChatID].started != 0)		// chat started and unanswered
+	if(AllChats[chat.ChatID].answered == 0 && AllChats[chat.ChatID].started != 0)		// chat started but unanswered
 	{
 		if(chat.OperatorID == 0 || chat.OperatorID == null)	// operator unassigned
 		{
@@ -731,7 +733,7 @@ function updateCconc(tchat) {
 // calculate ACT and Chat per hour - both are done after chats are complete (ended)
 function calculateACT_CPH() {
 	var tchat, sgid;
-	var count=0,chattime=0,cph=0;
+	var count=0,ochattime=0,cph=0;
 	var dchattime = new Object();
 	var dcount = new Object();
 	var dcph = new Object();
@@ -765,7 +767,7 @@ function calculateACT_CPH() {
 			dcount[tchat.departmentID]++;
 			sgcount[sgid]++; 
 			ctime = tchat.ended - tchat.answered;
-			chattime = chattime + ctime;
+			ochattime = ochattime + ctime;
 			dchattime[tchat.departmentID] = dchattime[tchat.departmentID] + ctime;	
 			sgchattime[sgid] = sgchattime[sgid] + ctime;	
 			if(tchat.ended >= pastHour)
@@ -779,7 +781,7 @@ function calculateACT_CPH() {
 	
 	Overall.cph = cph;
 	if(count != 0)	// dont divide by 0
-		Overall.act = Math.round((chattime / count)/1000);
+		Overall.act = Math.round((ochattime / count)/1000);
 	for(var i in dcount)
 	{
 		if(dcount[i] != 0)	// musnt divide by 0
@@ -902,7 +904,6 @@ function calculateLWT_CIQ() {
 
 //use operators by dept to calc chat concurrency and available chat capacity
 function calculateACC_CCONC_TCO() {
-	var active;
 	var depts = new Array();
 	var opobj, sgid;
 
@@ -949,20 +950,19 @@ function calculateACC_CCONC_TCO() {
 		SkillGroups[sgid].mct = SkillGroups[sgid].mct + opobj.mct;
 		if(opobj.status == 2)		// make sure operator is available
 		{
-			active = opobj.ccap - opobj.activeChats.length;
-			if(active < 0) active = 0;			// make sure not negative
-			Overall.acc = Overall.acc + active;
-			SkillGroups[sgid].acc = SkillGroups[sgid].acc + active;
+			opobj.acc = opobj.ccap - opobj.activeChats.length;
+			if(opobj.acc < 0) opobj.acc = 0;			// make sure not negative
+			Overall.acc = Overall.acc + opobj.acc;
+			SkillGroups[sgid].acc = SkillGroups[sgid].acc + opobj.acc;
 		}
+		else
+			opobj.acc = 0;			// available capacity is zero if not available
 		// all depts that the operator belongs to
 		for(var x in depts)
 		{
 			Departments[depts[x]].tct = Departments[depts[x]].tct + opobj.tct;
 			Departments[depts[x]].mct = Departments[depts[x]].mct + opobj.mct;
-			if(opobj.status == 2)	// operator available
-			{
-				Departments[depts[x]].acc = Departments[depts[x]].acc + active;
-			}
+			Departments[depts[x]].acc = Departments[depts[x]].acc + opobj.acc;
 		}
 	}
 	
@@ -1182,9 +1182,8 @@ function getInactiveChatData() {
 
 	// set date to start of today. Search seems to work by looking at closed time i.e. everything that closed after
 	// "FromDate" will be included even if the created datetime is before the FromDate.
-//	var startDate = new Date();
-	var startDate = TimeNow;
-	startDate.setHours(0,0,0,0);
+	var startDate = new Date();
+	startDate.setUTCHours(0,0,0,0);
 
 	console.log("Getting inactive chat info from "+ Object.keys(Folders).length +" folders");
 	var parameters;
@@ -1285,7 +1284,7 @@ function updateChatStats() {
 		var csvdata = getCsvChatData();
 		postToArchive(csvdata);
 		doStartOfDay();
-		setTimeout(updateChatStats, 5000);
+		setTimeout(updateChatStats, 8000);
 		return;
 	}
 	calculateLWT_CIQ();
@@ -1310,7 +1309,6 @@ function updateChatStats() {
 	setTimeout(updateChatStats, 2000);	// send update every 2 second
 }
 
-
 // setup all globals TODO: add teams
 function doStartOfDay() {
 	initialiseGlobals();	// zero all memory
@@ -1324,7 +1322,6 @@ function doStartOfDay() {
 	getInactiveChatData();
 	getActiveChatData();
 	getOperatorAvailabilityData();
-
 }
 
 function checkOperatorAvailability() {
@@ -1337,4 +1334,4 @@ function checkOperatorAvailability() {
 }
 
 doStartOfDay();		// initialise everything
-setTimeout(updateChatStats,10000);	// updates socket io data at infinitum
+setTimeout(updateChatStats,8000);	// updates socket io data at infinitum
