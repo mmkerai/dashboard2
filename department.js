@@ -126,6 +126,5 @@ function createRow(tableid, id, name) {
 
 function exportMetrics() {
 	console.log("Exporting operator metrics");
-//	buildCsvFile(Operators[0], Operators);
 	tableToCsvFile("deptTable");
 }

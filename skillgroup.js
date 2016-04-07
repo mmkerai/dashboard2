@@ -151,6 +151,5 @@ function showDepartment(did,dname) {
 
 function exportMetrics() {
 	console.log("Exporting department metrics");
-//	buildCsvFile(SkillGroup, Departments);
 	tableToCsvFile("topTable");
 }

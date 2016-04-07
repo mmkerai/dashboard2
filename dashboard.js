@@ -115,6 +115,5 @@ function showSkillGroup(skill,sname) {
 
 function exportMetrics() {
 	console.log("Exporting top-level metrics");
-//	buildCsvFile(Overall, SkillGroups);
 	tableToCsvFile("topTable");
 }
