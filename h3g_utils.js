@@ -123,8 +123,9 @@ function buildCsvFile(fdata, sdata) {
 	$("#message1").text("Preparing file for export");
 	var exportData = "Dashboard Metrics Export "+new Date().toUTCString()+"\r\n";
 	// add csv header using keys in first object
-	keys = Object.keys(fdata);
 	exportData = exportData + "\r\n";
+	key = Object.keys(fdata);
+	keys = fdata[key];
 	for(key in keys)
 	{
 		exportData = exportData +key+ ",";
@@ -165,7 +166,7 @@ function prepareDownloadFile(data)
 	}
 
     csvfile = window.URL.createObjectURL(filedata);
-	$("#message1").text("Export ready");
+	$("#message1").text("Export snapshot ready");
 	$('#download').attr("href",csvfile);
 	$('#download').show(300);
 }
