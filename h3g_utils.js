@@ -114,7 +114,7 @@ function NewWin(htmlfile)		// open a new window
 
 /* build csvfile from table to export snapshot
  */
-function tableToCsvFile(dashTable) {
+function tableToCsvFile(dashtable) {
 	var key, keys, j, i, k;
 	var str = "";
 
