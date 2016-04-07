@@ -131,7 +131,7 @@ function buildCsvFile(fdata, sdata) {
 	// now add the data
 	for(i in fdata)
 	{
-		str = str + fdata[i] ",";
+		str = str + fdata[i] + ",";
 	}
 	str = str + "\r\n";
 	for(j in sdata)
@@ -140,7 +140,7 @@ function buildCsvFile(fdata, sdata) {
 		obj = sdata[j];
 		for(k in obj)
 		{
-			str = str + obj[k] ",";
+			str = str + obj[k] + ",";
 		}
 	str = str + "\r\n";
 	}
