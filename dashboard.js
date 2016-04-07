@@ -6,6 +6,7 @@ var SkillGroups = new Array();
 
 $(document).ready(function() {
 
+//	$('#download').hide();	
 	checksignedin();
 
 	$('#signinform').submit(function(event) {
