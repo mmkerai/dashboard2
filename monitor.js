@@ -53,13 +53,12 @@ $(document).ready(function() {
 	});
 
 	socket.on('usersLoggedIn', function(data){
-
-		var str = "Users logged in:<br/>";
+		var str = "Users logged in:\r\n";
 		for(var key in data)
 		{
-			str = str + data[key] +"<br/>";
+			str = str + data[key] +"\r\n";
 		}
-		$('#lusers').html(str);
+		$('#lusers').text(str);
 	});
 
 	socket.on('chatsCsvResponse', function(data){

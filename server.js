@@ -485,8 +485,8 @@ function operatorAvailabilityCallback(dlist) {
 function operatorCustomStatusCallback(dlist) {
 	if(dlist.length > 0)	// make sure return is not null
 	{
-		Operator[dlist[0].LoginID].cstatus = CustomStatus[dlist[0].CustomOperatorStatusID];
-		sendToLogs("Operator: "+Operator[dlist[0].LoginID].name+", Status: "+CustomStatus[dlist[0].CustomOperatorStatusID]);	
+		Operators[dlist[0].LoginID].cstatus = CustomStatus[dlist[0].CustomOperatorStatusID];
+		sendToLogs("Operator: "+Operators[dlist[0].LoginID].name+", Status: "+CustomStatus[dlist[0].CustomOperatorStatusID]);	
 	}
 }
 
