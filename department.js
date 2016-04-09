@@ -75,7 +75,7 @@ function showMetrics(rowid, data) {
 	if(data.tct > 0)
 		act = Math.round(data.tct/data.tcan);
 	
-	rowid.cells[1].innerHTML = ChatStatus[data.status];
+	rowid.cells[1].innerHTML = ChatStatus[data.status]+":"+data.cstatus;
 	rowid.cells[2].innerHTML = toHHMMSS(data.tcs);
 	rowid.cells[3].innerHTML = data.ccap;
 	rowid.cells[4].innerHTML = data.activeChats.length;

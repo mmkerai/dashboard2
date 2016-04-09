@@ -108,8 +108,8 @@ var Exception = function() {
 		this.chatClosedIsBlank = 0;		
 		this.chatClosedNotInList = 0;
 		this.chatsAbandoned = 0;
-		this.opStatusHasNotChanged = 0;
 		this.chatsBlocked = 0;
+		this.customStatusUndefined = 0;
 };
 
 //********************************* Global class for chat data
@@ -161,6 +161,7 @@ var OpMetrics  = function(id,name) {
 		this.cph = 0;
 		this.csla = 0;		// chats answered within SLA
 		this.status = 0;	// 0 - logged out, 1 - away, 2 - available
+		this.cstatus = 0;	// custom status
 		this.statusdtime = 0;	// start time of current status
 		this.activeChats = new Array();
 		this.acc = 0;	// available chat capacity - only valid if operator is available	
@@ -182,7 +183,7 @@ var	OperatorCconc;	// chat concurrency for each operator
 var OperatorSkills;	// skill group each operator belongs to
 var	Folders;	// array of folder ids and folder name objects
 var	Operators;	// array of operator ids and name objects
-var	Teams;	// array of team names
+var	CustomStatus;	// array of custom status names
 var ApiDataNotReady;	// Flag to show when data has been received from API so that data can be processed
 var TimeNow;			// global for current time
 var EndOfDay;			// global time for end of the day before all stats are reset
@@ -190,6 +191,7 @@ var Overall;		// top level stats
 var	OperatorsSetupComplete;
 var	GetOperatorAvailabilitySuccess;
 var AuthUsers = new Object();
+var UsersLoggedIn;
 var Exceptions;
 
 // load list of authorised users and their passwords
@@ -216,6 +218,7 @@ function sleep(milliseconds) {
 
 function initialiseGlobals () {
 	LoggedInUsers = new Array();
+	UsersLoggedIn = new Object();
 	AllChats = new Object();
 	Departments = new Object();	
 	SkillGroups = new Object();	
@@ -225,6 +228,7 @@ function initialiseGlobals () {
 	OperatorSkills = new Object();
 	Folders = new Object();	
 	Operators = new Object();
+	CustomStatus = new Object();
 	TimeNow = new Date();
 	EndOfDay = new Date();
 	EndOfDay.setUTCHours(23,59,59,999);	// last milli second of the day
@@ -416,6 +420,15 @@ function foldersCallback(dlist) {
 	sendToLogs("No of Chat Folders: "+Object.keys(Folders).length);
 }
 
+function customStatusCallback(dlist) {
+	for(var i in dlist) 
+	{
+			CustomStatus[dlist[i].CustomOperatorStatusID] = dlist[i].Name;
+	}
+	console.log("No of Custom Statuses: "+Object.keys(CustomStatus).length);
+	sendToLogs("No of Custom Statuses: "+Object.keys(CustomStatus).length);
+}
+
 function deptOperatorsCallback(dlist, dept) {
 	var doperators = new Array();
 	for(var i in dlist) 
@@ -439,6 +452,7 @@ function operatorAvailabilityCallback(dlist) {
 		if(typeof(OperatorSkills[operator]) !== 'undefined')		// check operator id is valid
 		{
 			Operators[operator].status = dlist[i].StatusType;
+			Operators[operator].cstatus = (dlist[i].CustomOperatorStatusID == null ? "" : CustomStatus[dlist[i].CustomOperatorStatusID]);
 			if(dlist[i].StatusType != 0)						// dont bother is logged out
 				Operators[operator].statusdtime = TimeNow;
 			// update metrics
@@ -465,6 +479,14 @@ function operatorAvailabilityCallback(dlist) {
 				}
 			}
 		}
+	}
+}
+
+function operatorCustomStatusCallback(dlist) {
+	if(dlist.length > 0)	// make sure return is not null
+	{
+		Operator[dlist[0].LoginID].cstatus = CustomStatus[dlist[0].CustomOperatorStatusID];
+		sendToLogs("Operator: "+Operator[dlist[0].LoginID].name+", Status: "+CustomStatus[dlist[0].CustomOperatorStatusID)];	
 	}
 }
 
@@ -649,33 +671,30 @@ function processWindowClosed(chat) {
 function processOperatorStatusChanged(ostatus) {
 	var depts = new Array();
 
-	operator = ostatus.LoginID;	
-	if(Operators[operator] === 'undefined') return;
-	depts = OperatorDepts[operator];
+	opid = ostatus.LoginID;	
+	if(Operators[opid] === 'undefined') return;
+	depts = OperatorDepts[opid];
 	if(typeof(depts) === 'undefined') return;	// operator not recognised
 
-	var cstatus = Operators[operator].status
-	if(cstatus == ostatus.StatusType)		// shouldnt happen but I am dubious
-	{
-		Exceptions.opStatusHasNotChanged++;
-		return;
-	}
+	var curstatus = Operators[opid].status
+	// Get the custom status via async API call as currently not available in the trigger
+	getApiData("getOperatorAvailability", "ServiceTypeID=1&OperatorID="+opid, operatorCustomStatusCallback);
 	// update metrics
-	Operators[operator].status = ostatus.StatusType;
+	Operators[opid].status = ostatus.StatusType;
 	if(ostatus.StatusType == 1)	// away
 	{
-		Operators[operator].statusdtime = TimeNow;
+		Operators[opid].statusdtime = TimeNow;
 		Overall.oaway++;
-		SkillGroups[OperatorSkills[operator]].oaway++;
-		if(cstatus == 2) 		// if operator was available
+		SkillGroups[OperatorSkills[opid]].oaway++;
+		if(curstatus == 2) 		// if operator was available
 		{
 			Overall.oavail--;
-			SkillGroups[OperatorSkills[operator]].oavail--;
+			SkillGroups[OperatorSkills[opid]].oavail--;
 		}
 		for(var did in depts)
 		{
 			Departments[depts[did]].oaway++;
-			if(cstatus == 2) 		// if operator was available
+			if(curstatus == 2) 		// if operator was available
 			{
 				Departments[depts[did]].oavail--;
 			}
@@ -683,18 +702,18 @@ function processOperatorStatusChanged(ostatus) {
 	}
 	else if(ostatus.StatusType == 2)	// available
 	{
-		Operators[operator].statusdtime = TimeNow;
+		Operators[opid].statusdtime = TimeNow;
 		Overall.oavail++;
-		SkillGroups[OperatorSkills[operator]].oavail++;
-		if(cstatus == 1) 		// if operator was away
+		SkillGroups[OperatorSkills[opid]].oavail++;
+		if(curstatus == 1) 		// if operator was away
 		{
 			Overall.oaway--;
-			SkillGroups[OperatorSkills[operator]].oaway--;
+			SkillGroups[OperatorSkills[opid]].oaway--;
 		}
 		for(var did in depts)
 		{
 			Departments[depts[did]].oavail++;
-			if(cstatus == 1) 		// if operator was away
+			if(curstatus == 1) 		// if operator was away
 			{
 				Departments[depts[did]].oaway--;
 			}
@@ -702,25 +721,25 @@ function processOperatorStatusChanged(ostatus) {
 	}
 	else if(ostatus.StatusType == 0)		// logged out
 	{
-	Operators[operator].statusdtime = 0;	// reset if operator logged out
-		if(cstatus == 1) 		// if operator was away
+	Operators[opid].statusdtime = 0;	// reset if operator logged out
+		if(curstatus == 1) 		// if operator was away
 		{
 			Overall.oaway--;
-			SkillGroups[OperatorSkills[operator]].oaway--;
+			SkillGroups[OperatorSkills[opid]].oaway--;
 		}
-		else if(cstatus == 2)	// or available previously
+		else if(curstatus == 2)	// or available previously
 		{
 			Overall.oavail--;
-			SkillGroups[OperatorSkills[operator]].oavail--;
+			SkillGroups[OperatorSkills[opid]].oavail--;
 		}
 		
 		for(var did in depts)
 		{
-			if(cstatus == 1) 		// if operator was away
+			if(curstatus == 1) 		// if operator was away
 			{
 				Departments[depts[did]].oaway--;
 			}
-			else if(cstatus == 2)	// or available previously
+			else if(curstatus == 2)	// or available previously
 			{
 				Departments[depts[did]].oavail--;
 			}
@@ -1269,6 +1288,7 @@ io.sockets.on('connection', function(socket){
 		{
 //			console.log("Save socket "+socket.id);
 			LoggedInUsers.push(socket.id);		// save the socket id so that updates can be sent
+			UsersLoggedIn[socket.id] = user.name;	// save the user name for monitoring purposes
 			socket.emit('authResponse',{name: user.name, pwd: user.pwd});
 			sendToLogs("authentication successful: "+user.name);
 		}
@@ -1278,6 +1298,9 @@ io.sockets.on('connection', function(socket){
 		console.log("connection disconnect");
 		var index = LoggedInUsers.indexOf(socket.id);	
 		if(index > -1) LoggedInUsers.splice(index, 1);	// remove from list of valid users
+
+		if(UsersLoggedIn[socket.id] !== undefined)
+			UsersLoggedIn[socket.id] = undefined;
 	});
 	
 	socket.on('end', function(data){
@@ -1322,6 +1345,7 @@ function updateChatStats() {
 		io.sockets.connected[socketid].emit('operatorStats', Operators);
 		io.sockets.connected[socketid].emit('consoleLogs', str);
 		io.sockets.connected[socketid].emit('exceptions', Exceptions);
+		io.sockets.connected[socketid].emit('usersLoggedIn', UsersLoggedIn);
 	}
 //	debugLog("Overall", Overall);
 	setTimeout(updateChatStats, 2000);	// send update every 2 second
@@ -1335,6 +1359,8 @@ function doStartOfDay() {
 	getApiData("getOperators", 0, operatorsCallback);
 	sleep(1000);
 	getApiData("getFolders", "FolderType=5", foldersCallback);	// get only chat folders
+	sleep(1000);
+	getApiData("getCustomOperatorStatuses", 0, customStatusCallback);
 	sleep(1000);
 	setUpDeptAndSkillGroups();
 	getInactiveChatData();

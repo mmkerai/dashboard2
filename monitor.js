@@ -52,6 +52,16 @@ $(document).ready(function() {
 		$('#exp').html(str+"<br/>");
 	});
 
+	socket.on('usersLoggedIn', function(data){
+
+		var str = "Users logged in:<br/>";
+		for(var key in data)
+		{
+			str = str + data[key] +"<br/>";
+		}
+		$('#lusers').html(str);
+	});
+
 	socket.on('chatsCsvResponse', function(data){
 		var csvfile;
 		
