@@ -173,7 +173,8 @@ var OpMetrics  = function(id,name) {
 };																				
 
 //********************************* Global variables for chat data
-var LoggedInUsers;
+var LoggedInUsers;	// used for socket ids
+var UsersLoggedIn;	// used for unique auth users logged in
 var AllChats;
 var	Departments;	// array of dept ids and dept name objects
 var	DeptOperators;	// array of operators by dept id
@@ -191,7 +192,6 @@ var Overall;		// top level stats
 var	OperatorsSetupComplete;
 var	GetOperatorAvailabilitySuccess;
 var AuthUsers = new Object();
-var UsersLoggedIn;
 var Exceptions;
 
 // load list of authorised users and their passwords
@@ -485,8 +485,9 @@ function operatorAvailabilityCallback(dlist) {
 function operatorCustomStatusCallback(dlist) {
 	if(dlist.length > 0)	// make sure return is not null
 	{
-		Operators[dlist[0].LoginID].cstatus = CustomStatus[dlist[0].CustomOperatorStatusID];
-		sendToLogs("Operator: "+Operators[dlist[0].LoginID].name+", Status: "+CustomStatus[dlist[0].CustomOperatorStatusID]);	
+		var st = (dlist[0].CustomOperatorStatusID == null ? "" : CustomStatus[dlist[0].CustomOperatorStatusID]);
+		Operators[dlist[0].LoginID].cstatus = st;
+		sendToLogs("Operator: "+Operators[dlist[0].LoginID].name+", Status: "+st);	
 	}
 }
 
