@@ -161,7 +161,7 @@ var OpMetrics  = function(id,name) {
 		this.cph = 0;
 		this.csla = 0;		// chats answered within SLA
 		this.status = 0;	// 0 - logged out, 1 - away, 2 - available
-		this.cstatus = 0;	// custom status
+		this.cstatus = "";	// custom status
 		this.statusdtime = 0;	// start time of current status
 		this.activeChats = new Array();
 		this.acc = 0;	// available chat capacity - only valid if operator is available	
@@ -452,7 +452,7 @@ function operatorAvailabilityCallback(dlist) {
 		if(typeof(OperatorSkills[operator]) !== 'undefined')		// check operator id is valid
 		{
 			Operators[operator].status = dlist[i].StatusType;
-			Operators[operator].cstatus = (dlist[i].CustomOperatorStatusID == null ? "" : CustomStatus[dlist[i].CustomOperatorStatusID]);
+			Operators[operator].cstatus = (dlist[i].CustomOperatorStatusID === null ? "" : CustomStatus[dlist[i].CustomOperatorStatusID]);
 			if(dlist[i].StatusType != 0)						// dont bother is logged out
 				Operators[operator].statusdtime = TimeNow;
 			// update metrics
