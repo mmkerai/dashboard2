@@ -52,11 +52,19 @@ $(document).ready(function() {
 		$('#exp').html(str+"<br/>");
 	});
 
+	// this gives list of socket ids to user names. Remove duplicate user name first before
+	// showing who's logged on
 	socket.on('usersLoggedIn', function(data){
 		var str = "Users logged in:\r\n";
+		var uniqNames = new Object();
 		for(var key in data)
 		{
-			str = str + data[key] +"\r\n";
+			if(uniqNames[data[key]] === undefined)
+				uniqNames[data[key]] = data[key];
+		}
+		for(var i in uniqNames)
+		{
+			str = str + i +"\r\n";
 		}
 		$('#lusers').text(str);
 	});
