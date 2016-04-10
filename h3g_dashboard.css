@@ -1,0 +1,8 @@
+/* h3g specific css (used in conjuction with bootstrap css)
+*/
+ 
+.h3g_link:hover {
+    cursor: pointer;  
+	text-decoration: underline;
+	color: red;
+}

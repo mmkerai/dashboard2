@@ -61,17 +61,6 @@ console.log("sgid is "+sgid);
 		}
 	});
 	
-function showTopLevelStats(data) {
-	var rowid;
-	var ttable = document.getElementById("topTable");
-	rowid = document.getElementById(data.name);
-	if(rowid === null)		// row doesnt exist so create one
-	{
-		rowid = createRow(ttable, data.did, data.name);
-	}
-	showMetrics(rowid,data);
-}
-
 function showDeptLevelStats(data) {
 	var rowid;
 	var ttable = document.getElementById("topTable");
@@ -82,51 +71,7 @@ function showDeptLevelStats(data) {
 		var sgrowid = document.getElementById(data.skillgroup);
 		rowid = createDeptRow(ttable,sgrowid.rowIndex,data.skillgroup,data.did,data.name);
 	}
-	showMetrics(rowid,data);
-}
-
-function showMetrics(rowid, data) {
-	var tcanpc = " (0%)";
-	var tcunpc = " (0%)";
-	var slapc = "0%";
-
-	if(data.tco != 0)
-	{
-		tcanpc = " ("+Math.round((data.tcan/data.tco)*100)+"%)";
-		tcunpc = " ("+Math.round((data.tcun/(data.tcun+data.tco))*100) +"%)";
-	}
-	if(data.tcan != 0)
-		slapc = Math.round((data.csla/data.tcan)*100) +"%";
-
-	rowid.cells[1].innerHTML = data.cconc;
-	rowid.cells[2].innerHTML = slapc;
-	rowid.cells[3].innerHTML = data.ciq;
-	rowid.cells[4].innerHTML = toHHMMSS(data.lwt);
-	rowid.cells[5].innerHTML = data.tco;
-	rowid.cells[6].innerHTML = data.tac;
-	rowid.cells[7].innerHTML = data.tcan + tcanpc;
-	rowid.cells[8].innerHTML = data.tcuq;
-	rowid.cells[9].innerHTML = data.tcua;
-	rowid.cells[10].innerHTML = data.tcun + tcunpc;
-	rowid.cells[11].innerHTML = toHHMMSS(data.asa);
-	rowid.cells[12].innerHTML = toHHMMSS(data.act);
-	rowid.cells[13].innerHTML = data.acc;
-	rowid.cells[14].innerHTML = data.oaway;
-	rowid.cells[15].innerHTML = data.oavail + data.oaway;
-}
-
-function createRow(tableid, id, name) {
-	
-	row = tableid.insertRow();	
-	row.id = name;
-	var cols = tableid.rows[0].cells.length;
-	for(var i=0; i < cols; i++)
-	{
-		row.insertCell(i);
-	}
-	row.cells[0].outerHTML = "<th onClick=\"showSkillGroup('"+id+"','"+name+"')\">"+name+"</th>";
-
-	return row;
+	showTopMetrics(rowid,data);
 }
 
 function createDeptRow(tableid,index,sg,did,name) {
@@ -138,14 +83,13 @@ function createDeptRow(tableid,index,sg,did,name) {
 	{
 		row.insertCell(i);
 	}
-	row.cells[0].outerHTML = "<td onClick=\"showDepartment('"+did+"','"+name+"')\">"+name+"</td>";
+	row.cells[0].outerHTML = "<td class='h3g_link' onClick=\"showDepartment('"+did+"','"+name+"')\">"+name+"</td>";
 	
 	return row;
 }
 
 function showDepartment(did,dname) {
-	console.log("Show Dept : "+dname);
-//	var deptpage = NewWin("department.html?did="+did);
+//	console.log("Show Dept : "+dname);
 	window.open("department.html?did="+did, '_blank');
 }
 

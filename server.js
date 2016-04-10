@@ -722,6 +722,7 @@ function processOperatorStatusChanged(ostatus) {
 	}
 	else if(ostatus.StatusType == 0)		// logged out
 	{
+	Operators[opid].cstatus = "";
 	Operators[opid].statusdtime = 0;	// reset if operator logged out
 		if(curstatus == 1) 		// if operator was away
 		{
