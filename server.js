@@ -75,8 +75,8 @@ app.get('/skillgroup.html', function(req, res){
 app.get('/department.html', function(req, res){
 	res.sendFile(__dirname + '/department.html');
 });
-app.get('/index.css', function(req, res){ 
-	res.sendFile(__dirname + '/index.css');
+app.get('/h3g_dashboard.css', function(req, res){ 
+	res.sendFile(__dirname + '/h3g_dashboard.css');
 });
 app.get('/dashboard.js', function(req, res){
 	res.sendFile(__dirname + '/dashboard.js');
