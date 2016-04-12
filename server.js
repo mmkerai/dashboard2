@@ -110,6 +110,8 @@ var Exception = function() {
 		this.chatsAbandoned = 0;
 		this.chatsBlocked = 0;
 		this.customStatusUndefined = 0;
+		this.operatorIDUndefined = 0;
+		this.operatorDeptsUndefined = 0;
 };
 
 //********************************* Global class for chat data
@@ -163,7 +165,7 @@ var OpMetrics  = function(id,name) {
 		this.status = 0;	// 0 - logged out, 1 - away, 2 - available
 		this.cstatus = "";	// custom status
 		this.statusdtime = 0;	// start time of current status
-		this.activeChats = new Array();
+		this.activeChats = 0;
 		this.acc = 0;	// available chat capacity - only valid if operator is available	
 		this.tcs = 0;	// time in current status	
 		this.tcta = 0;	// total chat time for all chats
@@ -552,6 +554,9 @@ function processAnsweredChat(chat) {
 	deptobj.tcan++;
 	opobj.tcan++;
 
+	if(opobj.activeChats == 0)
+		opobj.activeChats = new Array();
+	
 	opobj.activeChats.push(chat.ChatID);
 
 	var speed = AllChats[chat.ChatID].answered - AllChats[chat.ChatID].started;
@@ -670,24 +675,33 @@ function processWindowClosed(chat) {
 
 // process operator status changed. or unavailable
 function processOperatorStatusChanged(ostatus) {
+
+	var opid = ostatus.LoginID;	
+	if(typeof(Operators[opid]) === 'undefined')
+	{
+		Exceptions.operatorIDUndefined++;
+		return;
+	}
+
 	var depts = new Array();
-
-	opid = ostatus.LoginID;	
-	if(Operators[opid] === 'undefined') return;
 	depts = OperatorDepts[opid];
-	if(typeof(depts) === 'undefined') return;	// operator not recognised
+	if(typeof(depts) === 'undefined') // operator depts not recognised
+	{
+		Exceptions.operatorDeptsUndefined++;
+		return;	
+	}
 
-	var curstatus = Operators[opid].status
+	var oldstatus = Operators[opid].status	// save old status for later processing
 	// Get the custom status via async API call as currently not available in the trigger
 	getApiData("getOperatorAvailability", "ServiceTypeID=1&OperatorID="+opid, operatorCustomStatusCallback);
 	// update metrics
-	Operators[opid].status = ostatus.StatusType;
-	if(ostatus.StatusType == 1)	// away
+	Operators[opid].status = ostatus.StatusType;	// new status
+	if(ostatus.StatusType == 1 && oldstatus != 1)	// make sure this is an actual change
 	{
 		Operators[opid].statusdtime = TimeNow;
 		Overall.oaway++;
 		SkillGroups[OperatorSkills[opid]].oaway++;
-		if(curstatus == 2) 		// if operator was available
+		if(oldstatus == 2) 		// if operator was available
 		{
 			Overall.oavail--;
 			SkillGroups[OperatorSkills[opid]].oavail--;
@@ -695,18 +709,18 @@ function processOperatorStatusChanged(ostatus) {
 		for(var did in depts)
 		{
 			Departments[depts[did]].oaway++;
-			if(curstatus == 2) 		// if operator was available
+			if(oldstatus == 2) 		// if operator was available
 			{
 				Departments[depts[did]].oavail--;
 			}
 		}
 	}
-	else if(ostatus.StatusType == 2)	// available
+	else if(ostatus.StatusType == 2 && oldstatus != 2)	// available
 	{
 		Operators[opid].statusdtime = TimeNow;
 		Overall.oavail++;
 		SkillGroups[OperatorSkills[opid]].oavail++;
-		if(curstatus == 1) 		// if operator was away
+		if(oldstatus == 1) 		// if operator was away
 		{
 			Overall.oaway--;
 			SkillGroups[OperatorSkills[opid]].oaway--;
@@ -714,22 +728,23 @@ function processOperatorStatusChanged(ostatus) {
 		for(var did in depts)
 		{
 			Departments[depts[did]].oavail++;
-			if(curstatus == 1) 		// if operator was away
+			if(oldstatus == 1) 		// if operator was away
 			{
 				Departments[depts[did]].oaway--;
 			}
 		}
 	}
-	else if(ostatus.StatusType == 0)		// logged out
+	else if(ostatus.StatusType == 0 && oldstatus != 0)		// logged out
 	{
-	Operators[opid].cstatus = "";
-	Operators[opid].statusdtime = 0;	// reset if operator logged out
-		if(curstatus == 1) 		// if operator was away
+		Operators[opid].cstatus = "";
+		Operators[opid].statusdtime = 0;	// reset if operator logged out
+		Operators[opid].activeChats = 0;	// reset active chats in case there are any
+		if(oldstatus == 1) 		// if operator was away
 		{
 			Overall.oaway--;
 			SkillGroups[OperatorSkills[opid]].oaway--;
 		}
-		else if(curstatus == 2)	// or available previously
+		else if(oldstatus == 2)	// or available previously
 		{
 			Overall.oavail--;
 			SkillGroups[OperatorSkills[opid]].oavail--;
@@ -737,11 +752,11 @@ function processOperatorStatusChanged(ostatus) {
 		
 		for(var did in depts)
 		{
-			if(curstatus == 1) 		// if operator was away
+			if(oldstatus == 1) 		// if operator was away
 			{
 				Departments[depts[did]].oaway--;
 			}
-			else if(curstatus == 2)	// or available previously
+			else if(oldstatus == 2)	// or available previously
 			{
 				Departments[depts[did]].oavail--;
 			}
@@ -767,7 +782,7 @@ function updateCconc(tchat) {
 	OperatorCconc[tchat.operatorID] = conc;		// save it back for next time
 }
 
-// calculate ACT and Chat per hour - both are done after chats are complete (ended)
+// calculate ACT and Chat per hour - both are done after chats are complete (closed)
 function calculateACT_CPH() {
 	var tchat, sgid;
 	var count=0,ochattime=0,cph=0;
@@ -979,6 +994,8 @@ function calculateACC_CCONC_TCO() {
 			opobj.tcs = Math.round(((TimeNow - opobj.statusdtime))/1000);
 //			sendToLogs("Operator:status:tcs="+opobj.name+":"+opobj.status+":"+Math.round(((TimeNow - opobj.statusdtime))/1000));
 		}
+		else
+			opobj.tcs = 0;
 		
 		Overall.tct = Overall.tct + opobj.tct;
 		Overall.mct = Overall.mct + opobj.mct;
