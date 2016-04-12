@@ -633,6 +633,7 @@ function processWindowClosed(chat) {
 
 	deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
+	
 	sgobj = SkillGroups[deptobj.skillgroup];
 
 	if(chat.ChatStatusType == 10 || chat.ChatStatusType == 18)		// blocked chats

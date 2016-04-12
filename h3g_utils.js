@@ -60,7 +60,7 @@ function checksignedin()
 {
 	var name = readCookie("username");
 	var pwd = readCookie("password");
-	$('#rtaversion').text("RTA Dashboard v0.81");
+	$('#rtaversion').text("RTA Dashboard v0.82");
 	$('#download').hide();	
 //	console.log("User cookie: "+name+" and pwd "+pwd);
 	if(name == null || pwd == null)
