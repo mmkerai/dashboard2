@@ -165,7 +165,7 @@ var OpMetrics  = function(id,name) {
 		this.status = 0;	// 0 - logged out, 1 - away, 2 - available
 		this.cstatus = "";	// custom status
 		this.statusdtime = 0;	// start time of current status
-		this.activeChats = 0;
+		this.activeChats = new Array();
 		this.acc = 0;	// available chat capacity - only valid if operator is available	
 		this.tcs = 0;	// time in current status	
 		this.tcta = 0;	// total chat time for all chats
@@ -554,9 +554,6 @@ function processAnsweredChat(chat) {
 	deptobj.tcan++;
 	opobj.tcan++;
 
-	if(opobj.activeChats == 0)
-		opobj.activeChats = new Array();
-	
 	opobj.activeChats.push(chat.ChatID);
 
 	var speed = AllChats[chat.ChatID].answered - AllChats[chat.ChatID].started;
@@ -738,7 +735,7 @@ function processOperatorStatusChanged(ostatus) {
 	{
 		Operators[opid].cstatus = "";
 		Operators[opid].statusdtime = 0;	// reset if operator logged out
-		Operators[opid].activeChats = 0;	// reset active chats in case there are any
+		Operators[opid].activeChats = new Array();	// reset active chats in case there are any transferred
 		if(oldstatus == 1) 		// if operator was away
 		{
 			Overall.oaway--;
