@@ -322,7 +322,7 @@ eval(fs.readFileSync('hmac-sha512.js')+'');
 var https = require('https');
 
 function BC_API_Request(api_method,params,callBackFunction) {
-	var auth = AID + ':' + APISETTINGSID + ':' + (new Date()).getTime();
+	var auth = AID + ':' + SETTINGSID + ':' + (new Date()).getTime();
 	var authHash = auth + ':' + CryptoJS.SHA512(auth + KEY).toString(CryptoJS.enc.Hex);
 	var options = {
 		host : 'api.boldchat.com', 
