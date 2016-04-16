@@ -118,6 +118,12 @@ app.get('/monitor.html', function(req, res){
 app.get('/monitor.js', function(req, res){
 	res.sendFile(__dirname + '/monitor.js');
 });
+app.get('/jquery-2.1.3.min.js', function(req, res){
+	res.sendFile(__dirname + '/jquery-2.1.3.min.js');
+});
+app.get('/bootstrap.min.css', function(req, res){
+	res.sendFile(__dirname + '/bootstrap.min.css');
+});
 
 //********************************* Global class exceptions
 var Exception = function() {
