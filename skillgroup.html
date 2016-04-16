@@ -3,46 +3,17 @@
 <head>
 	<title>H3G Dashboard by Skillgroup</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+	<script type="text/javascript" src="jquery-2.1.3.min.js"></script>
+	<link rel="stylesheet" href="bootstrap.min.css">
 	<link rel="stylesheet" href="h3g_dashboard.css">
 	<script src="/socket.io/socket.io.js"></script>
 	<script src="h3g_utils.js"></script>
 	<script src="skillgroup.js"></script>
 </head>
 <body>
-<h2><center><img src="threelogo.png"/>&nbsp;Dashboard</center></h2>
-<div class="wrapper col-xs-12">
-	<button type="button" id="myname" class="btn btn-primary">Not signed in</button>
-	<button type="button" class="btn btn-secondary" onClick='clearCredentials()'>Clear Credentials</button>
-	<button type="button" class="btn btn-info" onClick='exportMetrics()'>Export</button>
-	<span class="col-xs-offset-1" id="message1"></span>
-	<a class="btn btn-success" download="RTAexport.csv" id="download">Download file</a>
-	<span id="rtaversion" class="pull-right"></span>
-</div>
-<div class="wrapper col-xs-12">
-<span>&nbsp;</span>
-</div>
-<div class="form-horizontal col-xs-9 col-xs-offset-3">
-	<form id="signinform">
-		<div class="form-group">
-			<label class="control-label col-xs-2">Username:</label>
-			<div class="col-xs-3">
-				<input class="form-control" id="username" type="text"></input>
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="control-label col-xs-2">Password:</label>
-			<div class="col-xs-3">
-				<input class="form-control" id="password" type="password"></input>
-			</div>
-			<div class="col-xs-3">
-				<input class="btn btn-primary" type="submit" value="Sign In"></input>
-			</div>
-		</div>
-	</form>
-</div>
-	<div class="form-horizontal col-xs-12">
+<script>showDashboardHeader()</script>
+<script>showLoginForm()</script>
+<div class="form-horizontal col-xs-12">
 	<table id="topTable" class="table table-fixed">
 	  <thead>
 	    <colgroup>
@@ -62,13 +33,12 @@
 		  <th title="Chats that were unavailable as percentage of chats offered">Unavailable</th>
 		  <th title="Average speed to answer">ASA</th>
 		  <th title="Average chat time">ACT</th>
-		  <th title="Available chat capacity based on 2 chats per agent">Available Chat Capacity</th>
+		  <th title="Available chat capacity based on 2 chats per agent">ACC</th>
 		  <th title="No. of agents currently set to away">Agents Away</th>
 		  <th title="No. of agents currently logged in">Agents Logged in</th>
 		  </tr>
 		</thead>
 	</table>
-	</div>
 </div>
 </body>
 </html>

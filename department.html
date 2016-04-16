@@ -3,67 +3,37 @@
 <head>
 	<title>H3G Dashboard by Department</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+	<script type="text/javascript" src="jquery-2.1.3.min.js"></script>
+	<link rel="stylesheet" href="bootstrap.min.css">
 	<script src="/socket.io/socket.io.js"></script>
 	<script src="/h3g_utils.js"></script>
 	<script src="/department.js"></script>
 </head>
 <body>
-<h2><center><img src="threelogo.png"/>&nbsp;Dashboard</center></h2>
-<div class="wrapper col-xs-12">
-	<button type="button" id="myname" class="btn btn-primary">Not signed in</button>
-	<button type="button" class="btn btn-secondary" onClick='clearCredentials()'>Clear Credentials</button>
-	<button type="button" class="btn btn-info" onClick='exportMetrics()'>Export</button>
-	<span class="col-xs-offset-1" id="message1"></span>
-	<a class="btn btn-success" download="RTAexport.csv" id="download">Download file</a>
-	<span id="rtaversion" class="pull-right"></span>
-</div>
-<div class="wrapper col-xs-12">
-<span>&nbsp;</span>
-</div>
-<div class="form-horizontal col-xs-9 col-xs-offset-3">
-	<form id="signinform">
-		<div class="form-group">
-			<label class="control-label col-xs-2">Username:</label>
-			<div class="col-xs-3">
-				<input class="form-control" id="username" type="text"></input>
-			</div>
-		</div>
-		<div class="form-group">
-			<label class="control-label col-xs-2">Password:</label>
-			<div class="col-xs-3">
-				<input class="form-control" id="password" type="password"></input>
-			</div>
-			<div class="col-xs-3">
-				<input class="btn btn-primary" type="submit" value="Sign In"></input>
-			</div>
-		</div>
-	</form>
-</div>
-	<div class="form-horizontal col-xs-12">
+<script>showDashboardHeader()</script>
+<script>showLoginForm()</script>
+<div class="form-horizontal col-xs-12">
 	<table id="deptTable" class="table table-fixed">
 	  <thead>
 	    <colgroup>
             <col class="col-md-1">
         </colgroup>
 		<tr>
-		  <th title="Name of operator">Operator</th>
+		  <th title="Name of operator">Operator Name</th>
 		  <th title="Current status">Current Status</th>
 		  <th title="Time in current status">TCS</th>
-		  <th title="Max chat capacity">Max Chat Capacity</th>
+		  <th title="Max chat capacity">MCC</th>
 		  <th title="No of chats currently active">Active</th>
-		  <th title="Max chat capacity">Available Chat Capacity</th>
+		  <th title="Max chat capacity">ACC</th>
 		  <th title="No of chats answered (active and closed)">Answered</th>
 		  <th title="Chats in previous hour">CPH</th>
 		  <th title="Average duration of a chat">ACT</th>
-		  <th title="Average concurrent chats per operator">Chat Concurrency</th>
+		  <th title="Average concurrent chats per operator">Chat Conc.</th>
 		  </tr>
 		</thead>
 		<tbody>
 		</tbody>
 	</table>
-	</div>
 </div>
 </body>
 </html>

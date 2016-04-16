@@ -51,42 +51,25 @@ console.log("did is "+did);
 				else	
 				{
 					Operators.push(ddata[i]);
-					showOpStats(ddata[i]);
+					showDeptStats(ddata[i]);
 				}
 			}
 		}
 	});	
 });
 
-function showOpStats(data) {
+function showDeptStats(data) {
 	var rowid;
 	var ttable = document.getElementById("deptTable");
 	rowid = document.getElementById(data.name);
 	if(rowid === null)		// row doesnt exist so create one
 	{
-		rowid = createRow(ttable, data.oid, data.name);
+		rowid = createDeptRow(ttable, data.oid, data.name);
 	}
-	showMetrics(rowid,data);
+	showDeptMetrics(rowid,data);
 }
 
-function showMetrics(rowid, data) {
-
-	var act = 0;
-	if(data.tct > 0)
-		act = Math.round(data.tct/data.tcan);
-	
-	rowid.cells[1].innerHTML = ChatStatus[data.status]+":"+data.cstatus;
-	rowid.cells[2].innerHTML = toHHMMSS(data.tcs);
-	rowid.cells[3].innerHTML = data.ccap;
-	rowid.cells[4].innerHTML = data.activeChats.length;
-	rowid.cells[5].innerHTML = data.acc;
-	rowid.cells[6].innerHTML = data.tcan;
-	rowid.cells[7].innerHTML = data.cph;
-	rowid.cells[8].innerHTML = toHHMMSS(act);
-	rowid.cells[9].innerHTML = data.cconc;
-}
-
-function createRow(tableid, id, name) {
+function createDeptRow(tableid, id, name) {
 	
 	row = tableid.insertRow();	// there is already a header row and top row
 	row.id = name;
@@ -95,7 +78,6 @@ function createRow(tableid, id, name) {
 	{
 		row.insertCell(i);
 	}
-//	row.cells[0].outerHTML = "<th onClick=\"showDepartments('"+name+"')\">"+name+"</th>";
 	row.cells[0].outerHTML = "<th>"+name+"</th>";
 	return row;
 }

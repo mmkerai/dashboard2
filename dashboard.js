@@ -6,7 +6,6 @@ var SkillGroups = new Array();
 
 $(document).ready(function() {
 
-//	$('#download').hide();	
 	checksignedin();
 
 	$('#signinform').submit(function(event) {
@@ -16,17 +15,17 @@ $(document).ready(function() {
 		signin(name,pwd);
 	});
 		
- 	socket.on('authErrorResponse', function(data){
+ 	socket.on('authErrorResponse', function(data) {
 		$("#message1").text(data);
 		$("#topTable").hide();
 		$("#signinform").show();
 	});
 
- 	socket.on('errorResponse', function(data){
+ 	socket.on('errorResponse', function(data) {
 		$("#message1").text(data);
 	});
 
-	socket.on('authResponse', function(data){
+	socket.on('authResponse', function(data) {
 		saveCookie("username", data.name, 1);	// save as cookie for 1 day
 		saveCookie("password", data.pwd, 1);
 		$('#message1').text("");
@@ -35,21 +34,18 @@ $(document).ready(function() {
 		$("#topTable").show();
 	});
 	
-	socket.on('overallStats', function(data){
-		
+	socket.on('overallStats', function(data) {		
 		Overall = data;
 		showTopLevelStats(data);
 	});
 	
-	socket.on('skillGroupStats', function(ddata){
-
+	socket.on('skillGroupStats', function(ddata) {
 		SkillGroups = ddata;
 		for(var i in ddata)
 		{
 			showTopLevelStats(ddata[i]);
 		}
 	});
-	
 });
 
 function showSkillGroup(skill,sname) {

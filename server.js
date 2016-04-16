@@ -1,4 +1,7 @@
-// acronyms used
+/* RTA Dashboard for H3G. 
+ * This script should run under Node.json in Heroku or on local server
+ */
+/* acronyms used in this script
 // cconc - chat concurrency
 // cph - chats per hour
 // ciq - chats in queue
@@ -12,6 +15,7 @@
 // asa - average speed to answer
 // act - average chat time
 // acc - available chat capacity
+// mcc - max chat capacity
 // aaway - total number of agents away
 // aavail - total number of agents available
 // status - current status 0 - logged out, 1 - away, 2 - available
@@ -19,51 +23,66 @@
 // tct - total chat time
 // mct - multi chat time
 // csla - no of chats within sla
-
-//********************************* Set up Express Server 
-http = require('http');
-var express = require('express'),
-	app = express(),
-	server = require('http').createServer(app),
-	io = require('socket.io').listen(server);
+*/
+//****** Set up Express Server and socket.io
+var http = require('http');
+var https = require('https');
+var app = require('express')();
+var	server = http.createServer(app);
+var	io = require('socket.io').listen(server);
+var fs = require('fs');
 var bodyParser = require('body-parser');
 app.use( bodyParser.json() );       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
   extended: true
 })); 
 
-//********************************* Get port used by Heroku
+//********** Get port used by Heroku or use a default
 var PORT = Number(process.env.PORT || 3000);
 server.listen(PORT);
 
-//********************************* Get BoldChat API Credentials stored in Heroku environmental variables
-var AID = process.env.AID || 0;
-var APISETTINGSID = process.env.APISETTINGSID || 0;
-var KEY = process.env.KEY || 0;
-var PAGEPATH = process.env.PAGEPATH || "/";
-var AUTHUSERS = JSON.parse(process.env.AUTHUSERS) || {};
-var SLATHRESHOLD = process.env.SLATHRESHOLDS;
-var VALIDACCESSNETWORKS = JSON.parse(process.env.VALIDACCESSNETWORKS) || {};  // JSON string with valid public ISP addresses { "83.83.95.62": "Mark Troyer (LMI) Home Office", "10.10.10.1": "LogMeIn UK Office", "10.10": "H3G internal Network"};
-if (AID == 0 || APISETTINGSID == 0 || KEY == 0) {
-	console.log("AID = "+AID+", APISETTINGSID = "+APISETTINGSID+", KEY = "+KEY);
-	console.log("BoldChat API Environmental Variables not set in HEROKU App.  Please verify..");
+//******* Get BoldChat API Credentials
+console.log("Reading API variables from config.json file...");
+var EnVars;
+var AID;
+var SETTINGSID;
+var KEY;
+var SLATHRESHOLD;
+var AUTHUSERS = {};
+var DoUserAuth = true;	// default do manual auth from JSON
+
+try
+{
+	EnVars = JSON.parse(fs.readFileSync('config.json', 'utf8'));
+	AID = EnVars.AID || 0;
+	SETTINGSID = EnVars.APISETTINGSID || 0;
+	KEY = EnVars.APIKEY || 0;
+	SLATHRESHOLD = EnVars.SLATHRESHOLDS || 90;
+	DoUserAuth = false;		// if using config file then must be on TechM server so no user auth required
+}
+catch(e)
+{
+	if(e.code === 'ENOENT')
+	{
+		console.log("Config file not found, Reading Heroku Environment Variables");
+		AID = process.env.AID || 0;
+		SETTINGSID = process.env.APISETTINGSID || 0;
+		KEY = process.env.APIKEY || 0;
+		AUTHUSERS = JSON.parse(process.env.AUTHUSERS) || {};
+		SLATHRESHOLD = process.env.SLATHRESHOLDS || 90;	
+	}
+	else
+		console.log("Error code: "+e.code);
+}
+
+if(AID == 0 || SETTINGSID == 0 || KEY == 0)
+{
+	console.log("BoldChat API Environmental Variables not set. Terminating!");
 	process.exit(1);
 }
 
-//********************************* Callbacks for all URL requests
-app.get(PAGEPATH, function(req, res){
-	var ip = req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0] : req.connection.remoteAddress;
-	if (VALIDACCESSNETWORKS[ip])  // TODO:  Add in Access Control via White List
-	{
-		console.log("IP Addrees: "+ip+" was on the white list.");
-	}
-	else 
-	{
-		console.log("IP Address: "+ip+" was NOT on the white list.");
-	}
-	
-	debugLog("Cookies",req.cookies);
-	debugLog("Session",req.session);
+//****** Callbacks for all URL requests
+app.get('/', function(req, res){
 	res.sendFile(__dirname + '/dashboard.html');
 });
 app.get('/h3g_utils.js', function(req, res){
@@ -108,10 +127,10 @@ var Exception = function() {
 		this.chatClosedIsBlank = 0;		
 		this.chatClosedNotInList = 0;
 		this.chatsAbandoned = 0;
+		this.chatsUnavailable = 0;
 		this.chatsBlocked = 0;
 		this.customStatusUndefined = 0;
 		this.operatorIDUndefined = 0;
-		this.operatorDeptsUndefined = 0;
 };
 
 //********************************* Global class for chat data
@@ -197,17 +216,19 @@ var AuthUsers = new Object();
 var Exceptions;
 
 // load list of authorised users and their passwords
-//console.log("Authusers: "+AUTHUSERS);
-var au = [];
-au = AUTHUSERS.users;
-for(var i in au)
+if(DoUserAuth)
 {
-	var uname = au[i].name;
-	var pwd = au[i].pwd;
-	AuthUsers[uname] = pwd;
-//	console.log("User: "+uname+" saved");
+	var au = [];
+	au = AUTHUSERS.users;
+	for(var i in au)
+	{
+		var uname = au[i].name;
+		var pwd = au[i].pwd;
+		AuthUsers[uname] = pwd;
+	//	console.log("User: "+uname+" saved");
+	}
+	console.log(Object.keys(AuthUsers).length +" user credentials loaded");
 }
-console.log(Object.keys(AuthUsers).length +" user credentials loaded");
 
 function sleep(milliseconds) {
   var start = new Date().getTime();
@@ -252,7 +273,8 @@ app.post('/chat-started', function(req, res){
 // Process incoming Boldchat triggered chat data
 app.post('/chat-unavailable', function(req, res){
 //	debugLog("Chat-unavailable",req.body);
-	sendToLogs("Chat-unavailable, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
+//	sendToLogs("Chat-unavailable, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
+	Exceptions.chatsUnavailable++;
 //	if(OperatorsSetupComplete)		//make sure all static data has been obtained first
 //		processUnavailableChat(req.body);
 	res.send({ "result": "success" });
@@ -683,11 +705,7 @@ function processOperatorStatusChanged(ostatus) {
 
 	var depts = new Array();
 	depts = OperatorDepts[opid];
-	if(typeof(depts) === 'undefined') // operator depts not recognised
-	{
-		Exceptions.operatorDeptsUndefined++;
-		return;	
-	}
+	if(typeof(depts) === 'undefined') return;	// operator depts not recognised
 
 	var oldstatus = Operators[opid].status	// save old status for later processing
 	// Get the custom status via async API call as currently not available in the trigger

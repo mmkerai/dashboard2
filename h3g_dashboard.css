@@ -6,3 +6,15 @@
 	text-decoration: underline;
 	color: red;
 }
+
+.act_red {
+	color: red;
+}
+
+.act_amber {
+	color: orange;
+}
+
+.act_green {
+	color: green;
+}

@@ -1,5 +1,9 @@
 // H3G utilities for use in dashboard and custom reports
 
+// ACT colour thresholds
+var ACTREDTHRESHOLD = 20;
+var ACTAMBERTHRESHOLD = 10;
+
 var ChatStatus = ["Logged Out","Away","Available"];
 var csvfile = null;
 
@@ -60,8 +64,8 @@ function checksignedin()
 {
 	var name = readCookie("username");
 	var pwd = readCookie("password");
-	$('#rtaversion').text("RTA Dashboard v0.82");
-	$('#download').hide();	
+	$('#rtaversion').text("RTA Dashboard v0.83");
+	$('#download').hide();
 //	console.log("User cookie: "+name+" and pwd "+pwd);
 	if(name == null || pwd == null)
 	{
@@ -162,10 +166,41 @@ function showTopMetrics(rowid, data) {
 	rowid.cells[9].innerHTML = data.tcua;
 	rowid.cells[10].innerHTML = data.tcun + tcunpc;
 	rowid.cells[11].innerHTML = toHHMMSS(data.asa);
-	rowid.cells[12].innerHTML = toHHMMSS(data.act);
+	if(data.act > ACTREDTHRESHOLD)
+		act = "<td class='act_red'>"+toHHMMSS(data.act)+"</td>";
+	else if(data.act > ACTAMBERTHRESHOLD)
+		act = "<td class='act_amber'>"+toHHMMSS(data.act)+"</td>";
+	else
+		act = "<td class='act_green'>"+toHHMMSS(data.act)+"</td>";
+			
+	rowid.cells[12].outerHTML = act;	
 	rowid.cells[13].innerHTML = data.acc;
 	rowid.cells[14].innerHTML = data.oaway;
 	rowid.cells[15].innerHTML = data.oavail+data.oaway;	// total logged in
+}
+
+function showDeptMetrics(rowid, data) {
+
+	var act = 0;
+	if(data.tct > 0)
+		act = Math.round(data.tct/data.tcan);
+	
+	rowid.cells[1].innerHTML = ChatStatus[data.status]+":"+data.cstatus;
+	rowid.cells[2].innerHTML = toHHMMSS(data.tcs);
+	rowid.cells[3].innerHTML = data.ccap;
+	rowid.cells[4].innerHTML = data.activeChats.length;
+	rowid.cells[5].innerHTML = data.acc;
+	rowid.cells[6].innerHTML = data.tcan;
+	rowid.cells[7].innerHTML = data.cph;
+	if(act > ACTREDTHRESHOLD)
+		actstr = "<td class='act_red'>"+toHHMMSS(act)+"</td>";
+	else if(act > ACTAMBERTHRESHOLD)
+		actstr = "<td class='act_amber'>"+toHHMMSS(act)+"</td>";
+	else
+		actstr = "<td class='act_green'>"+toHHMMSS(act)+"</td>";
+			
+	rowid.cells[8].outerHTML = actstr;	
+	rowid.cells[9].innerHTML = data.cconc;
 }
 
 /* build csvfile from table to export snapshot
@@ -252,3 +287,45 @@ function prepareDownloadFile(data)
 	$('#download').attr("href",csvfile);
 	$('#download').show(300);
 }
+
+function showLoginForm() {
+str = '<div class="form-horizontal col-xs-9 col-xs-offset-3">' +
+	'<form id="signinform">'+
+		'<div class="form-group">'+
+			'<label class="control-label col-xs-2">Username:</label>'+
+			'<div class="col-xs-3">'+
+				'<input class="form-control" id="username" type="text"></input>'+
+			'</div>'+
+		'</div>'+
+		'<div class="form-group">'+
+			'<label class="control-label col-xs-2">Password:</label>'+
+			'<div class="col-xs-3">'+
+				'<input class="form-control" id="password" type="password"></input>'+
+			'</div>'+
+			'<div class="col-xs-3">'+
+				'<input class="btn btn-primary" type="submit" value="Sign In"></input>'+
+			'</div>'+
+		'</div>'+
+	'</form>'+
+'</div>';
+
+document.write(str);
+}
+
+function showDashboardHeader() {
+str = '<h2><center><img src="threelogo.png"/>&nbsp;Dashboard</center></h2>'+
+	'<div class="wrapper col-xs-12">'+
+	'<button type="button" id="myname" class="btn btn-primary">Not signed in</button> '+
+	'<button type="button" class="btn btn-secondary" onClick="clearCredentials()">Clear Credentials</button> '+
+	'<button type="button" class="btn btn-info" onClick="exportMetrics()">Export</button> '+
+	'<span class="col-xs-offset-1" id="message1"></span> '+
+	'<a class="btn btn-success" download="RTAexport.csv" id="download">Download file</a> '+
+	'<span id="rtaversion" class="pull-right"></span> '+
+	'</div> '+
+'<div class="wrapper col-xs-12">'+
+'<span>&nbsp;</span>'+
+'</div>';
+
+document.write(str);
+}
+
