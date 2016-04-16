@@ -1,8 +1,8 @@
 // H3G utilities for use in dashboard and custom reports
 
 // ACT colour thresholds
-var ACTREDTHRESHOLD = 20;
-var ACTAMBERTHRESHOLD = 10;
+var ACTREDTHRESHOLD = 1200;
+var ACTAMBERTHRESHOLD = 600;
 
 var ChatStatus = ["Logged Out","Away","Available"];
 var csvfile = null;
