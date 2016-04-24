@@ -822,7 +822,7 @@ function updateCconc(tchat) {
 }
 
 function updateCSAT(tchat) {
-	chatobj = Allchats[tchat.ChatID];
+	chatobj = AllChats[tchat.ChatID];
 	
 }
 
