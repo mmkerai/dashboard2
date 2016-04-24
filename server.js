@@ -325,16 +325,20 @@ app.post('/chat-window-closed', function(req, res){
 //	debugLog("Chat-window-closed", req.body);
 	sendToLogs("Chat-window-closed, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
 	if(OperatorsSetupComplete)		//make sure all static data has been obtained first
+	{
 		processWindowClosed(req.body);
+	}
 	res.send({ "result": "success" });
 });
 
 // Process incoming Boldchat triggered operator data
 app.post('/operator-status-changed', function(req, res){ 
 //	debugLog("operator-status-changed post",req.body);
-	sendToLogs("operator-status-changed, operator id: "+Operators[req.body.LoginID].name);
 	if(OperatorsSetupComplete)		//make sure all static data has been obtained first
+	{
 		processOperatorStatusChanged(req.body);
+		sendToLogs("operator-status-changed, operator id: "+Operators[req.body.LoginID].name);
+	}
 	res.send({ "result": "success" });
 });
 
