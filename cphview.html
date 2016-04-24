@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>H3G Dashboard CPH view</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script type="text/javascript" src="jquery-2.1.3.min.js"></script>
+	<link rel="stylesheet" href="bootstrap.min.css">
+	<link rel="stylesheet" href="h3g_dashboard.css">
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="/h3g_utils.js"></script>
+	<script src="/cphview.js"></script>
+</head>
+<body>
+<script>showDashboardHeader()</script>
+<script>showLoginForm()</script>
+<div class="form-horizontal col-xs-12">
+	<table id="cphTable" class="table table-fixed">
+	    <colgroup>
+            <col class="col-md-1">
+        </colgroup>
+		<tr>
+		  <th title="Name of operator">Department</th>
+		  <th title="No of chats currently active">Active</th>
+		  <th title="Max chat capacity">ACC</th>
+		  <th title="No of chats answered (active and closed)">Answered</th>
+		  <th title="Chats in previous hour">CPH</th>
+		  <th title="Average duration of a chat">ACT</th>
+		  <th title="Average concurrent chats">Chat Conc.</th>
+		</tr>
+	</table>
+</div>
+</body>
+</html>

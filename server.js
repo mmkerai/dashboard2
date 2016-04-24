@@ -124,7 +124,12 @@ app.get('/jquery-2.1.3.min.js', function(req, res){
 app.get('/bootstrap.min.css', function(req, res){
 	res.sendFile(__dirname + '/bootstrap.min.css');
 });
-
+app.get('/csat.html', function(req, res){
+	res.sendFile(__dirname + '/csat.html');
+});
+app.get('/csat.js', function(req, res){
+	res.sendFile(__dirname + '/csat.js');
+});
 //********************************* Global class exceptions
 var Exception = function() {
 		this.chatAnsweredIsBlank = 0;
@@ -139,7 +144,17 @@ var Exception = function() {
 		this.operatorIDUndefined = 0;
 };
 
-//********************************* Global class for chat data
+//******* Global class for CSAT data
+var CSAT = function() {
+		this.nps = 0;	
+		this.responsive = 0;	
+		this.professional = 0;		
+		this.knowledge = 0;	
+		this.overall = 0;
+		this.comments = "";
+};
+
+//******* Global class for chat data
 var ChatData = function(chatid, dept, sg) {
 		this.chatID = chatid;
 		this.departmentID = dept;
@@ -150,9 +165,10 @@ var ChatData = function(chatid, dept, sg) {
 		this.answered = 0;			// so it is easy to do the calculations
 		this.ended = 0;
 		this.closed = 0;
+		this.csat = new CSAT();
 };
 
-//******************* Global class for dashboard metrics
+//******** Global class for dashboard metrics
 var DashMetrics = function(did,name,sg) {
 		this.did = did;		// used only for departments
 		this.name = name;
@@ -697,6 +713,7 @@ function processWindowClosed(chat) {
 	AllChats[chat.ChatID].status = 0;		// inactive/complete/cancelled/closed
 	AllChats[chat.ChatID].ended = new Date(chat.Ended);
 	AllChats[chat.ChatID].closed = new Date(chat.Closed);
+	updateCSAT(chat);
 }
 
 // process operator status changed. or unavailable
@@ -802,6 +819,11 @@ function updateCconc(tchat) {
 		conc[count]++; // save chat activity for the closed chats
 	}			
 	OperatorCconc[tchat.operatorID] = conc;		// save it back for next time
+}
+
+function updateCSAT(tchat) {
+	chatobj = Allchats[tchat.ChatID];
+	
 }
 
 // calculate ACT and Chat per hour - both are done after chats are complete (closed)
