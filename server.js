@@ -1291,7 +1291,7 @@ function getInactiveChatData() {
 	{
 		parameters = "FolderID="+fid+"&FromDate="+startDate.toISOString();
 		getApiData("getInactiveChats", parameters, allInactiveChats);
-		sleep(200);
+		sleep(400);
 	}	
 }
 
