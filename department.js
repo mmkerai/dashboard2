@@ -78,7 +78,7 @@ function createDeptRow(tableid, id, name) {
 	{
 		row.insertCell(i);
 	}
-	row.cells[0].outerHTML = "<th width='48'>"+name+"</th>";
+	row.cells[0].outerHTML = "<th>"+name+"</th>";
 	return row;
 }
 
