@@ -1204,7 +1204,7 @@ function getActiveChatData() {
 	{
 		parameters = "DepartmentID="+did;
 		getApiData("getActiveChats",parameters,allActiveChats);
-		sleep(200);
+		sleep(400);
 	}
 }
 
