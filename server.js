@@ -536,7 +536,11 @@ function operatorCustomStatusCallback(dlist) {
 	if(dlist.length > 0)	// make sure return is not null
 	{
 		var st = (dlist[0].CustomOperatorStatusID == null ? "" : CustomStatus[dlist[0].CustomOperatorStatusID]);
-		Operators[dlist[0].LoginID].cstatus = st;
+		if(Operators[dlist[0].LoginID].cstatus != st)	// if custom status has changed
+		{
+			Operators[dlist[0].LoginID].cstatus = st;
+			Operators[dlist[0].LoginID].statusdtime = TimeNow;
+		}
 		sendToLogs("Operator: "+Operators[dlist[0].LoginID].name+", Status: "+st);	
 	}
 }

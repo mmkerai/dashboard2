@@ -29,7 +29,6 @@ console.log("sgid is "+sgid);
 	socket.on('authResponse', function(data){
 		saveCookie("username", data.name, 1);	// save as cookie for 1 day
 		saveCookie("password", data.pwd, 1);
-//		console.log("Save cookie: "+data.name+" and pwd "+data.pwd);
 		$('#message1').text("");
 		$('#myname').text(data.name);
 		$("#signinform").hide();
@@ -61,32 +60,6 @@ console.log("sgid is "+sgid);
 		}
 	});
 	
-function showDeptLevelStats(data) {
-	var rowid;
-	var ttable = document.getElementById("topTable");
-
-	rowid = document.getElementById(data.name);
-	if(rowid === null)		// row doesnt exist so create one
-	{
-		var sgrowid = document.getElementById(data.skillgroup);
-		rowid = createDeptRow(ttable,sgrowid.rowIndex,data.skillgroup,data.did,data.name);
-	}
-	showTopMetrics(rowid,data);
-}
-
-function createDeptRow(tableid,index,sg,did,name) {
-
-	row = tableid.insertRow(index+1);
-	row.id = name;
-	var cols = tableid.rows[0].cells.length;
-	for(var i=0; i < cols; i++)
-	{
-		row.insertCell(i);
-	}
-	row.cells[0].outerHTML = "<td class='h3g_link' onClick=\"showDepartment('"+did+"','"+name+"')\">"+name+"</td>";
-	
-	return row;
-}
 
 function showDepartment(did,dname) {
 //	console.log("Show Dept : "+dname);

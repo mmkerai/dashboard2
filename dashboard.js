@@ -49,7 +49,6 @@ $(document).ready(function() {
 });
 
 function showSkillGroup(skill,sname) {
-//	console.log("Show Depts for skill group: "+sname);
 	window.open("skillgroup.html?sgid="+sname, '_blank');
 }
 

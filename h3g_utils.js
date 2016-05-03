@@ -64,7 +64,7 @@ function checksignedin()
 {
 	var name = readCookie("username");
 	var pwd = readCookie("password");
-	$('#rtaversion').text("RTA Dashboard v0.83");
+	$('#rtaversion').text("RTA Dashboard v0.84");
 	$('#download').hide();
 //	console.log("User cookie: "+name+" and pwd "+pwd);
 	if(name == null || pwd == null)
@@ -177,6 +177,33 @@ function showTopMetrics(rowid, data) {
 	rowid.cells[13].innerHTML = data.acc;
 	rowid.cells[14].innerHTML = data.oaway;
 	rowid.cells[15].innerHTML = data.oavail+data.oaway;	// total logged in
+}
+
+function showDeptLevelStats(data) {
+	var rowid;
+	var ttable = document.getElementById("topTable");
+
+	rowid = document.getElementById(data.name);
+	if(rowid === null)		// row doesnt exist so create one
+	{
+		var sgrowid = document.getElementById(data.skillgroup);
+		rowid = createDeptRow(ttable,sgrowid.rowIndex,data.skillgroup,data.did,data.name);
+	}
+	showTopMetrics(rowid,data);
+}
+
+function createDeptRow(tableid,index,sg,did,name) {
+
+	row = tableid.insertRow(index+1);
+	row.id = name;
+	var cols = tableid.rows[0].cells.length;
+	for(var i=0; i < cols; i++)
+	{
+		row.insertCell(i);
+	}
+	row.cells[0].outerHTML = "<td class='h3g_link' onClick=\"showDepartment('"+did+"','"+name+"')\">"+name+"</td>";
+	
+	return row;
 }
 
 function showDeptMetrics(rowid, data) {
