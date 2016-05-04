@@ -64,7 +64,7 @@ function checksignedin()
 {
 	var name = readCookie("username");
 	var pwd = readCookie("password");
-	$('#rtaversion').text("RTA Dashboard v0.84");
+	$('#rtaversion').text("RTA Dashboard v0.85");
 	$('#download').hide();
 //	console.log("User cookie: "+name+" and pwd "+pwd);
 	if(name == null || pwd == null)
@@ -165,15 +165,8 @@ function showTopMetrics(rowid, data) {
 	rowid.cells[8].innerHTML = data.tcuq;
 	rowid.cells[9].innerHTML = data.tcua;
 	rowid.cells[10].innerHTML = data.tcun + tcunpc;
-	rowid.cells[11].innerHTML = toHHMMSS(data.asa);
-	if(data.act > ACTREDTHRESHOLD)
-		act = "<td class='act_red'>"+toHHMMSS(data.act)+"</td>";
-	else if(data.act > ACTAMBERTHRESHOLD)
-		act = "<td class='act_amber'>"+toHHMMSS(data.act)+"</td>";
-	else
-		act = "<td class='act_green'>"+toHHMMSS(data.act)+"</td>";
-			
-	rowid.cells[12].outerHTML = act;	
+	rowid.cells[11].outerHTML = NF.printASA(data.asa);
+	rowid.cells[12].outerHTML = NF.printACT(data.act);	
 	rowid.cells[13].innerHTML = data.acc;
 	rowid.cells[14].innerHTML = data.oaway;
 	rowid.cells[15].innerHTML = data.oavail+data.oaway;	// total logged in
@@ -218,15 +211,8 @@ function showDeptMetrics(rowid, data) {
 	rowid.cells[4].innerHTML = data.activeChats.length;
 	rowid.cells[5].innerHTML = data.acc;
 	rowid.cells[6].innerHTML = data.tcan;
-	rowid.cells[7].innerHTML = data.cph;
-	if(act > ACTREDTHRESHOLD)
-		actstr = "<td class='act_red'>"+toHHMMSS(act)+"</td>";
-	else if(act > ACTAMBERTHRESHOLD)
-		actstr = "<td class='act_amber'>"+toHHMMSS(act)+"</td>";
-	else
-		actstr = "<td class='act_green'>"+toHHMMSS(act)+"</td>";
-			
-	rowid.cells[8].outerHTML = actstr;	
+	rowid.cells[7].innerHTML = data.cph;	
+	rowid.cells[8].outerHTML = NF.printACT(act);	
 	rowid.cells[9].innerHTML = data.cconc;
 }
 
@@ -355,4 +341,179 @@ str = '<h2><center><img src="threelogo.png"/>&nbsp;Dashboard</center></h2>'+
 
 document.write(str);
 }
+
+// global namespace
+var NF = NF || {
+	
+	thresholds: {
+		
+		// ACT thresholds
+		ACT: {
+			green: 0,
+			amber: 1800,
+			red: 2100
+		},
+		
+		// ASA thresholds
+		ASA: {
+			green: 0,
+			amber: 90,
+			red: 99
+		},
+		
+		// SL thresholds
+		SL: {
+			green: 90,
+			amber: 85,
+			red: 0
+		},
+		
+		// Concurrency thresholds
+		Concurrency: {
+			green: 1.60,
+			amber: 1.52,
+			red: 0.00
+		},
+		
+		// Answered thresholds
+		Answered: {
+			green: 97,
+			amber: 92,
+			red: 0
+		},
+		
+		// Unanswered thresholds
+		Unanswered: {
+			green: 0,
+			amber: 5,
+			red: 10
+		}
+	}
+		
+};
+
+// ACT
+NF.printACT = function(value) {
+	
+	if (value > this.thresholds.ACT.red) {
+		return '<span class="nf-red">' + toHHMMSS(value) + '</span>';
+	}
+	
+	else if ( value >= this.thresholds.ACT.amber && value <= this.thresholds.ACT.red ) {
+		return '<span class="nf-amber">' + toHHMMSS(value) + '</span>';
+	}
+	
+	else if ( value > this.thresholds.ACT.green && value < this.thresholds.ACT.amber ) {
+		return '<span class="nf-green">' + toHHMMSS(value) + '</span>';
+	}
+	
+	else {
+		return '<span>' + toHHMMSS(value) + '</span>';
+	}
+	
+};
+
+
+// ASA
+NF.printASA = function(value) {
+	
+	if (value > this.thresholds.ASA.red) {
+		return '<span class="nf-red">' + toHHMMSS(value) + '</span>';
+	}
+	
+	else if ( value >= this.thresholds.ASA.amber && value <= this.thresholds.ASA.red ) {
+		return '<span class="nf-amber">' + toHHMMSS(value) + '</span>';
+	}
+	
+	else if ( value > this.thresholds.ASA.green && value < this.thresholds.ASA.amber ) {
+		return '<span class="nf-green">' + toHHMMSS(value) + '</span>';
+	}
+	
+	else {
+		return '<span>' + toHHMMSS(value) + '</span>';
+	}
+};
+
+
+// SL
+NF.printSL = function(value) {
+	
+	if (value > this.thresholds.SL.green) {
+		return '<span class="nf-green">' + value + '</span>';
+	}
+	
+	else if ( value <= this.thresholds.SL.green && value >= this.thresholds.SL.amber ) {
+		return '<span class="nf-amber">' + value + '</span>';
+	}
+	
+	else if ( value < this.thresholds.SL.amber && value > this.thresholds.SL.red ) {
+		return '<span class="nf-red">' + value + '</span>';
+	}
+	
+	else {
+		return '<span>' + value + '</span>';
+	}
+};
+
+
+// Concurrency
+NF.printConcurrency = function(value) {
+	
+	if (value > this.thresholds.Concurrency.green) {
+		return '<span class="nf-green">' + value + '</span>';
+	}
+	
+	else if ( value <= this.thresholds.Concurrency.green && value >= this.thresholds.Concurrency.amber ) {
+		return '<span class="nf-amber">' + value + '</span>';
+	}
+	
+	else if ( value < this.thresholds.Concurrency.amber && value > this.thresholds.Concurrency.red ) {
+		return '<span class="nf-red">' + value + '</span>';
+	}
+	
+	else {
+		return '<span>' + value + '</span>';
+	}
+	
+};
+
+
+// Answered
+NF.printAnswered = function(value) {
+	
+	if (value > this.thresholds.Answered.green) {
+		return '<span class="nf-green">' + value + '</span>';
+	}
+	
+	else if ( value <= this.thresholds.Answered.green && value >= this.thresholds.Answered.amber ) {
+		return '<span class="nf-amber">' + value + '</span>';
+	}
+	
+	else if ( value < this.thresholds.Answered.amber && value > this.thresholds.Answered.red ) {
+		return '<span class="nf-red">' + value + '</span>';
+	}
+	
+	else {
+		return '<span>' + value + '</span>';
+	}
+	
+};
+
+
+// Unanswered
+NF.printUnanswered = function(value) {
+	
+	if (value > this.thresholds.Unanswered.red) {
+		return '<span class="nf-red">' + value + '</span>';
+	}	
+	else if ( value >= this.thresholds.Unanswered.amber && value <= this.thresholds.Unanswered.red ) {
+		return '<span class="nf-amber">' + value + '</span>';
+	}	
+	else if ( value >= this.thresholds.Unanswered.green && value < this.thresholds.Unanswered.amber ) {
+		return '<span class="nf-green">' + value + '</span>';
+	}
+	else {
+		return '<span>' + value + '</span>';
+	}
+};
 

@@ -7,14 +7,14 @@
 	color: blue;
 }
 
-.act_red {
-	color: red;
+.nf-green {
+	color: #00ff00;
 }
 
-.act_amber {
-	color: orange;
+.nf-amber {
+	color: #FFa500;
 }
 
-.act_green {
-	color: green;
+.nf-red{
+	color: #ff0000;
 }

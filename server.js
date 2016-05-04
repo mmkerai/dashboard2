@@ -1,5 +1,5 @@
 /* RTA Dashboard for H3G. 
- * This script should run under Node.json in Heroku or on local server
+ * This script should run under Node.js in Heroku or on local server
  */
 /* acronyms used in this script
 // cconc - chat concurrency
@@ -31,6 +31,7 @@ var app = require('express')();
 var	server = http.createServer(app);
 var	io = require('socket.io').listen(server);
 var fs = require('fs');
+var crypto = require('crypto');
 var bodyParser = require('body-parser');
 app.use( bodyParser.json() );       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
@@ -38,7 +39,7 @@ app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 })); 
 
 //********** Get port used by Heroku or use a default
-var PORT = Number(process.env.PORT || 3000);
+var PORT = Number(process.env.PORT || 443);
 server.listen(PORT);
 
 //******* Get BoldChat API Credentials
@@ -80,6 +81,8 @@ if(AID == 0 || SETTINGSID == 0 || KEY == 0)
 	console.log("BoldChat API Environmental Variables not set. Terminating!");
 	process.exit(1);
 }
+
+var TriggerDomain = "https://h3gdashboard-dev.herokuapp.com";		// used to validate the signature of push data
 
 //****** Callbacks for all URL requests
 app.get('/', function(req, res){
@@ -261,6 +264,43 @@ function sleep(milliseconds) {
   }
 }
 
+function validateSignature(body, triggerUrl) {
+	
+	var unencrypted = getUnencryptedSignature(body, triggerUrl);
+	var encrypted = encryptSignature(unencrypted);
+//	console.log('unencrypted signature', unencrypted);
+//	console.log('computed signature: '+ encrypted);
+//	console.log('trigger signature: '+ body.signature);
+	if(encrypted === body.signature)
+		return true;
+	
+	console.log("Trigger failed signature validation");
+	debugLog(triggerUrl,body);
+	return false;
+};
+
+function getUnencryptedSignature(body, triggerUrl) {
+	if (!body.signed) {
+		throw new Error('No signed parameter found for computing signature hash');
+	}
+	var signatureParamNames = body.signed.split('&');
+
+	var paramNameValues = new Array();
+	for (var i = 0; i < signatureParamNames.length; i++) {
+		var signParam = signatureParamNames[i];
+		paramNameValues.push(encodeURIComponent(signParam) + '=' + encodeURIComponent(body[signParam]));
+	}
+
+	var separator = triggerUrl.indexOf('?') === -1 ? '?' : '&';
+	return triggerUrl + separator + paramNameValues.join('&');
+}
+
+function encryptSignature(unencryptedSignature) {
+	var source = unencryptedSignature + KEY;
+	var hash = crypto.createHash('sha512').update(source).digest('hex');
+	return hash.toUpperCase();
+}
+
 function initialiseGlobals () {
 	LoggedInUsers = new Array();
 	UsersLoggedIn = new Object();
@@ -285,71 +325,67 @@ function initialiseGlobals () {
 }
 // Process incoming Boldchat triggered chat data
 app.post('/chat-started', function(req, res){
-//	debugLog("Chat-started",req.body);
-	sendToLogs("Chat-started, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
-	if(OperatorsSetupComplete)		//make sure all static data has been obtained first
-		processStartedChat(req.body);
-	res.send({ "result": "success" });
-});
+	if(validateSignature(req.body, TriggerDomain+'/chat-started'))
+	{
+		sendToLogs("Chat-started, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
+		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
+			processStartedChat(req.body);
 
-// Process incoming Boldchat triggered chat data
-app.post('/chat-unavailable', function(req, res){
-//	debugLog("Chat-unavailable",req.body);
-//	sendToLogs("Chat-unavailable, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
-	Exceptions.chatsUnavailable++;
-//	if(OperatorsSetupComplete)		//make sure all static data has been obtained first
-//		processUnavailableChat(req.body);
-	res.send({ "result": "success" });
+		res.send({ "result": "success" });
+	}
 });
 
 // Process incoming Boldchat triggered chat data
 app.post('/chat-answered', function(req, res){
-//	debugLog("Chat-answered",req.body);
-	sendToLogs("Chat-answered, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
-	if(OperatorsSetupComplete)		//make sure all static data has been obtained first
-		processAnsweredChat(req.body);
-	res.send({ "result": "success" });
+	if(validateSignature(req.body, TriggerDomain+'/chat-answered'))
+	{
+		sendToLogs("Chat-answered, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
+		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
+			processAnsweredChat(req.body);
+		res.send({ "result": "success" });
+	}
 });
 
 // Process incoming Boldchat triggered chat data
 app.post('/chat-closed', function(req, res){
-//	debugLog("Chat-closed", req.body);
-	sendToLogs("Chat-closed, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
-	if(OperatorsSetupComplete)		//make sure all static data has been obtained first
-		processClosedChat(req.body);
-	res.send({ "result": "success" });
+	if(validateSignature(req.body, TriggerDomain+'/chat-closed'))
+	{
+		sendToLogs("Chat-closed, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
+		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
+			processClosedChat(req.body);
+		res.send({ "result": "success" });
+	}
 });
 
 // Process incoming Boldchat triggered chat data
 app.post('/chat-window-closed', function(req, res){
-//	debugLog("Chat-window-closed", req.body);
-	sendToLogs("Chat-window-closed, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
-	if(OperatorsSetupComplete)		//make sure all static data has been obtained first
+	if(validateSignature(req.body, TriggerDomain+'/chat-window-closed'))
 	{
-		processWindowClosed(req.body);
+		sendToLogs("Chat-window-closed, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
+		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
+			processWindowClosed(req.body);
+		res.send({ "result": "success" });
 	}
-	res.send({ "result": "success" });
 });
 
 // Process incoming Boldchat triggered operator data
-app.post('/operator-status-changed', function(req, res){ 
-//	debugLog("operator-status-changed post",req.body);
-	if(OperatorsSetupComplete)		//make sure all static data has been obtained first
+app.post('/operator-status-changed', function(req, res) { 
+	if(validateSignature(req.body, TriggerDomain+'/operator-status-changed'))
 	{
-		processOperatorStatusChanged(req.body);
-		sendToLogs("operator-status-changed, operator id: "+Operators[req.body.LoginID].name);
+		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
+		{
+			processOperatorStatusChanged(req.body);
+			sendToLogs("operator-status-changed, operator id: "+Operators[req.body.LoginID].name);
+		}
+		res.send({ "result": "success" });
 	}
-	res.send({ "result": "success" });
 });
 
 // Set up code for outbound BoldChat API calls.  All of the capture callback code should ideally be packaged as an object.
-var fs = require('fs');
-eval(fs.readFileSync('hmac-sha512.js')+'');
-var https = require('https');
 
 function BC_API_Request(api_method,params,callBackFunction) {
 	var auth = AID + ':' + SETTINGSID + ':' + (new Date()).getTime();
-	var authHash = auth + ':' + CryptoJS.SHA512(auth + KEY).toString(CryptoJS.enc.Hex);
+	var authHash = auth + ':' + crypto.createHash('sha512').update(auth + KEY).digest('hex');
 	var options = {
 		host : 'api.boldchat.com', 
 		port : 443, 
@@ -366,7 +402,6 @@ function postToArchive(postdata) {
 		path : '/home/mkerai/APItriggers/h3gendofday.php', 
 		method : 'POST',
 		headers: {
- //         'Content-Type': 'application/x-www-form-urlencoded',
           'Content-Type': 'text/plain',
           'Content-Length': Buffer.byteLength(postdata)
 		}
