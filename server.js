@@ -278,7 +278,7 @@ function validateSignature(body, triggerUrl) {
 		return true;
 	
 	console.log("Trigger failed signature validation");
-	debugLog(triggerUrl,body);
+//	debugLog(triggerUrl,body);
 	return true;
 };
 
