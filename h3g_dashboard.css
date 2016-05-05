@@ -8,7 +8,7 @@
 }
 
 .nf-green {
-	color: #00ff00;
+	color: green;
 }
 
 .nf-amber {
@@ -16,5 +16,5 @@
 }
 
 .nf-red{
-	color: #ff0000;
+	color: red;
 }

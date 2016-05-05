@@ -91,8 +91,8 @@ app.get('/', function(req, res){
 app.get('/h3g_utils.js', function(req, res){
 	res.sendFile(__dirname + '/h3g_utils.js');
 });
-app.get('/h3g_nf.js', function(req, res){
-	res.sendFile(__dirname + '/h3g_nf.js');
+app.get('/thresholds.js', function(req, res){
+	res.sendFile(__dirname + '/thresholds.js');
 });
 app.get('/skillgroup.html', function(req, res){
 	res.sendFile(__dirname + '/skillgroup.html');
@@ -274,12 +274,12 @@ function validateSignature(body, triggerUrl) {
 //	console.log('unencrypted signature', unencrypted);
 //	console.log('computed signature: '+ encrypted);
 //	console.log('trigger signature: '+ body.signature);
-	if(encrypted === body.signature)
+	if(encrypted == body.signature)
 		return true;
 	
 	console.log("Trigger failed signature validation");
 //	debugLog(triggerUrl,body);
-	return true;
+	return true;	// while testing - change to false afterwards
 };
 
 function getUnencryptedSignature(body, triggerUrl) {
