@@ -91,6 +91,9 @@ app.get('/', function(req, res){
 app.get('/h3g_utils.js', function(req, res){
 	res.sendFile(__dirname + '/h3g_utils.js');
 });
+app.get('/h3g_nf.js', function(req, res){
+	res.sendFile(__dirname + '/h3g_nf.js');
+});
 app.get('/skillgroup.html', function(req, res){
 	res.sendFile(__dirname + '/skillgroup.html');
 });
@@ -276,7 +279,7 @@ function validateSignature(body, triggerUrl) {
 	
 	console.log("Trigger failed signature validation");
 	debugLog(triggerUrl,body);
-	return false;
+	return true;
 };
 
 function getUnencryptedSignature(body, triggerUrl) {
@@ -661,8 +664,6 @@ function processClosedChat(chat) {
 	deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
 	sgobj = SkillGroups[deptobj.skillgroup];
-	opobj = Operators[chat.OperatorID];
-	if(typeof(opobj) === 'undefined') return;		// an operator that doesnt exist (may happen if created during startup)
 
 	if(chat.Ended == null || chat.Ended == "")		// should not happen
 	{
@@ -684,27 +685,32 @@ function processClosedChat(chat) {
 	AllChats[chat.ChatID].ended = new Date(chat.Ended);
 	AllChats[chat.ChatID].closed = new Date(chat.Closed);
 
-	// add the total chat time for this chat
-//	sendToLogs("TCT by minute is "+(opobj.tct+opobj.mct)+", TCT by calc is "+opobj.tcta);
-	var chattime = Math.round((AllChats[chat.ChatID].closed - AllChats[chat.ChatID].started)/1000);
-	opobj.tcta = opobj.tcta + chattime;
-	// now remove from active chat list and update stats
-	var achats = new Array();
-	achats = opobj.activeChats;
-	for(var x in achats) // go through each chat
+	if(chat.OperatorID != "" && chat.OperatorID != null)
 	{
-		if(achats[x] == chat.ChatID)
+		opobj = Operators[chat.OperatorID];
+		if(typeof(opobj) === 'undefined') return;		// an operator that doesnt exist (may happen if created during startup)
+		// add the total chat time for this chat
+	//	sendToLogs("TCT by minute is "+(opobj.tct+opobj.mct)+", TCT by calc is "+opobj.tcta);
+		var chattime = Math.round((AllChats[chat.ChatID].closed - AllChats[chat.ChatID].started)/1000);
+		opobj.tcta = opobj.tcta + chattime;
+		// now remove from active chat list and update stats
+		var achats = new Array();
+		achats = opobj.activeChats;
+		for(var x in achats) // go through each chat
 		{
-			achats.splice(x,1);
-			opobj.activeChats = achats;		// save back after removing
+			if(achats[x] == chat.ChatID)
+			{
+				achats.splice(x,1);
+				opobj.activeChats = achats;		// save back after removing
+			}
 		}
+		
+		var closedchats = opobj.tcan - achats.length;	// answered chat less active
+		if(closedchats > 0)
+			opobj.act = Math.round(opobj.tcta/closedchats);
+
+		updateCconc(AllChats[chat.ChatID]);	// update chat conc now that it is closed
 	}
-	
-	var closedchats = opobj.tcan - achats.length;	// answered chat less active
-	if(closedchats > 0)
-		opobj.act = Math.round(opobj.tcta/closedchats);
-	
-	updateCconc(AllChats[chat.ChatID]);	// update chat conc now that it is closed
 }
 
 // process window closed chat object. This happens if visitor closes chat by closing the window
@@ -1485,3 +1491,4 @@ function checkOperatorAvailability() {
 
 doStartOfDay();		// initialise everything
 setTimeout(updateChatStats,8000);	// updates socket io data at infinitum
+console.log("Server started on port "+PORT);
