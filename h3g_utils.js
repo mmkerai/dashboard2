@@ -119,12 +119,12 @@ function showTopLevelStats(data) {
 	rowid = document.getElementById(data.name);
 	if(rowid === null)		// row doesnt exist so create one
 	{
-		rowid = createRow(ttable, data.did, data.name);
+		rowid = createTopRow(ttable, data.did, data.name);
 	}
 	showTopMetrics(rowid,data);
 }
 
-function createRow(tableid, id, name) {
+function createTopRow(tableid, id, name) {
 	
 	row = tableid.insertRow();	
 	row.id = name;
@@ -134,6 +134,20 @@ function createRow(tableid, id, name) {
 		row.insertCell(i);
 	}
 	row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showSkillGroup('"+id+"','"+name+"')\">"+name+"</th>";
+
+	return row;
+}
+
+function createDeptRow(tableid, id, name) {
+	
+	row = tableid.insertRow();	
+	row.id = name;
+	var cols = tableid.rows[0].cells.length;
+	for(var i=0; i < cols; i++)
+	{
+		row.insertCell(i);
+	}
+	row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showDepartment('"+id+"','"+name+"')\">"+name+"</th>";
 
 	return row;
 }
@@ -165,7 +179,7 @@ function showTopMetrics(rowid, data) {
 	rowid.cells[15].innerHTML = data.oavail+data.oaway;	// total logged in
 }
 
-function showDeptMetrics(rowid, data) {
+function showOperatorMetrics(rowid, data) {
 
 	var act = 0;
 	if(data.tct > 0)

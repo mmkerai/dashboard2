@@ -68,8 +68,18 @@ sgid = getURLParameter("sgid");
 				showDeptLevelStats(ddata[i]);
 			}
 		}
-	});
-	
+	});	
+
+function showDeptLevelStats(data) {
+	var rowid;
+	var ttable = document.getElementById("topTable");
+	rowid = document.getElementById(data.name);
+	if(rowid === null)		// row doesnt exist so create one
+	{
+		rowid = createDeptRow(ttable, data.did, data.name);
+	}
+	showTopMetrics(rowid,data);
+}
 
 function showDepartment(did,dname) {
 //	console.log("Show Dept : "+dname);

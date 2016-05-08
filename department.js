@@ -61,25 +61,25 @@ did = getURLParameter("did");
 				else	
 				{
 					Operators.push(ddata[i]);
-					showDeptStats(ddata[i]);
+					showOperatorStats(ddata[i]);
 				}
 			}
 		}
 	});	
 });
 
-function showDeptStats(data) {
+function showOperatorStats(data) {
 	var rowid;
 	var ttable = document.getElementById("deptTable");
 	rowid = document.getElementById(data.name);
 	if(rowid === null)		// row doesnt exist so create one
 	{
-		rowid = createDeptRow(ttable, data.oid, data.name);
+		rowid = createOperatorRow(ttable, data.oid, data.name);
 	}
-	showDeptMetrics(rowid,data);
+	showOperatorMetrics(rowid,data);
 }
 
-function createDeptRow(tableid, id, name) {
+function createOperatorRow(tableid, id, name) {
 	
 	row = tableid.insertRow();	// there is already a header row and top row
 	row.id = name;
