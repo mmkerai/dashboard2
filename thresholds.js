@@ -13,8 +13,8 @@ var NF = NF || {
 		// ASA thresholds
 		ASA: {
 			green: 0,
-			amber: 90,
-			red: 99
+			amber: 60,
+			red: 90
 		},
 		
 		// SL thresholds

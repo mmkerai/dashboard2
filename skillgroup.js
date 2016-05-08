@@ -1,11 +1,14 @@
-var socket = io.connect();
+var socket = new io.connect('https://h3gdashboard-dev.herokuapp.com', {
+	'reconnection': true,
+    'reconnectionDelay': 1000,
+    'reconnectionAttempts': 50
+});
 var sgid;
 var SkillGroup = new Object();
 var Departments = new Array();
 
 $(document).ready(function() {
 sgid = getURLParameter("sgid");
-console.log("sgid is "+sgid);
 
 	checksignedin();
 
@@ -16,6 +19,13 @@ console.log("sgid is "+sgid);
 		signin(name,pwd);
 	});
 		
+	socket.on('connection', function(data){
+		console.log("Socket connected");
+    });
+	socket.on('connect_timeout', function(data){
+		console.log("socket timeout at "+ new Date().toGMTString());
+	});
+
  	socket.on('authErrorResponse', function(data){
 		$("#message1").text(data);
 		$("#topTable").hide();

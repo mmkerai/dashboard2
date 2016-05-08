@@ -1,4 +1,8 @@
-var socket = io.connect();
+var socket = new io.connect('https://h3gdashboard-dev.herokuapp.com', {
+	'reconnection': true,
+    'reconnectionDelay': 1000,
+    'reconnectionAttempts': 50
+});
 var did;
 var ShowDept = new Object();	// used for toggling department metrics
 var Overall = new Object();
@@ -15,6 +19,13 @@ $(document).ready(function() {
 		signin(name,pwd);
 	});
 		
+	socket.on('connection', function(data){
+		console.log("Socket connected");
+    });
+	socket.on('connect_timeout', function(data){
+		console.log("socket timeout at "+ new Date().toGMTString());
+	});
+
  	socket.on('authErrorResponse', function(data) {
 		$("#message1").text(data);
 		$("#topTable").hide();

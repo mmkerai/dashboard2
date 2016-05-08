@@ -141,23 +141,20 @@ function createRow(tableid, id, name) {
 function showTopMetrics(rowid, data) {
 	var tcanpc = " (0%)";
 	var tcunpc = " (0%)";
-	var slapc = "0%";
 	
 	if(data.tco != 0)
 	{
 		tcanpc = " ("+Math.round((data.tcan/data.tco)*100)+"%)";
 		tcunpc = " ("+Math.round((data.tcun/(data.tcun+data.tco))*100) +"%)";
 	}
-	if(data.tcan != 0)
-		slapc = Math.round((data.csla/data.tcan)*100) +"%";
 
-	rowid.cells[1].innerHTML = data.cconc;
-	rowid.cells[2].innerHTML = slapc;
+	rowid.cells[1].outerHTML = NF.printConcurrency(data.cconc);
+	rowid.cells[2].innerHTML = NF.printSL(data);
 	rowid.cells[3].innerHTML = data.ciq;
 	rowid.cells[4].innerHTML = toHHMMSS(data.lwt);
 	rowid.cells[5].innerHTML = data.tco;
 	rowid.cells[6].innerHTML = data.tac;
-	rowid.cells[7].innerHTML = data.tcan + tcanpc;
+	rowid.cells[7].innerHTML = NF.printAnswered(data);
 	rowid.cells[8].innerHTML = data.tcuq;
 	rowid.cells[9].innerHTML = data.tcua;
 	rowid.cells[10].innerHTML = data.tcun + tcunpc;
@@ -166,33 +163,6 @@ function showTopMetrics(rowid, data) {
 	rowid.cells[13].innerHTML = data.acc;
 	rowid.cells[14].innerHTML = data.oaway;
 	rowid.cells[15].innerHTML = data.oavail+data.oaway;	// total logged in
-}
-
-function showDeptLevelStats(data) {
-	var rowid;
-	var ttable = document.getElementById("topTable");
-
-	rowid = document.getElementById(data.name);
-	if(rowid === null)		// row doesnt exist so create one
-	{
-		var sgrowid = document.getElementById(data.skillgroup);
-		rowid = createDeptRow(ttable,sgrowid.rowIndex,data.skillgroup,data.did,data.name);
-	}
-	showTopMetrics(rowid,data);
-}
-
-function createDeptRow(tableid,index,sg,did,name) {
-
-	row = tableid.insertRow(index+1);
-	row.id = name;
-	var cols = tableid.rows[0].cells.length;
-	for(var i=0; i < cols; i++)
-	{
-		row.insertCell(i);
-	}
-	row.cells[0].outerHTML = "<td class='h3g_link' onClick=\"showDepartment('"+did+"','"+name+"')\">"+name+"</td>";
-	
-	return row;
 }
 
 function showDeptMetrics(rowid, data) {
@@ -209,7 +179,7 @@ function showDeptMetrics(rowid, data) {
 	rowid.cells[6].innerHTML = data.tcan;
 	rowid.cells[7].innerHTML = data.cph;	
 	rowid.cells[8].outerHTML = NF.printACT(act);	
-	rowid.cells[9].innerHTML = data.cconc;
+	rowid.cells[9].outerHTML = NF.printConcurrency(data.cconc);
 }
 
 /* build csvfile from table to export snapshot
@@ -369,16 +339,20 @@ NF.printASA = function(value) {
 };
 
 // SL
-NF.printSL = function(value) {
+NF.printSL = function(data) {
+	var slapc = 0;
+
+	if(data.tcan != 0)
+		slapc = Math.round((data.csla/data.tcan)*100);
+
+	if (slapc > this.thresholds.SL.green)
+		return '<td class="nf-green">' + slapc + '%</td>';
 	
-	if (value > this.thresholds.SL.green)
-		return '<td class="nf-green">' + value + '</td>';
-	
-	else if ( value <= this.thresholds.SL.green && value >= this.thresholds.SL.amber ) 
-		return '<td class="nf-amber">' + value + '</td>';
+	else if (slapc <= this.thresholds.SL.green && slapc >= this.thresholds.SL.amber) 
+		return '<td class="nf-amber">' + slapc + '%</td>';
 	
 	else 
-		return '<td class="nf-red">' + value + '</td>';
+		return '<td class="nf-red">' + slapc + '%</td>';
 };
 
 // Concurrency
@@ -394,20 +368,26 @@ NF.printConcurrency = function(value) {
 		return '<td class="nf-red">' + value + '</td>';
 };
 
-
 // Answered
-NF.printAnswered = function(value) {
-	
-	if (value > this.thresholds.Answered.green)
-		return '<td class="nf-green">' + value + '</td>';
-	
-	else if ( value <= this.thresholds.Answered.green && value >= this.thresholds.Answered.amber )
-		return '<td class="nf-amber">' + value + '</td>';
-	
-	else 
-		return '<td class="nf-red">' + value + '</td>';
-};
+NF.printAnswered = function(data) {
+	var value = 0;
 
+	if(data.tco != 0)
+		value = Math.round((data.tcan/data.tco)*100);
+		
+	tcanpc = data.tcan+" ("+value+"%)";
+
+	if (value == 0)			// 0 so default colour
+		return '<td>' + tcanpc + '</td>';
+
+	if (value >= this.thresholds.Answered.green)
+		return '<td class="nf-green">' + tcanpc + '</td>';
+	
+	if (value < this.thresholds.Answered.green && value >= this.thresholds.Answered.amber)
+		return '<td class="nf-amber">' + tcanpc + '</td>';
+	
+	return '<td class="nf-red">' + tcanpc + '</td>';
+};
 
 // Unanswered
 NF.printUnanswered = function(value) {
@@ -415,7 +395,7 @@ NF.printUnanswered = function(value) {
 	if (value > this.thresholds.Unanswered.red)
 		return '<td class="nf-red">' + value + '</td>';
 		
-	else if ( value >= this.thresholds.Unanswered.amber && value <= this.thresholds.Unanswered.red )
+	else if ( value >= this.thresholds.Unanswered.amber && value <= this.thresholds.Unanswered.red)
 		return '<td class="nf-amber">' + value + '</td>';
 	
 	else
