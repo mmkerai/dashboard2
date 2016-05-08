@@ -59,10 +59,6 @@ $(document).ready(function() {
 	});
 });
 
-function showSkillGroup(skill,sname) {
-	window.open("skillgroup.html?sgid="+sname, '_blank');
-}
-
 function exportMetrics() {
 	console.log("Exporting top-level metrics");
 	tableToCsvFile("topTable");

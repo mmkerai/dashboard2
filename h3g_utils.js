@@ -60,7 +60,7 @@ function checksignedin()
 {
 	var name = readCookie("username");
 	var pwd = readCookie("password");
-	$('#rtaversion').text("RTA Dashboard v0.85");
+	$('#rtaversion').text("RTA Dashboard v0.86");
 	$('#download').hide();
 //	console.log("User cookie: "+name+" and pwd "+pwd);
 	if(name == null || pwd == null)
@@ -110,6 +110,10 @@ function NewWin(htmlfile)		// open a new window
 				'toolbar=yes,location=no,status=no,menubar=yes,scrollbars=yes,resizable=yes,width='+WIDTH+',height='+HEIGHT+',top='+top+',left='+left);
 	winpop.focus();
 	return winpop;
+}
+
+function showSkillGroup(skill,sname) {
+	window.open("skillgroup.html?sgid="+sname, '_blank');
 }
 
 // print top level table with metrics
