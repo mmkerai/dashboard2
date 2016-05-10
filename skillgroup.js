@@ -46,6 +46,7 @@ sgid = getURLParameter("sgid");
 	});
 
 	socket.on('skillGroupStats', function(ddata){
+		$("#ctime").text("Last refreshed: "+new Date().toLocaleString());
 
 		for(var i in ddata)
 		{

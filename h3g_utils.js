@@ -60,7 +60,7 @@ function checksignedin()
 {
 	var name = readCookie("username");
 	var pwd = readCookie("password");
-	$('#rtaversion').text("RTA Dashboard v0.87");
+	$('#rtaversion').text("RTA Dashboard v0.88");
 	$('#download').hide();
 //	console.log("User cookie: "+name+" and pwd "+pwd);
 	if(name == null || pwd == null)
@@ -327,8 +327,7 @@ document.write(str);
 }
 
 function showDashboardFooter() {
-str = '<p></p><div class="wrapper col-xs-12">'+
-	'Last Update: '+
+str = '<hr size="3" noshade><div class="wrapper col-xs-12">'+
 	'<span id="ctime" class="pull-right"></span> '+
 	'</div> ';
 	

@@ -51,6 +51,7 @@ did = getURLParameter("did");
 	});
 	
 	socket.on('operatorStats', function(ddata){
+		$("#ctime").text("Last refreshed: "+new Date().toLocaleString());
 
 		for(var i in ddata)
 		{
