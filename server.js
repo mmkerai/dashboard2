@@ -438,7 +438,7 @@ function sendToLogs(text) {
 }
 
 function deptsCallback(dlist) {
-	var dname, newname, sg,ch1,ch2;
+	var dname, newname, str, sg,ch1,ch2;
 // sort alphabetically first
 	dlist.sort(function(a,b) {
 		var nameA=a.Name.toLowerCase();
@@ -453,12 +453,14 @@ function deptsCallback(dlist) {
 	for(var i in dlist)
 	{
 		dname = dlist[i].Name;
-		sg = dname.match("\\[(.*)]");	// match square brackets
+		sg = dname.match("^\\[(.*)]");	// match square brackets at beginning
 		if(sg == null) continue;		// dept name does not match a skillgroup in square brackets
 		ch1 = dname.indexOf("[");
 		ch2 = dname.indexOf("]");
 		sg = dname.substring(ch1+1,ch2);	// name between the brackets
-		newname = dname.substring(ch2+3);	// remainder of the name (skip " - ")
+		str = dname.substring(ch2+1);		// remainder of the name
+		newname = str.match("[A-Za-z0-9]+");	// only consider alphanumeric
+
 		Departments[dlist[i].DepartmentID] = new DashMetrics(dlist[i].DepartmentID,newname,sg);
 		SkillGroups[sg] = new DashMetrics(sg,sg,"n/a");
 	}

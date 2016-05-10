@@ -25,21 +25,21 @@ var NF = NF || {
 		},
 		
 		// Concurrency thresholds
-		Concurrency: {
+		concurrency: {
 			green: 1.60,
 			amber: 1.52,
 			red: 0.00
 		},
 		
 		// Answered thresholds
-		Answered: {
+		answered: {
 			green: 97,
 			amber: 92,
 			red: 0
 		},
 		
 		// Unanswered thresholds
-		Unanswered: {
+		unanswered: {
 			green: 0,
 			amber: 5,
 			red: 10

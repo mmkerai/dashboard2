@@ -167,12 +167,12 @@ function showTopMetrics(rowid, data) {
 	}
 
 	rowid.cells[1].outerHTML = NF.printConcurrency(data.cconc);
-	rowid.cells[2].innerHTML = NF.printSL(data);
+	rowid.cells[2].outerHTML = NF.printSL(data);
 	rowid.cells[3].innerHTML = data.ciq;
 	rowid.cells[4].innerHTML = toHHMMSS(data.lwt);
 	rowid.cells[5].innerHTML = data.tco;
 	rowid.cells[6].innerHTML = data.tac;
-	rowid.cells[7].innerHTML = NF.printAnswered(data);
+	rowid.cells[7].outerHTML = NF.printAnswered(data);
 	rowid.cells[8].innerHTML = data.tcuq;
 	rowid.cells[9].innerHTML = data.tcua;
 	rowid.cells[10].innerHTML = data.tcun + tcunpc;
@@ -330,30 +330,34 @@ document.write(str);
 // ACT
 NF.printACT = function(value) {
 	
-	if (value > this.thresholds.ACT.red) {
+	if (value == 0)			// 0 so default colour
+		return '<td>' + toHHMMSS(value) + '</td>';
+
+	if(value >= this.thresholds.ACT.red) {
 		return '<td class="nf-red">' + toHHMMSS(value) + '</td>';
 	}
 	
-	else if ( value >= this.thresholds.ACT.amber && value <= this.thresholds.ACT.red ) {
+	if(value >= this.thresholds.ACT.amber) {
 		return '<td class="nf-amber">' + toHHMMSS(value) + '</td>';
 	}
 	
-	else 
-		return '<td class="nf-green">' + toHHMMSS(value) + '</td>';
+	return '<td class="nf-green">' + toHHMMSS(value) + '</td>';
 };
 
 
 // ASA
 NF.printASA = function(value) {
 	
-	if (value > this.thresholds.ASA.red)
+	if (value == 0)			// 0 so default colour
+		return '<td>' + toHHMMSS(value) + '</td>';
+
+	if(value >= this.thresholds.ASA.red)
 		return '<td class="nf-red">' + toHHMMSS(value) + '</td>';
 	
-	else if ( value >= this.thresholds.ASA.amber && value <= this.thresholds.ASA.red )
+	if(value >= this.thresholds.ASA.amber)
 		return '<td class="nf-amber">' + toHHMMSS(value) + '</td>';
 	
-	else 
-		return '<td class="nf-green">' + toHHMMSS(value) + '</td>';
+	return '<td class="nf-green">' + toHHMMSS(value) + '</td>';
 };
 
 // SL
@@ -363,23 +367,28 @@ NF.printSL = function(data) {
 	if(data.tcan != 0)
 		slapc = Math.round((data.csla/data.tcan)*100);
 
-	if (slapc > this.thresholds.SL.green)
+	if (value == 0)			// 0 so default colour
+		return '<td>' + slapc + '%</td>';
+
+	if(slapc >= this.thresholds.SL.green)
 		return '<td class="nf-green">' + slapc + '%</td>';
 	
-	else if (slapc <= this.thresholds.SL.green && slapc >= this.thresholds.SL.amber) 
+	if(slapc >= this.thresholds.SL.amber) 
 		return '<td class="nf-amber">' + slapc + '%</td>';
-	
-	else 
-		return '<td class="nf-red">' + slapc + '%</td>';
+	 
+	return '<td class="nf-red">' + slapc + '%</td>';
 };
 
 // Concurrency
 NF.printConcurrency = function(value) {
 	
-	if (value > this.thresholds.Concurrency.green)
+	if (value == 0)			// 0 so default colour
+		return '<td>' + value + '</td>';
+
+	if (value > this.thresholds.concurrency.green)
 		return '<td class="nf-green">' + value + '</td>';
 	
-	else if ( value <= this.thresholds.Concurrency.green && value >= this.thresholds.Concurrency.amber )
+	else if ( value <= this.thresholds.concurrency.green && value >= this.thresholds.concurrency.amber )
 		return '<td class="nf-amber">' + value + '</td>';
 	
 	else 
@@ -395,13 +404,13 @@ NF.printAnswered = function(data) {
 		
 	tcanpc = data.tcan+" ("+value+"%)";
 
-	if (value == 0)			// 0 so default colour
+	if(value == 0)			// 0 so default colour
 		return '<td>' + tcanpc + '</td>';
 
-	if (value >= this.thresholds.Answered.green)
+	if(value >= this.thresholds.answered.green)
 		return '<td class="nf-green">' + tcanpc + '</td>';
 	
-	if (value < this.thresholds.Answered.green && value >= this.thresholds.Answered.amber)
+	if(value >= this.thresholds.answered.amber)
 		return '<td class="nf-amber">' + tcanpc + '</td>';
 	
 	return '<td class="nf-red">' + tcanpc + '</td>';
@@ -410,10 +419,13 @@ NF.printAnswered = function(data) {
 // Unanswered
 NF.printUnanswered = function(value) {
 	
-	if (value > this.thresholds.Unanswered.red)
+	if (value == 0)			// 0 so default colour
+		return '<td>' + value + '</td>';
+
+	if(value >= this.thresholds.unanswered.red)
 		return '<td class="nf-red">' + value + '</td>';
 		
-	else if ( value >= this.thresholds.Unanswered.amber && value <= this.thresholds.Unanswered.red)
+	if(value >= this.thresholds.unanswered.amber)
 		return '<td class="nf-amber">' + value + '</td>';
 	
 	else
