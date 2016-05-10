@@ -278,7 +278,7 @@ function validateSignature(body, triggerUrl) {
 		return true;
 	
 	console.log("Trigger failed signature validation");
-//	debugLog(triggerUrl,body);
+	debugLog(triggerUrl,body);
 	return true;	// while testing - change to false afterwards
 };
 
@@ -438,7 +438,7 @@ function sendToLogs(text) {
 }
 
 function deptsCallback(dlist) {
-	var dname, newname, str, sg,ch1,ch2;
+	var dname, newname, str, sg,ch1,ch2,ch3;
 // sort alphabetically first
 	dlist.sort(function(a,b) {
 		var nameA=a.Name.toLowerCase();
@@ -459,7 +459,8 @@ function deptsCallback(dlist) {
 		ch2 = dname.indexOf("]");
 		sg = dname.substring(ch1+1,ch2);	// name between the brackets
 		str = dname.substring(ch2+1);		// remainder of the name
-		newname = str.match("[A-Za-z0-9]+");	// only consider alphanumeric
+		ch3 = str.match("[A-Za-z0-9]+").index;	
+		newname = str.substring(ch3);
 
 		Departments[dlist[i].DepartmentID] = new DashMetrics(dlist[i].DepartmentID,newname,sg);
 		SkillGroups[sg] = new DashMetrics(sg,sg,"n/a");

@@ -1,4 +1,4 @@
-var socket = new io.connect('https://h3gdashboard-dev.herokuapp.com', {
+var socket = new io.connect('', {
 	'reconnection': true,
     'reconnectionDelay': 1000,
     'reconnectionAttempts': 50
