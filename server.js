@@ -466,13 +466,12 @@ function deptsCallback(dlist) {
 		SkillGroups[sg] = new DashMetrics(sg,sg,"n/a");
 	}
 	console.log("No of Depts: "+Object.keys(Departments).length);
-	sendToLogs("No of Depts: "+Object.keys(Departments).length);
 	console.log("No of Skillgroups: "+Object.keys(SkillGroups).length);
-	sendToLogs("No of Skillgroups: "+Object.keys(SkillGroups).length);
 	for(var did in Departments)
 	{
 		parameters = "DepartmentID="+did;
 		getApiData("getDepartmentOperators",parameters,deptOperatorsCallback,did);	// extra func param due to API
+		sleep(400);
 	}
 }
 

@@ -326,6 +326,15 @@ str = '<h2><center><img src="threelogo.png"/>&nbsp;Dashboard</center></h2>'+
 document.write(str);
 }
 
+function showDashboardFooter() {
+str = '<p></p><div class="wrapper col-xs-12">'+
+	'Last Update: '+
+	'<span id="ctime" class="pull-right"></span> '+
+	'</div> ';
+	
+document.write(str);
+}
+
 //Threshold print functions
 // ACT
 NF.printACT = function(value) {

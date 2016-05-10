@@ -48,6 +48,7 @@ $(document).ready(function() {
 	socket.on('overallStats', function(data) {		
 		Overall = data;
 		showTopLevelStats(data);
+		$("#ctime").text(new Date().toLocaleString());
 	});
 	
 	socket.on('skillGroupStats', function(ddata) {
