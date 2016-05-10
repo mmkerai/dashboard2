@@ -367,7 +367,7 @@ NF.printSL = function(data) {
 	if(data.tcan != 0)
 		slapc = Math.round((data.csla/data.tcan)*100);
 
-	if (value == 0)			// 0 so default colour
+	if (slapc == 0)			// 0 so default colour
 		return '<td>' + slapc + '%</td>';
 
 	if(slapc >= this.thresholds.SL.green)
