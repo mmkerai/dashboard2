@@ -1452,20 +1452,24 @@ function updateChatStats() {
 	for(var i in LoggedInUsers)
 	{
 		socketid = LoggedInUsers[i];
-		io.sockets.connected[socketid].emit('overallStats', Overall);
-		io.sockets.connected[socketid].emit('skillGroupStats', SkillGroups);
-		io.sockets.connected[socketid].emit('departmentStats', Departments);
-		io.sockets.connected[socketid].emit('deptOperators', DeptOperators);
-		io.sockets.connected[socketid].emit('operatorStats', Operators);
-		io.sockets.connected[socketid].emit('consoleLogs', str);
-		io.sockets.connected[socketid].emit('exceptions', Exceptions);
-		io.sockets.connected[socketid].emit('usersLoggedIn', UsersLoggedIn);
+		io.sockets.connected[socketid].emit('overallStats',Overall,socketEmitCallback);
+		io.sockets.connected[socketid].emit('skillGroupStats',SkillGroups,socketEmitCallback);
+		io.sockets.connected[socketid].emit('departmentStats',Departments,socketEmitCallback);
+		io.sockets.connected[socketid].emit('deptOperators',DeptOperators,socketEmitCallback);
+		io.sockets.connected[socketid].emit('operatorStats',Operators,socketEmitCallback);
+		io.sockets.connected[socketid].emit('consoleLogs',str,socketEmitCallback);
+		io.sockets.connected[socketid].emit('exceptions',Exceptions,socketEmitCallback);
+		io.sockets.connected[socketid].emit('usersLoggedIn',UsersLoggedIn,socketEmitCallback);
 	}
-//	debugLog("Overall", Overall);
 	setTimeout(updateChatStats, 2000);	// send update every 2 second
 }
 
-// setup all globals TODO: add teams
+function socketEmitCallback(err) {
+	if(err)
+		console.log("Socket emit error");
+}
+
+// setup all globals
 function doStartOfDay() {
 	initialiseGlobals();	// zero all memory
 	getApiData("getDepartments", 0, deptsCallback);

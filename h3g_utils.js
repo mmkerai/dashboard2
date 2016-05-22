@@ -327,7 +327,8 @@ document.write(str);
 }
 
 function showDashboardFooter() {
-str = '<hr size="3" noshade><div class="wrapper col-xs-12">'+
+str = '<hr size="4" noshade/>'+
+	'<div class="wrapper col-xs-12">'+
 	'<span id="ctime" class="pull-right"></span> '+
 	'</div> ';
 	
