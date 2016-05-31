@@ -295,7 +295,8 @@ function getUnencryptedSignature(body, triggerUrl) {
 	}
 
 	var separator = triggerUrl.indexOf('?') === -1 ? '?' : '&';
-	return triggerUrl + separator + paramNameValues.join('&');
+	var unc = triggerUrl + separator + paramNameValues.join('&');
+	return unc.replace(/%20/g,'+');
 }
 
 function encryptSignature(unencryptedSignature) {
