@@ -1404,6 +1404,7 @@ io.sockets.on('connection', function(socket){
 //			console.log("Save socket "+socket.id);
 			LoggedInUsers.push(socket.id);		// save the socket id so that updates can be sent
 			UsersLoggedIn[socket.id] = user.name;	// save the user name for monitoring purposes
+			io.sockets.sockets[user.name] = socket.id;
 			socket.emit('authResponse',{name: user.name, pwd: user.pwd});
 			sendToLogs("authentication successful: "+user.name);
 		}
@@ -1415,7 +1416,12 @@ io.sockets.on('connection', function(socket){
 		if(index > -1) LoggedInUsers.splice(index, 1);	// remove from list of valid users
 
 		if(UsersLoggedIn[socket.id] !== undefined)
-			UsersLoggedIn[socket.id] = undefined;
+		{
+			var username = UsersLoggedIn[socket.id];
+			UsersLoggedIn[socket.id] = undefined;		
+			if(io.sockets.sockets[username] !== undefined)
+				io.sockets.sockets[username] = undefined;
+		}
 	});
 	
 	socket.on('end', function(data){
@@ -1450,24 +1456,16 @@ function updateChatStats() {
 
 	var str = "Total chats started today: "+Object.keys(AllChats).length;
 	console.log(str);
-	for(var i in LoggedInUsers)
-	{
-		socketid = LoggedInUsers[i];
-		io.sockets.connected[socketid].emit('overallStats',Overall,socketEmitCallback);
-		io.sockets.connected[socketid].emit('skillGroupStats',SkillGroups,socketEmitCallback);
-		io.sockets.connected[socketid].emit('departmentStats',Departments,socketEmitCallback);
-		io.sockets.connected[socketid].emit('deptOperators',DeptOperators,socketEmitCallback);
-		io.sockets.connected[socketid].emit('operatorStats',Operators,socketEmitCallback);
-		io.sockets.connected[socketid].emit('consoleLogs',str,socketEmitCallback);
-		io.sockets.connected[socketid].emit('exceptions',Exceptions,socketEmitCallback);
-		io.sockets.connected[socketid].emit('usersLoggedIn',UsersLoggedIn,socketEmitCallback);
-	}
-	setTimeout(updateChatStats, 2000);	// send update every 2 second
-}
+	console.log("Clients connected: "+io.eio.clientsCount);
+	io.sockets.emit('overallStats',Overall);
+	io.sockets.emit('skillGroupStats',SkillGroups);
+	io.sockets.emit('departmentStats',Departments);
+	io.sockets.emit('operatorStats',Operators);
+	io.sockets.emit('consoleLogs',str);
+	io.sockets.emit('exceptions',Exceptions);
+	io.sockets.emit('usersLoggedIn',UsersLoggedIn);
 
-function socketEmitCallback(err) {
-	if(err)
-		console.log("Socket emit error");
+	setTimeout(updateChatStats, 2000);	// send update every 2 second
 }
 
 // setup all globals
