@@ -1385,7 +1385,7 @@ function getCsvChatData() {
 }
 
 // Set up socket actions and responses
-io.sockets.on('connection', function(socket){
+io.on('connection', function(socket){
 	
 	//  authenticate user name and password
 	socket.on('authenticate', function(user){
@@ -1457,13 +1457,14 @@ function updateChatStats() {
 	var str = "Total chats started today: "+Object.keys(AllChats).length;
 	console.log(str);
 	console.log("Clients connected: "+io.eio.clientsCount);
-	io.sockets.emit('overallStats',Overall);
-	io.sockets.emit('skillGroupStats',SkillGroups);
-	io.sockets.emit('departmentStats',Departments);
-	io.sockets.emit('operatorStats',Operators);
-	io.sockets.emit('consoleLogs',str);
-	io.sockets.emit('exceptions',Exceptions);
-	io.sockets.emit('usersLoggedIn',UsersLoggedIn);
+	io.emit('overallStats',Overall);
+	io.emit('skillGroupStats',SkillGroups);
+	io.emit('departmentStats',Departments);
+	io.emit('deptOperators',DeptOperators);
+	io.emit('operatorStats',Operators);
+	io.emit('consoleLogs',str);
+	io.emit('exceptions',Exceptions);
+	io.emit('usersLoggedIn',UsersLoggedIn);
 
 	setTimeout(updateChatStats, 2000);	// send update every 2 second
 }

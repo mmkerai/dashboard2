@@ -46,7 +46,6 @@ did = getURLParameter("did");
 	});
 	
 	socket.on('deptOperators', function(ddata){
-
 		DeptOperators = ddata[did];	// get dept operators
 	});
 	
