@@ -39,7 +39,7 @@ app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 })); 
 
 //********** Get port used by Heroku or use a default
-var PORT = Number(process.env.PORT || 443);
+var PORT = Number(process.env.PORT || 3000);
 server.listen(PORT);
 
 //******* Get BoldChat API Credentials
@@ -279,7 +279,7 @@ function validateSignature(body, triggerUrl) {
 	
 	console.log("Trigger failed signature validation");
 	debugLog(triggerUrl,body);
-	return true;	// while testing - change to false afterwards
+	return false;	// while testing - change to false afterwards
 };
 
 function getUnencryptedSignature(body, triggerUrl) {

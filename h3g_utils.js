@@ -310,7 +310,7 @@ document.write(str);
 }
 
 function showDashboardHeader() {
-str = '<h2><center><img src="threelogo.png"/>&nbsp;Dashboard</center></h2>'+
+str = '<h2><center>Chat Dashboard</center></h2>'+
 	'<div class="wrapper col-xs-12">'+
 	'<button type="button" id="myname" class="btn btn-primary">Not signed in</button> '+
 	'<button type="button" class="btn btn-secondary" onClick="clearCredentials()">Clear Credentials</button> '+
