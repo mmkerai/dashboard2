@@ -42,9 +42,7 @@ $(document).ready(function() {
 	});		
 	socket.on('skillGroupStats', function(ddata) {
 		for(var i in ddata)
-		{
 			showTopLevelStats(ddata[i]);
-		}
 	});
 });
 

@@ -161,7 +161,8 @@ function showOperatorStats(data) {
 	rowid = document.getElementById(data.name);
 	if(rowid === null)		// row doesnt exist so create one
 	{
-		rowid = createOperatorRow(ttable, data.oid, data.name);
+		var id = data.oid || data.did;
+		rowid = createOperatorRow(ttable, id, data.name);
 	}
 	showOperatorMetrics(rowid,data);
 }
@@ -316,9 +317,10 @@ function showOperatorMetrics(rowid, data) {
 }
 
 function showCsatMetrics(rowid, data) {
-	var closed = data.tcc || data.tcan-data.tac;	// tcc in operator object only not in dept or skillgroup object
+	var tc = data.tcc || data.tcan-data.tac;	// tcc in operator object only not in dept or skillgroup object
+	if(NaN(tc)) tc=0;
 	
-	rowid.cells[1].innerHTML = closed;	// answered - active is closed chats
+	rowid.cells[1].innerHTML = tc;	// answered - active is closed chats
 	rowid.cells[2].innerHTML = data.csat.surveys;
 	rowid.cells[3].innerHTML = Math.round(data.csat.FCR*100) + "%";
 	rowid.cells[4].innerHTML = Math.round(data.csat.Resolved*100) + "%";

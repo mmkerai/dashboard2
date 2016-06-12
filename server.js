@@ -879,8 +879,8 @@ function updateCconc(tchat) {
 
 function updateCSAT(chat) {
 	var chatobj = AllChats[chat.ChatID];
-	chatobj.csat.OSAT = chat.rateadvisor || null;
-	chatobj.csat.NPS = chat.NPS || null;
+	chatobj.csat.OSAT = Number(chat.rateadvisor) || null;
+	chatobj.csat.NPS = Number(chat.NPS) || null;
 	var ft = chat.firsttime || null;
 	var resolved = chat.resolved || null;
 //	debugLog("Chat fields", chat);
@@ -890,14 +890,8 @@ function updateCSAT(chat) {
 		return;
 	}
 	// update dept and operator stats
-	if(ft == "Yes" && resolved == "Yes")
-		chatobj.csat.FCR = 1;
-	else
-		chatobj.csat.FCR = 0;
-	if(resolved == "Yes")
-		chatobj.csat.Resolved = 1;
-	else
-		chatobj.csat.Resolved = 0;
+	chatobj.csat.FCR = (ft == "Yes" && resolved == "Yes") ? 1 : 0;
+	chatobj.csat.Resolved = (resolved == "Yes") ? 1 : 0;
 	
 	var opobj = Operators[chat.OperatorID];
 	var deptobj = Departments[chat.DepartmentID];

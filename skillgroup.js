@@ -46,9 +46,7 @@ sgid = getURLParameter("sgid");
 		for(var i in ddata)
 		{
 			if(ddata[i].name == sgid)
-			{
 				showSkillGroupStats(ddata[i]);
-			}
 		}
 	});	
 });
@@ -57,10 +55,7 @@ sgid = getURLParameter("sgid");
 		for(var i in ddata)
 		{
 			if(ddata[i].skillgroup == sgid) 	// show dept if in this skill group
-			{
-//				Departments.push(ddata[i]);
 				showDeptLevelStats(ddata[i]);
-			}
 		}
 	});	
 

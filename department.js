@@ -48,9 +48,7 @@ did = getURLParameter("did");
 		for(var i in ddata)
 		{
 			if(ddata[i].did == did) 	// show dept
-			{
 				showOperatorStats(ddata[i]);
-			}
 		}
 	});	
 
@@ -64,9 +62,7 @@ did = getURLParameter("did");
 				if(ddata[i].status == 0 && ddata[i].tcan == 0)	// if logged out and have not answered some chats today
 					continue;
 				else	
-				{
 					showOperatorStats(ddata[i]);
-				}
 			}
 		}
 	});	
