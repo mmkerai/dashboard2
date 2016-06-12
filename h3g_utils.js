@@ -318,7 +318,7 @@ function showOperatorMetrics(rowid, data) {
 
 function showCsatMetrics(rowid, data) {
 	var tc = data.tcc || data.tcan-data.tac;	// tcc in operator object only not in dept or skillgroup object
-	if(NaN(tc)) tc=0;
+	if(isNaN(tc)) tc=0;
 	
 	rowid.cells[1].innerHTML = tc;	// answered - active is closed chats
 	rowid.cells[2].innerHTML = data.csat.surveys;
