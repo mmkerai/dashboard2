@@ -70,8 +70,8 @@ function showDepartment(did,dname) {
 	window.open("department.html?did="+did, '_blank');
 }
 
-function showCsat(sgid,dname) {
-	window.open("csat.html?sgid="+sgid, '_blank');
+function showCsat(did,dname) {
+	window.open("csat.html?did="+did, '_blank');
 }
 
 function exportMetrics() {

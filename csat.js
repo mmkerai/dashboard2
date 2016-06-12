@@ -1,7 +1,8 @@
-var did;
+var did, sgid, oid;
 var DeptOperators = new Array();
 
 $(document).ready(function() {
+sgid = getURLParameter("sgid");
 did = getURLParameter("did");
 oid = getURLParameter("oid");
 
@@ -91,6 +92,6 @@ oid = getURLParameter("oid");
 });
 
 function exportMetrics() {
-	console.log("Exporting operator metrics");
-	tableToCsvFile("deptTable");
+	console.log("Exporting Csat metrics");
+	tableToCsvFile("csatTable");
 }
