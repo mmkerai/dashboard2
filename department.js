@@ -1,8 +1,3 @@
-var socket = new io.connect('', {
-	'reconnection': true,
-    'reconnectionDelay': 1000,
-    'reconnectionAttempts': 50
-});
 var did;
 var DeptOperators = new Array();
 var Operators = new Array();
@@ -60,7 +55,6 @@ did = getURLParameter("did");
 					continue;
 				else	
 				{
-					Operators.push(ddata[i]);
 					showOperatorStats(ddata[i]);
 				}
 			}
@@ -68,29 +62,6 @@ did = getURLParameter("did");
 	});	
 });
 
-function showOperatorStats(data) {
-	var rowid;
-	var ttable = document.getElementById("deptTable");
-	rowid = document.getElementById(data.name);
-	if(rowid === null)		// row doesnt exist so create one
-	{
-		rowid = createOperatorRow(ttable, data.oid, data.name);
-	}
-	showOperatorMetrics(rowid,data);
-}
-
-function createOperatorRow(tableid, id, name) {
-	
-	row = tableid.insertRow();	// there is already a header row and top row
-	row.id = name;
-	var cols = tableid.rows[0].cells.length;
-	for(var i=0; i < cols; i++)
-	{
-		row.insertCell(i);
-	}
-	row.cells[0].outerHTML = "<th>"+name+"</th>";
-	return row;
-}
 
 /*function createDeptRow(tableid,index,sg,name) {
 
@@ -115,6 +86,10 @@ function createOperatorRow(tableid, id, name) {
 			
 	return row;
 }*/
+
+function showCsat(oid,dname) {
+	window.open("csat.html?oid="+oid, '_blank');
+}
 
 function exportMetrics() {
 	console.log("Exporting operator metrics");

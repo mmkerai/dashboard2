@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>H3G Dashboard CSAT view</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script type="text/javascript" src="jquery-2.1.3.min.js"></script>
+	<link rel="stylesheet" href="bootstrap.min.css">
+	<link rel="stylesheet" href="h3g_dashboard.css">
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="thresholds.js"></script>
+	<script src="h3g_utils.js"></script>
+	<script src="csat.js"></script>
+</head>
+<body>
+<script>showDashboardHeader()</script>
+<script>showLoginForm()</script>
+<div class="form-horizontal col-xs-12">
+	<table id="csatTable" class="table table-fixed">
+	    <colgroup>
+            <col class="col-md-1">
+        </colgroup>
+		<tr>
+		  <th width="28%" title="Name of operator">Operator Name</th>
+		  <th width="12%" title="Chats Completed">Chats Answered</th>
+		  <th width="12%" title="Number of surveys completed">No. of Surveys</th>
+		  <th width="12%" title="First chat resolution">FCR</th>
+		  <th width="12%" title="Problem resolved">Resolved</th>
+		  <th width="12%" title="Overall agent satisfaction (rateadvisor)">OSAT</th>
+		  <th width="12%" title="Net Promoter Score">NPS</th>
+		</tr>
+	</table>
+</div>
+<script>showDashboardFooter()</script>
+</body>
+</html>

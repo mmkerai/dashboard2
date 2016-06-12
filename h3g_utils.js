@@ -1,5 +1,9 @@
-// H3G utilities for use in dashboard and custom reports
-
+// utilities for use in dashboard 
+var socket = new io.connect('', {
+	'reconnection': true,
+    'reconnectionDelay': 1000,
+    'reconnectionAttempts': 50
+});
 var ChatStatus = ["Logged Out","Away","Available"];
 var csvfile = null;
 
@@ -60,7 +64,7 @@ function checksignedin()
 {
 	var name = readCookie("username");
 	var pwd = readCookie("password");
-	$('#rtaversion').text("RTA Dashboard v0.90");
+	$('#rtaversion').text("RTA Dashboard v1.00");
 	$('#download').hide();
 //	console.log("User cookie: "+name+" and pwd "+pwd);
 	if(name == null || pwd == null)
@@ -128,6 +132,50 @@ function showTopLevelStats(data) {
 	showTopMetrics(rowid,data);
 }
 
+function showSkillGroupStats(data) {
+	var rowid;
+	var ttable = document.getElementById("topTable");
+	rowid = document.getElementById(data.name);
+	if(rowid === null)		// row doesnt exist so create one
+	{
+		rowid = createTopRow(ttable, data.did, data.name);
+	}
+	showTopMetrics(rowid,data);
+}
+
+function showDeptLevelStats(data) {
+	var rowid;
+	var ttable = document.getElementById("topTable");
+	rowid = document.getElementById(data.name);
+	if(rowid === null)		// row doesnt exist so create one
+	{
+		rowid = createDeptRow(ttable, data.did, data.name);
+	}
+	showTopMetrics(rowid,data);
+}
+
+function showOperatorStats(data) {
+	var rowid;
+	var ttable = document.getElementById("deptTable");
+	rowid = document.getElementById(data.name);
+	if(rowid === null)		// row doesnt exist so create one
+	{
+		rowid = createOperatorRow(ttable, data.oid, data.name);
+	}
+	showOperatorMetrics(rowid,data);
+}
+
+function showCsatStats(data) {
+	var rowid;
+	var ttable = document.getElementById("csatTable");
+	rowid = document.getElementById(data.name);
+	if(rowid === null)		// row doesnt exist so create one
+	{
+		rowid = createCsatRow(ttable, data.oid, data.name);
+	}
+	showCsatMetrics(rowid,data);
+}
+
 function createTopRow(tableid, id, name) {
 	
 	row = tableid.insertRow();	
@@ -142,7 +190,7 @@ function createTopRow(tableid, id, name) {
 	return row;
 }
 
-function createDeptRow(tableid, id, name) {
+function createSkillRow(tableid, id, name) {
 	
 	row = tableid.insertRow();	
 	row.id = name;
@@ -151,8 +199,53 @@ function createDeptRow(tableid, id, name) {
 	{
 		row.insertCell(i);
 	}
-	row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showDepartment('"+id+"','"+name+"')\">"+name+"</th>";
+	if(row.rowIndex == 1)		// not the title but next one download
+		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showCsat('"+id+"','"+name+"')\">"+name+"</th>";	
+	else
+		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showSkillGroup('"+id+"','"+name+"')\">"+name+"</th>";
 
+	return row;
+}
+
+function createDeptRow(tableid, id, name) {
+	row = tableid.insertRow();	
+	row.id = name;
+	var cols = tableid.rows[0].cells.length;
+	for(var i=0; i < cols; i++)
+	{
+		row.insertCell(i);
+	}
+	if(row.rowIndex == 1)		// not the title but next one download
+		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showCsat('"+id+"','"+name+"')\">"+name+"</th>";	
+	else
+		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showDepartment('"+id+"','"+name+"')\">"+name+"</th>";
+
+	return row;
+}
+
+function createOperatorRow(tableid, id, name) {
+	
+	row = tableid.insertRow();	// there is already a header row and top row
+	row.id = name;
+	var cols = tableid.rows[0].cells.length;
+	for(var i=0; i < cols; i++)
+	{
+		row.insertCell(i);
+	}
+	row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showCsat('"+id+"','"+name+"')\">"+name+"</th>";
+	return row;
+}
+
+function createCsatRow(tableid, id, name) {
+	
+	row = tableid.insertRow();	// there is already a header row and top row
+	row.id = name;
+	var cols = tableid.rows[0].cells.length;
+	for(var i=0; i < cols; i++)
+	{
+		row.insertCell(i);
+	}
+	row.cells[0].outerHTML = "<th>"+name+"</th>";
 	return row;
 }
 
@@ -198,6 +291,18 @@ function showOperatorMetrics(rowid, data) {
 	rowid.cells[7].innerHTML = data.cph;	
 	rowid.cells[8].outerHTML = NF.printACT(act);	
 	rowid.cells[9].outerHTML = NF.printConcurrency(data.cconc);
+}
+
+function showCsatMetrics(rowid, data) {
+	var fcr = Math.round(data.csat.FCR*100) + "%";
+	var resolved = Math.round(data.csat.Resolved*100) + "%";
+	
+	rowid.cells[1].innerHTML = data.tcan-data.tac;	// answered - active is closed chats
+	rowid.cells[2].innerHTML = data.csat.surveys;
+	rowid.cells[3].innerHTML = fcr;
+	rowid.cells[4].innerHTML = resolved;
+	rowid.cells[5].innerHTML = Math.round(data.csat.OSAT);
+	rowid.cells[6].innerHTML = Math.round(data.csat.NPS);
 }
 
 /* build csvfile from table to export snapshot
@@ -327,7 +432,7 @@ document.write(str);
 }
 
 function showDashboardFooter() {
-str = '<hr size="4" noshade/>'+
+var str = '<hr size="4" noshade/>'+
 	'<div class="wrapper col-xs-12">'+
 	'<span id="ctime" class="pull-right"></span> '+
 	'</div> ';

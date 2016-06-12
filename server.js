@@ -12,6 +12,7 @@
 // tcuq - total chats unanswered/abandoned in queue
 // tcua - total chats unanswered/abandoned after assigned
 // tcun - total chats unavailable
+// tcc - total chats completed
 // asa - average speed to answer
 // act - average chat time
 // acc - available chat capacity
@@ -150,14 +151,13 @@ var Exception = function() {
 		this.operatorIDUndefined = 0;
 };
 
-//******* Global class for CSAT data
-var CSAT = function() {
-		this.nps = 0;	
-		this.responsive = 0;	
-		this.professional = 0;		
-		this.knowledge = 0;	
-		this.overall = 0;
-		this.comments = "";
+//******* Global class for csat data
+var Csat = function() {
+		this.surveys = 0;	
+		this.NPS = 0;	
+		this.FCR = 0;		
+		this.OSAT = 0;
+		this.Resolved = 0;
 };
 
 //******* Global class for chat data
@@ -171,7 +171,7 @@ var ChatData = function(chatid, dept, sg) {
 		this.answered = 0;			// so it is easy to do the calculations
 		this.ended = 0;
 		this.closed = 0;
-		this.csat = new CSAT();
+		this.csat = new Csat();
 };
 
 //******** Global class for dashboard metrics
@@ -197,7 +197,8 @@ var DashMetrics = function(did,name,sg) {
 		this.act = 0;
 		this.acc = 0;
 		this.oaway = 0;
-		this.oavail = 0;	
+		this.oavail = 0;
+		this.csat = new Csat();
 };
 
 //**************** Global class for operator metrics
@@ -207,6 +208,7 @@ var OpMetrics  = function(id,name) {
 		this.ccap = 2;		// assume chat capacity of 2
 		this.cconc = 0;		// chat concurrency
 		this.tcan = 0;		// total chats answered
+		this.tcc = 0;	// chats closed (= answered-active)
 		this.cph = 0;
 		this.csla = 0;		// chats answered within SLA
 		this.status = 0;	// 0 - logged out, 1 - away, 2 - available
@@ -219,6 +221,7 @@ var OpMetrics  = function(id,name) {
 		this.act = 0;	// average chat time for operator
 		this.tct = 0;	// total chat time with atleast one chat
 		this.mct = 0;	// multi chat time i.e. more than 1 chat
+		this.csat = new Csat();
 };																				
 
 //********************************* Global variables for chat data
@@ -334,9 +337,8 @@ app.post('/chat-started', function(req, res){
 		sendToLogs("Chat-started, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
 		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
 			processStartedChat(req.body);
-
-		res.send({ "result": "success" });
 	}
+	res.send({ "result": "success" });
 });
 
 // Process incoming Boldchat triggered chat data
@@ -346,8 +348,8 @@ app.post('/chat-answered', function(req, res){
 		sendToLogs("Chat-answered, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
 		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
 			processAnsweredChat(req.body);
-		res.send({ "result": "success" });
 	}
+	res.send({ "result": "success" });
 });
 
 // Process incoming Boldchat triggered chat data
@@ -357,8 +359,8 @@ app.post('/chat-closed', function(req, res){
 		sendToLogs("Chat-closed, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
 		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
 			processClosedChat(req.body);
-		res.send({ "result": "success" });
 	}
+	res.send({ "result": "success" });
 });
 
 // Process incoming Boldchat triggered chat data
@@ -368,8 +370,8 @@ app.post('/chat-window-closed', function(req, res){
 		sendToLogs("Chat-window-closed, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
 		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
 			processWindowClosed(req.body);
-		res.send({ "result": "success" });
 	}
+	res.send({ "result": "success" });
 });
 
 // Process incoming Boldchat triggered operator data
@@ -381,8 +383,19 @@ app.post('/operator-status-changed', function(req, res) {
 			processOperatorStatusChanged(req.body);
 			sendToLogs("operator-status-changed, operator id: "+Operators[req.body.LoginID].name);
 		}
-		res.send({ "result": "success" });
 	}
+	res.send({ "result": "success" });
+});
+
+// Process incoming Boldchat triggered chat data
+app.post('/chat-reassigned', function(req, res){
+	if(validateSignature(req.body, TriggerDomain+'/chat-reassigned'))
+	{
+		sendToLogs("Chat-reassigned, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
+		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
+			processChatReassigned(req.body);
+	}
+	res.send({ "result": "success" });
 });
 
 // Set up code for outbound BoldChat API calls.  All of the capture callback code should ideally be packaged as an object.
@@ -418,6 +431,7 @@ function postToArchive(postdata) {
 		});
 	post_req.write(postdata);
 	post_req.end();
+	post_req.on('error', function(err){console.log("HTML error"+err.stack)});
 	console.log("End of day archived successfully");
 }
 
@@ -434,7 +448,7 @@ function sendToLogs(text) {
 	for(var i in LoggedInUsers)
 	{
 		socketid = LoggedInUsers[i];
-		io.sockets.connected[socketid].emit('consoleLogs', text);
+		io.to(socketid).emit('consoleLogs', text);
 	}
 }
 
@@ -472,7 +486,7 @@ function deptsCallback(dlist) {
 	{
 		parameters = "DepartmentID="+did;
 		getApiData("getDepartmentOperators",parameters,deptOperatorsCallback,did);	// extra func param due to API
-		sleep(400);
+		sleep(500);
 	}
 }
 
@@ -626,7 +640,7 @@ function processAnsweredChat(chat) {
 	opobj = Operators[chat.OperatorID];
 	if(typeof(opobj) === 'undefined') return;		// an operator that doesnt exist (may happen if created midday)
 
-	if(chat.Answered == null && chat.Answered == "")
+	if(chat.Answered == null || chat.Answered == "")
 	{
 		Exceptions.chatAnsweredIsBlank++;
 		return;
@@ -697,20 +711,10 @@ function processClosedChat(chat) {
 		var chattime = Math.round((AllChats[chat.ChatID].closed - AllChats[chat.ChatID].started)/1000);
 		opobj.tcta = opobj.tcta + chattime;
 		// now remove from active chat list and update stats
-		var achats = new Array();
-		achats = opobj.activeChats;
-		for(var x in achats) // go through each chat
-		{
-			if(achats[x] == chat.ChatID)
-			{
-				achats.splice(x,1);
-				opobj.activeChats = achats;		// save back after removing
-			}
-		}
-		
-		var closedchats = opobj.tcan - achats.length;	// answered chat less active
-		if(closedchats > 0)
-			opobj.act = Math.round(opobj.tcta/closedchats);
+		removeActiveChat(opobj, chat.ChatID);	
+		opobj.tcc = opobj.tcan - opobj.activeChats.length;	// answered chat less active
+		if(opobj.tcc > 0)
+			opobj.act = Math.round(opobj.tcta/opobj.tcc);
 
 		updateCconc(AllChats[chat.ChatID]);	// update chat conc now that it is closed
 	}
@@ -873,11 +877,67 @@ function updateCconc(tchat) {
 	OperatorCconc[tchat.operatorID] = conc;		// save it back for next time
 }
 
-function updateCSAT(tchat) {
-	chatobj = AllChats[tchat.ChatID];
+function updateCSAT(chat) {
+	var chatobj = AllChats[chat.ChatID];
+	chatobj.csat.OSAT = chat.rateadvisor || null;
+	chatobj.csat.NPS = chat.NPS || null;
+	var ft = chat.firsttime || null;
+	var resolved = chat.resolved || null;
+//	debugLog("Chat fields", chat);
+	if(chatobj.csat.NPS == null && chatobj.csat.OSAT == null && ft == null && resolved == null)
+	{
+		console.log("Csat is null");
+		return;
+	}
+	// update dept and operator stats
+	if(ft == "Yes" && resolved == "Yes")
+		chatobj.csat.FCR = 1;
+	else
+		chatobj.csat.FCR = 0;
+	if(resolved == "Yes")
+		chatobj.csat.Resolved = 1;
+	else
+		chatobj.csat.Resolved = 0;
 	
+	var opobj = Operators[chat.OperatorID];
+	var deptobj = Departments[chat.DepartmentID];
+	if(typeof(opobj) === 'undefined' || typeof(deptobj) === 'undefined') return;
+	var sgobj = SkillGroups[deptobj.skillgroup];
+	
+	var nums = sgobj.csat.surveys++;
+	var numd = deptobj.csat.surveys++;
+	var numo = opobj.csat.surveys++;
+	
+	sgobj.csat.NPS = ((sgobj.csat.NPS*nums) + chatobj.csat.NPS)/sgobj.csat.surveys;
+	sgobj.csat.OSAT = ((sgobj.csat.OSAT*nums) + chatobj.csat.OSAT)/sgobj.csat.surveys;
+	sgobj.csat.FCR = ((sgobj.csat.FCR*nums) + chatobj.csat.FCR)/sgobj.csat.surveys;
+	sgobj.csat.Resolved = ((sgobj.csat.Resolved*nums) + chatobj.csat.Resolved)/sgobj.csat.surveys;
+	
+	deptobj.csat.NPS = ((deptobj.csat.NPS*numd) + chatobj.csat.NPS)/deptobj.csat.surveys;
+	deptobj.csat.OSAT = ((deptobj.csat.OSAT*numd) + chatobj.csat.OSAT)/deptobj.csat.surveys;
+	deptobj.csat.FCR = ((deptobj.csat.FCR*numd) + chatobj.csat.FCR)/deptobj.csat.surveys;
+	deptobj.csat.Resolved = ((deptobj.csat.Resolved*numd) + chatobj.csat.Resolved)/deptobj.csat.surveys;
+
+	opobj.csat.NPS = ((opobj.csat.NPS*numo) + chatobj.csat.NPS)/opobj.csat.surveys;
+	opobj.csat.OSAT = ((opobj.csat.OSAT*numo) + chatobj.csat.OSAT)/opobj.csat.surveys;
+	opobj.csat.FCR = ((opobj.csat.FCR*numo) + chatobj.csat.FCR)/opobj.csat.surveys;
+	opobj.csat.Resolved = ((opobj.csat.Resolved*numo) + chatobj.csat.Resolved)/opobj.csat.surveys;
+	
+	console.log("CSAT updated");
 }
 
+function removeActiveChat(opobj, chatid) {
+	var achats = new Array();
+	achats = opobj.activeChats;
+	for(var x in achats) // go through each chat
+	{
+		if(achats[x] == chatid)
+		{
+			achats.splice(x,1);
+			opobj.activeChats = achats;		// save back after removing
+		}
+	}
+}
 // calculate ACT and Chat per hour - both are done after chats are complete (closed)
 function calculateACT_CPH() {
 	var tchat, sgid;
@@ -1256,7 +1316,7 @@ function getActiveChatData() {
 	{
 		parameters = "DepartmentID="+did;
 		getApiData("getActiveChats",parameters,allActiveChats);
-		sleep(400);
+		sleep(500);
 	}
 }
 
@@ -1314,6 +1374,16 @@ function allInactiveChats(chats) {
 			{
 				processAnsweredChat(chats[i]);	//  answered
 				processClosedChat(chats[i]);	// and closed
+				if(Object.keys(chats[i].CustomFields).length > 0)
+				{
+					var chat = chats[i];
+					chat.NPS = chat.CustomFields.NPS || null;
+					chat.rateadvisor = chat.CustomFields.rateadvisor || null;
+					chat.firsttime = chat.CustomFields.firsttime || null;
+					chat.resolved = chat.CustomFields.resolved || null;
+					delete chat["CustomFields"];
+					updateCSAT(chats[i]);
+				}
 			}
 			else
 				processWindowClosed(chats[i]);	// closed after starting before being answered
@@ -1343,7 +1413,7 @@ function getInactiveChatData() {
 	{
 		parameters = "FolderID="+fid+"&FromDate="+startDate.toISOString();
 		getApiData("getInactiveChats", parameters, allInactiveChats);
-		sleep(400);
+		sleep(500);
 	}	
 }
 
@@ -1436,6 +1506,12 @@ io.on('connection', function(socket){
 		});
 });
 
+function removeSocket(id, evname) {
+		console.log("Socket "+evname+" at "+ TimeNow);
+		var index = LoggedInUsers.indexOf(id);	
+		if(index >= 0) LoggedInUsers.splice(index, 1);	// remove from list of valid users	
+}
+
 function updateChatStats() {
 	var socketid;
 	
@@ -1494,7 +1570,7 @@ function checkOperatorAvailability() {
 	sendToLogs("Getting operator availability again");
 	getOperatorAvailabilityData();	// try again
 }
-
+console.log("Server started on port "+PORT);
 doStartOfDay();		// initialise everything
 setTimeout(updateChatStats,8000);	// updates socket io data at infinitum
-console.log("Server started on port "+PORT);
+

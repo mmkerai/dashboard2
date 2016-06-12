@@ -1,8 +1,3 @@
-var socket = new io.connect('', {
-	'reconnection': true,
-    'reconnectionDelay': 1000,
-    'reconnectionAttempts': 50
-});
 var sgid;
 var SkillGroup = new Object();
 var Departments = new Array();
@@ -52,7 +47,7 @@ sgid = getURLParameter("sgid");
 		{
 			if(ddata[i].name == sgid)
 			{
-				SkillGroup = ddata[i];
+//				SkillGroup = ddata[i];
 				showTopLevelStats(ddata[i]);
 			}
 		}
@@ -60,31 +55,23 @@ sgid = getURLParameter("sgid");
 });
 	
 	socket.on('departmentStats', function(ddata){
-
 		for(var i in ddata)
 		{
 			if(ddata[i].skillgroup == sgid) 	// show dept if in this skill group
 			{
-				Departments.push(ddata[i]);
+//				Departments.push(ddata[i]);
 				showDeptLevelStats(ddata[i]);
 			}
 		}
 	});	
 
-function showDeptLevelStats(data) {
-	var rowid;
-	var ttable = document.getElementById("topTable");
-	rowid = document.getElementById(data.name);
-	if(rowid === null)		// row doesnt exist so create one
-	{
-		rowid = createDeptRow(ttable, data.did, data.name);
-	}
-	showTopMetrics(rowid,data);
-}
-
 function showDepartment(did,dname) {
 //	console.log("Show Dept : "+dname);
 	window.open("department.html?did="+did, '_blank');
+}
+
+function showCsat(sgid,dname) {
+	window.open("csat.html?sgid="+sgid, '_blank');
 }
 
 function exportMetrics() {

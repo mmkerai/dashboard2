@@ -1,12 +1,3 @@
-var socket = new io.connect('', {
-	'reconnection': true,
-    'reconnectionDelay': 1000,
-    'reconnectionAttempts': 50
-});
-var did;
-var ShowDept = new Object();	// used for toggling department metrics
-var Overall = new Object();
-var SkillGroups = new Array();
 
 $(document).ready(function() {
 
@@ -18,10 +9,12 @@ $(document).ready(function() {
 		var pwd = $('#password').val();
 		signin(name,pwd);
 	});
-		
-	socket.on('connection', function(data){
-		console.log("Socket connected");
-    });
+	socket.on('error', function(data){
+		console.log("socket error at "+ new Date().toGMTString());
+	});
+	socket.on('disconnect', function(data){
+		console.log("socket error at "+ new Date().toGMTString());
+	});
 	socket.on('connect_timeout', function(data){
 		console.log("socket timeout at "+ new Date().toGMTString());
 	});
@@ -35,7 +28,6 @@ $(document).ready(function() {
  	socket.on('errorResponse', function(data) {
 		$("#message1").text(data);
 	});
-
 	socket.on('authResponse', function(data) {
 		saveCookie("username", data.name, 1);	// save as cookie for 1 day
 		saveCookie("password", data.pwd, 1);
@@ -43,22 +35,22 @@ $(document).ready(function() {
 		$('#myname').text(data.name);
 		$("#signinform").hide();
 		$("#topTable").show();
-	});
-	
+	});	
 	socket.on('overallStats', function(data) {		
-		Overall = data;
-		showTopLevelStats(data);
 		$("#ctime").text("Last refreshed: "+new Date().toLocaleString());
-	});
-	
+		showTopLevelStats(data);
+	});		
 	socket.on('skillGroupStats', function(ddata) {
-		SkillGroups = ddata;
 		for(var i in ddata)
 		{
 			showTopLevelStats(ddata[i]);
 		}
 	});
 });
+
+function showCsat(did,dname) {
+	window.open("csat.html?did="+did, '_blank');
+}
 
 function exportMetrics() {
 	console.log("Exporting top-level metrics");
