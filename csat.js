@@ -40,9 +40,14 @@ oid = getURLParameter("oid");
 			for(var i in data)
 			{
 				if(sgid == data[i].skillgroup)		// only if this is the skillgroup
-				{
 					showCsatStats(data[i]);
-				}
+			}
+		});
+		socket.on('departmentStats', function(data){
+			for(var i in data)
+			{
+				if(sgid == data[i].skillgroup)		// if this department is in this skillgroup
+					showCsatStats(data[i]);
 			}
 		});	
 	}
@@ -53,22 +58,25 @@ oid = getURLParameter("oid");
 			for(var i in data)
 			{
 				if(did == data[i].did)		// only if this is the department
-				{
 					showCsatStats(data[i]);
-				}
 			}
 		});	
+		socket.on('operatorStats', function(data){
+			for(var i in data)
+			{
+				if(DeptOperators.indexOf(data[i].oid) != -1)	// this operator belongs to this dept
+					showCsatStats(data[i]);
+			}
+		});
 	}
-	else
+	else if(oid != null)	// show individual operator only
 	{
 		socket.on('operatorStats', function(data){
 			$("#ctime").text("Last refreshed: "+new Date().toLocaleString());
 			for(var i in data)
 			{
 				if(oid == data[i].oid)		// only if this operator belongs to this dept
-				{
 					showCsatStats(data[i]);
-				}
 			}
 		});
 	}

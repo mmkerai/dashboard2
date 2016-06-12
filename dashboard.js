@@ -48,10 +48,6 @@ $(document).ready(function() {
 	});
 });
 
-function showCsat(sgid,dname) {
-	window.open("csat.html?sgid="+sgid, '_blank');
-}
-
 function exportMetrics() {
 	console.log("Exporting top-level metrics");
 	tableToCsvFile("topTable");

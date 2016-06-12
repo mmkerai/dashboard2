@@ -186,7 +186,7 @@ function createTopRow(tableid, id, name) {
 	{
 		row.insertCell(i);
 	}
-	if(row.rowIndex == 1)		// not the title but next one download
+	if(row.rowIndex == 1)		// not the title but next one down
 		row.cells[0].outerHTML = "<th>"+name+"</th>";	
 	else
 		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showSkillGroup('"+id+"','"+name+"')\">"+name+"</th>";
@@ -203,8 +203,8 @@ function createSkillRow(tableid, id, name) {
 	{
 		row.insertCell(i);
 	}
-	if(row.rowIndex == 1)		// not the title but next one download
-		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showCsat('"+id+"','"+name+"')\">"+name+"</th>";	
+	if(row.rowIndex == 1)		// not the title but next one down
+		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showSkillCsat('"+id+"','"+name+"')\">"+name+"</th>";	
 	else
 		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showSkillGroup('"+id+"','"+name+"')\">"+name+"</th>";
 
@@ -219,7 +219,7 @@ function createDeptRow(tableid, id, name) {
 	{
 		row.insertCell(i);
 	}
-	if(row.rowIndex == 1)		// not the title but next one download
+	if(row.rowIndex == 1)		// not the title but next one down
 		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showCsat('"+id+"','"+name+"')\">"+name+"</th>";	
 	else
 		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showDepartment('"+id+"','"+name+"')\">"+name+"</th>";
@@ -286,7 +286,7 @@ function showTopMetrics(rowid, data) {
 function showOperatorMetrics(rowid, data) {
 
 	var act = 0;
-	if(data.tct > 0)
+	if(data.tcan > 0)
 		act = Math.round(data.tct/data.tcan);
 	
 	if(typeof(data.did) !== 'undefined')	// this is for a dept not operator
