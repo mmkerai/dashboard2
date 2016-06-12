@@ -71,6 +71,7 @@ function checksignedin()
 	{
 		$('#myname').text("Not signed in");
 		$("#topTable").hide();
+		$("#csatTable").hide();
 		$("#signinform").show();
 	}
 	else
@@ -138,7 +139,7 @@ function showSkillGroupStats(data) {
 	rowid = document.getElementById(data.name);
 	if(rowid === null)		// row doesnt exist so create one
 	{
-		rowid = createTopRow(ttable, data.did, data.name);
+		rowid = createSkillRow(ttable, data.did, data.name);
 	}
 	showTopMetrics(rowid,data);
 }
@@ -185,7 +186,10 @@ function createTopRow(tableid, id, name) {
 	{
 		row.insertCell(i);
 	}
-	row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showSkillGroup('"+id+"','"+name+"')\">"+name+"</th>";
+	if(row.rowIndex == 1)		// not the title but next one download
+		row.cells[0].outerHTML = "<th>"+name+"</th>";	
+	else
+		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showSkillGroup('"+id+"','"+name+"')\">"+name+"</th>";
 
 	return row;
 }

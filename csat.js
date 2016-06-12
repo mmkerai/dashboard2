@@ -1,15 +1,18 @@
 var did;
 var DeptOperators = new Array();
-var Operators = new Array();
 
 $(document).ready(function() {
 did = getURLParameter("did");
 oid = getURLParameter("oid");
 
-	$("#g-signout").hide();
-	$("#csatTable").hide();
-	$("#export").hide();
-	$('#download').hide();
+	checksignedin();
+
+	$('#signinform').submit(function(event) {
+		event.preventDefault();
+		var name = $('#username').val();
+		var pwd = $('#password').val();
+		signin(name,pwd);
+	});
 
 	socket.on('connection', function(data){
 		console.log("Socket connected");
@@ -68,17 +71,23 @@ oid = getURLParameter("oid");
 			}
 		});
 	}
-	socket.on('authResponse', function(data){
-		var profile = googleUser.getBasicProfile();
-		$("#g-signout").show();
-		$("#csatTable").show();
-		$("#export").show();
-		$('#download').hide();
-		$("#gname").text(profile.getName());
-		$("#gprofile-image").attr({src: profile.getImageUrl()});
-		$("#error").text("");
-		console.log("User successfully signed in");
+ 	socket.on('authErrorResponse', function(data) {
+		$("#message1").text(data);
+		$("#csatTable").hide();
+		$("#signinform").show();
 	});
+ 	socket.on('errorResponse', function(data) {
+		$("#message1").text(data);
+	});
+	socket.on('authResponse', function(data) {
+		saveCookie("username", data.name, 1);	// save as cookie for 1 day
+		saveCookie("password", data.pwd, 1);
+		$('#message1').text("");
+		$('#myname').text(data.name);
+		$("#signinform").hide();
+		$("#csatTable").show();
+	});	
+
 });
 
 function exportMetrics() {
