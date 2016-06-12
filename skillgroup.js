@@ -47,8 +47,7 @@ sgid = getURLParameter("sgid");
 		{
 			if(ddata[i].name == sgid)
 			{
-//				SkillGroup = ddata[i];
-				showTopLevelStats(ddata[i]);
+				showSkillGroupStats(ddata[i]);
 			}
 		}
 	});	

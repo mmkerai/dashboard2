@@ -44,6 +44,16 @@ did = getURLParameter("did");
 		DeptOperators = ddata[did];	// get dept operators
 	});
 	
+	socket.on('departmentStats', function(ddata){
+		for(var i in ddata)
+		{
+			if(ddata[i].did == did) 	// show dept
+			{
+				showOperatorStats(ddata[i]);
+			}
+		}
+	});	
+
 	socket.on('operatorStats', function(ddata){
 		$("#ctime").text("Last refreshed: "+new Date().toLocaleString());
 
@@ -89,6 +99,10 @@ did = getURLParameter("did");
 
 function showCsat(oid,dname) {
 	window.open("csat.html?oid="+oid, '_blank');
+}
+
+function showDeptCsat(did,dname) {
+	window.open("csat.html?did="+did, '_blank');
 }
 
 function exportMetrics() {

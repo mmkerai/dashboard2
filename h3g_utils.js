@@ -236,7 +236,10 @@ function createOperatorRow(tableid, id, name) {
 	{
 		row.insertCell(i);
 	}
-	row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showCsat('"+id+"','"+name+"')\">"+name+"</th>";
+	if(row.rowIndex == 1)		// not the title but next one download
+		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showDeptCsat('"+id+"','"+name+"')\">"+name+"</th>";	
+	else
+		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showCsat('"+id+"','"+name+"')\">"+name+"</th>";
 	return row;
 }
 
@@ -286,10 +289,25 @@ function showOperatorMetrics(rowid, data) {
 	if(data.tct > 0)
 		act = Math.round(data.tct/data.tcan);
 	
-	rowid.cells[1].innerHTML = ChatStatus[data.status]+":"+data.cstatus;
-	rowid.cells[2].innerHTML = toHHMMSS(data.tcs);
-	rowid.cells[3].innerHTML = data.ccap;
-	rowid.cells[4].innerHTML = data.activeChats.length;
+	if(typeof(data.did) !== 'undefined')	// this is for a dept not operator
+	{
+		st = "N/A";
+		tcs = "N/A";
+		mcc = "N/A";
+		ac = data.tac;
+	}
+	else
+	{
+		st = ChatStatus[data.status]+":"+data.cstatus;
+		tcs = toHHMMSS(data.tcs);
+		mcc = data.ccap;
+		ac = data.activeChats.length;
+	}
+	
+	rowid.cells[1].innerHTML = st;
+	rowid.cells[2].innerHTML = tcs;
+	rowid.cells[3].innerHTML = mcc;
+	rowid.cells[4].innerHTML = ac;
 	rowid.cells[5].innerHTML = data.acc;
 	rowid.cells[6].innerHTML = data.tcan;
 	rowid.cells[7].innerHTML = data.cph;	
@@ -298,13 +316,12 @@ function showOperatorMetrics(rowid, data) {
 }
 
 function showCsatMetrics(rowid, data) {
-	var fcr = Math.round(data.csat.FCR*100) + "%";
-	var resolved = Math.round(data.csat.Resolved*100) + "%";
+	var closed = data.tcc || data.tcan-data.tac;	// tcc in operator object only not in dept or skillgroup object
 	
-	rowid.cells[1].innerHTML = data.tcan-data.tac;	// answered - active is closed chats
+	rowid.cells[1].innerHTML = closed;	// answered - active is closed chats
 	rowid.cells[2].innerHTML = data.csat.surveys;
-	rowid.cells[3].innerHTML = fcr;
-	rowid.cells[4].innerHTML = resolved;
+	rowid.cells[3].innerHTML = Math.round(data.csat.FCR*100) + "%";
+	rowid.cells[4].innerHTML = Math.round(data.csat.Resolved*100) + "%";
 	rowid.cells[5].innerHTML = Math.round(data.csat.OSAT);
 	rowid.cells[6].innerHTML = Math.round(data.csat.NPS);
 }
