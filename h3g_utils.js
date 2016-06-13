@@ -324,8 +324,8 @@ function showCsatMetrics(rowid, data) {
 	rowid.cells[2].innerHTML = data.csat.surveys;
 	rowid.cells[3].innerHTML = Math.round(data.csat.FCR*100) + "%";
 	rowid.cells[4].innerHTML = Math.round(data.csat.Resolved*100) + "%";
-	rowid.cells[5].innerHTML = Math.round(data.csat.OSAT*100) + "%";
-	rowid.cells[6].innerHTML = Math.round(data.csat.NPS*100) + "%";
+	rowid.cells[5].innerHTML = Math.round(data.csat.OSAT*10) + "%";
+	rowid.cells[6].innerHTML = Math.round(data.csat.NPS*10) + "%";
 }
 
 /* build csvfile from table to export snapshot
