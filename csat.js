@@ -64,7 +64,7 @@ oid = getURLParameter("oid");
 		socket.on('operatorStats', function(data){
 			for(var i in data)
 			{
-				if(DeptOperators.indexOf(data[i].oid) != -1)	// this operator belongs to this dept
+				if(DeptOperators.indexOf(data[i].oid) != -1 && data[i].csat.surveys > 0)	// there are surveys
 					showCsatStats(data[i]);
 			}
 		});
