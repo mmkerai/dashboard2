@@ -1,6 +1,11 @@
+var socket = new io.connect('', {
+	'reconnection': true,
+    'reconnectionDelay': 1000,
+    'reconnectionAttempts': 50
+});
+
 var did;
 var DeptOperators = new Array();
-var Operators = new Array();
 
 $(document).ready(function() {
 did = getURLParameter("did");

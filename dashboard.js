@@ -1,3 +1,8 @@
+var socket = new io.connect('', {
+	'reconnection': true,
+    'reconnectionDelay': 1000,
+    'reconnectionAttempts': 50
+});
 
 $(document).ready(function() {
 

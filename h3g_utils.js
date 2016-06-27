@@ -1,9 +1,5 @@
 // utilities for use in dashboard 
-var socket = new io.connect('', {
-	'reconnection': true,
-    'reconnectionDelay': 1000,
-    'reconnectionAttempts': 50
-});
+
 var ChatStatus = ["Logged Out","Away","Available"];
 var csvfile = null;
 
@@ -64,7 +60,7 @@ function checksignedin()
 {
 	var name = readCookie("username");
 	var pwd = readCookie("password");
-	$('#rtaversion').text("RTA Dashboard v1.00");
+	$('#rtaversion').text("RTA Dashboard v1.01");
 	$('#download').hide();
 //	console.log("User cookie: "+name+" and pwd "+pwd);
 	if(name == null || pwd == null)

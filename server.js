@@ -1,5 +1,5 @@
 /* RTA Dashboard for H3G. 
- * This script should run under Node.js in Heroku or on local server
+ * This script should run in Heroku or on local server
  */
 /* acronyms used in this script
 // cconc - chat concurrency
@@ -149,6 +149,8 @@ var Exception = function() {
 		this.chatsBlocked = 0;
 		this.customStatusUndefined = 0;
 		this.operatorIDUndefined = 0;
+		this.noCsatInfo = 0;
+		this.signatureInvalid = 0;
 };
 
 //******* Global class for csat data
@@ -280,9 +282,10 @@ function validateSignature(body, triggerUrl) {
 	if(encrypted == body.signature)
 		return true;
 	
-	console.log("Trigger failed signature validation");
-	debugLog(triggerUrl,body);
-	return false;	// while testing - change to false afterwards
+	console.log("Trigger failed signature validation: "+triggerUrl);
+	Exceptions.signatureInvalid++;
+//	debugLog(triggerUrl,body);
+	return true;	// while testing - change to false afterwards
 };
 
 function getUnencryptedSignature(body, triggerUrl) {
@@ -886,7 +889,7 @@ function updateCSAT(chat) {
 //	debugLog("Chat fields", chat);
 	if(chatobj.csat.NPS == null && chatobj.csat.OSAT == null && ft == null && resolved == null)
 	{
-		console.log("Csat is null");
+		Exceptions.noCsatInfo++;
 		return;
 	}
 	// update dept and operator stats
@@ -1310,7 +1313,7 @@ function getActiveChatData() {
 	{
 		parameters = "DepartmentID="+did;
 		getApiData("getActiveChats",parameters,allActiveChats);
-		sleep(500);
+		sleep(800);
 	}
 }
 
@@ -1353,6 +1356,40 @@ function allActiveChats(chats) {
 			processStartedChat(chats[i]);	// started, waiting to be answered
 			if(chats[i].Answered !== "" && chats[i].Answered !== null)
 				processAnsweredChat(chats[i]);	// chat was answered
+		}
+	}
+}
+
+// process all active chat objects 
+function refreshActiveChatsTimer() {
+	if(ApiDataNotReady || OperatorsSetupComplete === false)
+	{
+		console.log("Static data not ready (RAC): "+ApiDataNotReady);
+		setTimeout(refreshActiveChatsTimer, 10000);
+		return;
+	}
+	
+	for(var did in Departments)	// active chats are by department
+	{
+		parameters = "DepartmentID="+did;
+		getApiData("getActiveChats",parameters,refreshActiveChats);
+		sleep(500);
+	}
+	
+	setTimeout(refreshActiveChatsTimer, 60000);
+}
+
+// refresh all active chat objects. This isdone every minute in case triggers are missed
+function refreshActiveChats(chats) {
+	for(var i in chats)
+	{
+		if(typeof(AllChats[chats[i].ChatID]) !== 'undefined')
+		{
+			if(chats[i].Answered !== "" && chats[i].Answered !== null)
+			{
+				if(AllChats[chats[i].ChatID].status == 1)	// if chat was waiting to be answered
+					processAnsweredChat(chats[i]);
+			}
 		}
 	}
 }
@@ -1407,7 +1444,7 @@ function getInactiveChatData() {
 	{
 		parameters = "FolderID="+fid+"&FromDate="+startDate.toISOString();
 		getApiData("getInactiveChats", parameters, allInactiveChats);
-		sleep(500);
+		sleep(800);
 	}	
 }
 
@@ -1489,7 +1526,11 @@ io.on('connection', function(socket){
 	});
 	
 	socket.on('end', function(data){
-		console.log("connection ended");
+		removeSocket(socket.id, "end");
+	});
+
+	socket.on('connect_timeout', function(data){
+		removeSocket(socket.id, "timeout");
 	});
 
 	socket.on('downloadChats', function(data){
@@ -1567,4 +1608,5 @@ function checkOperatorAvailability() {
 console.log("Server started on port "+PORT);
 doStartOfDay();		// initialise everything
 setTimeout(updateChatStats,8000);	// updates socket io data at infinitum
+setTimeout(refreshActiveChatsTimer, 60000);	
 

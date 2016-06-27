@@ -1,3 +1,9 @@
+var socket = new io.connect('', {
+	'reconnection': true,
+    'reconnectionDelay': 1000,
+    'reconnectionAttempts': 50
+});
+
 var did, sgid, oid;
 var DeptOperators = new Array();
 
