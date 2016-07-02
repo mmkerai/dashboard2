@@ -55,8 +55,6 @@ sgid = getURLParameter("sgid");
 				showSkillGroupStats(ddata[i]);
 		}
 	});	
-});
-	
 	socket.on('departmentStats', function(ddata){
 		for(var i in ddata)
 		{
@@ -64,7 +62,12 @@ sgid = getURLParameter("sgid");
 				showDeptLevelStats(ddata[i]);
 		}
 	});	
-
+});
+	
+window.onload(function () {
+	socket.close();
+});
+	
 function showDepartment(did,dname) {
 //	console.log("Show Dept : "+dname);
 	window.open("department.html?did="+did, '_blank');

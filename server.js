@@ -282,10 +282,10 @@ function validateSignature(body, triggerUrl) {
 	if(encrypted == body.signature)
 		return true;
 	
-	console.log("Trigger failed signature validation: "+triggerUrl);
+	console.log("Trigger signature validation error: "+triggerUrl);
 	Exceptions.signatureInvalid++;
 //	debugLog(triggerUrl,body);
-	return true;	// while testing - change to false afterwards
+	return true;	// true while testing - change to false afterwards
 };
 
 function getUnencryptedSignature(body, triggerUrl) {
@@ -386,17 +386,6 @@ app.post('/operator-status-changed', function(req, res) {
 			processOperatorStatusChanged(req.body);
 			sendToLogs("operator-status-changed, operator id: "+Operators[req.body.LoginID].name);
 		}
-	}
-	res.send({ "result": "success" });
-});
-
-// Process incoming Boldchat triggered chat data
-app.post('/chat-reassigned', function(req, res){
-	if(validateSignature(req.body, TriggerDomain+'/chat-reassigned'))
-	{
-		sendToLogs("Chat-reassigned, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
-		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
-			processChatReassigned(req.body);
 	}
 	res.send({ "result": "success" });
 });
@@ -1566,8 +1555,7 @@ function updateChatStats() {
 	calculateACC_CCONC_TCO();
 
 	var str = "Total chats started today: "+Object.keys(AllChats).length;
-	console.log(str);
-	console.log("Clients connected: "+io.eio.clientsCount);
+	str = str + "\r\nClients connected: "+io.eio.clientsCount;
 	io.emit('overallStats',Overall);
 	io.emit('skillGroupStats',SkillGroups);
 	io.emit('departmentStats',Departments);
@@ -1577,7 +1565,7 @@ function updateChatStats() {
 	io.emit('exceptions',Exceptions);
 	io.emit('usersLoggedIn',UsersLoggedIn);
 
-	setTimeout(updateChatStats, 2000);	// send update every 2 second
+	setTimeout(updateChatStats, 5000);	// send update every 2 second
 }
 
 // setup all globals
@@ -1607,6 +1595,6 @@ function checkOperatorAvailability() {
 }
 console.log("Server started on port "+PORT);
 doStartOfDay();		// initialise everything
-setTimeout(updateChatStats,8000);	// updates socket io data at infinitum
+setTimeout(updateChatStats,10000);	// updates socket io data at infinitum
 setTimeout(refreshActiveChatsTimer, 60000);	
 

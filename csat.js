@@ -102,7 +102,10 @@ oid = getURLParameter("oid");
 		$("#signinform").hide();
 		$("#csatTable").show();
 	});	
+});
 
+window.onload(function () {
+	socket.close();
 });
 
 function exportMetrics() {

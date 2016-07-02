@@ -73,6 +73,9 @@ did = getURLParameter("did");
 	});	
 });
 
+window.onload(function () {
+	socket.close();
+});
 
 /*function createDeptRow(tableid,index,sg,name) {
 
