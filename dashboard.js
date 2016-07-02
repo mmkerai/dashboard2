@@ -51,9 +51,9 @@ $(document).ready(function() {
 	});
 });
 
-window.onload(function () {
+window.onload=function () {
 	socket.close();
-});
+};
 	
 function exportMetrics() {
 	console.log("Exporting top-level metrics");
