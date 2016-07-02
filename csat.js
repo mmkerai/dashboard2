@@ -1,4 +1,4 @@
-var socket = new io.connect('', {
+var socket = io('', {
 	'reconnection': true,
     'reconnectionDelay': 1000,
     'reconnectionAttempts': 50
@@ -104,9 +104,9 @@ oid = getURLParameter("oid");
 	});	
 });
 
-window.onload(function () {
+$(window).on('beforeunload',function () {
 	socket.close();
-});
+};
 
 function exportMetrics() {
 	console.log("Exporting Csat metrics");

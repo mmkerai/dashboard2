@@ -1,4 +1,4 @@
-var socket = new io.connect('', {
+var socket = io('', {
 	'reconnection': true,
     'reconnectionDelay': 1000,
     'reconnectionAttempts': 50
@@ -73,9 +73,9 @@ did = getURLParameter("did");
 	});	
 });
 
-window.onload(function () {
+$(window).on('beforeunload',function () {
 	socket.close();
-});
+};
 
 /*function createDeptRow(tableid,index,sg,name) {
 

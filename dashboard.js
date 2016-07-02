@@ -54,7 +54,7 @@ $(document).ready(function() {
 	});
 });
 
-window.onunload=function () {
+$(window).on('beforeunload',function () {
 	socket.close();
 };
 	
