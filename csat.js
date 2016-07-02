@@ -106,7 +106,7 @@ oid = getURLParameter("oid");
 
 $(window).on('beforeunload',function () {
 	socket.close();
-};
+});
 
 function exportMetrics() {
 	console.log("Exporting Csat metrics");

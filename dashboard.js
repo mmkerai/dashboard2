@@ -56,7 +56,7 @@ $(document).ready(function() {
 
 $(window).on('beforeunload',function () {
 	socket.close();
-};
+});
 	
 function exportMetrics() {
 	console.log("Exporting top-level metrics");

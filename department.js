@@ -75,7 +75,7 @@ did = getURLParameter("did");
 
 $(window).on('beforeunload',function () {
 	socket.close();
-};
+});
 
 /*function createDeptRow(tableid,index,sg,name) {
 

@@ -66,7 +66,7 @@ sgid = getURLParameter("sgid");
 	
 $(window).on('beforeunload',function () {
 	socket.close();
-};
+});
 	
 function showDepartment(did,dname) {
 //	console.log("Show Dept : "+dname);
