@@ -1,4 +1,4 @@
-var socket = new io.connect('', {
+var socket = io('', {
 	'reconnection': true,
     'reconnectionDelay': 1000,
     'reconnectionAttempts': 50
@@ -13,6 +13,9 @@ $(document).ready(function() {
 		var name = $('#username').val();
 		var pwd = $('#password').val();
 		signin(name,pwd);
+	});
+	socket.on('connection', function(data){
+		console.log("socket connected at "+ new Date().toGMTString());
 	});
 	socket.on('error', function(data){
 		console.log("socket error at "+ new Date().toGMTString());
@@ -51,7 +54,7 @@ $(document).ready(function() {
 	});
 });
 
-window.onload=function () {
+window.onunload=function () {
 	socket.close();
 };
 	
