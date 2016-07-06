@@ -352,9 +352,18 @@ function initialiseGlobals () {
 app.post('/chat-started', function(req, res){
 	if(validateSignature(req.body, TriggerDomain+'/chat-started'))
 	{
-		sendToLogs("Chat-started, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
 		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
-			processStartedChat(req.body);
+		{
+//			if(req.body.ChatID.DepartmentID !== null && req.body.ChatID.DepartmentID !== "")
+//			{
+				var deptobj = Departments[req.body.ChatID.DepartmentID];
+				if(typeof(deptobj) !== 'undefined')		// a dept we are not interested in
+				{
+					sendToLogs("Chat-started, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
+					processStartedChat(req.body);
+				}
+//			}
+		}
 	}
 	res.send({ "result": "success" });
 });
@@ -610,38 +619,16 @@ function operatorCustomStatusCallback(dlist) {
 
 // process started chat object and update all relevat dept, operator and global metrics
 function processStartedChat(chat) {
-	if(chat.DepartmentID == null || chat.DepartmentID == "") return;// should never be null at this stage but I have seen it
-	var deptobj = Departments[chat.DepartmentID];
-	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
-
-	var tchat = new ChatData(chat.ChatID, chat.DepartmentID, deptobj.skillgroup);
+	var tchat = new ChatData(chat.ChatID, chat.DepartmentID, Departments[chat.DepartmentID].skillgroup);
 	tchat.started = new Date(chat.Started);
 	tchat.status = 1;	// waiting to be answered
 	AllChats[chat.ChatID] = tchat;		// save this chat details
 }
 
-/*// process unavailable chat object. Occurs when visitor gets the unavailable message as ACD queue is full or nobody available
-function processUnavailableChat(chat) {
-	if(chat.DepartmentID === null) return;	
-	var deptobj = Departments[chat.DepartmentID];
-	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
-	var sgobj = SkillGroups[deptobj.skillgroup];
-	// make sure that this is genuine and sometime this event is triggered for an old closed chat
-	if((chat.Started == "" || chat.Started == null) && (chat.Answered == "" || chat.Answered == null))
-	{
-		deptobj.tcun++;
-		sgobj.tcun++;
-		Overall.tcun++;
-	}
-}
-*/
 // active chat means a started chat has been answered by an operator so it is no longer in the queue
 function processAnsweredChat(chat) {
 	var deptobj, opobj, sgobj;
 	
-	if(chat.DepartmentID == null || chat.DepartmentID == "") return;	// should never be null at this stage but I have seen it
-	if(chat.OperatorID == null || chat.OperatorID == "") return;		// operator id not set for some strange reason
-
 	deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
 	sgobj = SkillGroups[deptobj.skillgroup];
@@ -690,7 +677,7 @@ function processClosedChat(chat) {
 	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
 	sgobj = SkillGroups[deptobj.skillgroup];
 
-	if(chat.Ended == null || chat.Ended == "")		// should not happen
+/*	if(chat.Ended == null || chat.Ended == "")		// should not happen
 	{
 		Exceptions.chatEndedIsBlank++;
 		return;
@@ -699,7 +686,7 @@ function processClosedChat(chat) {
 	{
 		Exceptions.chatClosedIsBlank++;
 		return;
-	}
+	}*/
 	if(typeof(AllChats[chat.ChatID]) === 'undefined')	// if this chat did not exist (only happens if missed it during startup)
 	{
 		Exceptions.chatClosedNotInList++;
@@ -1352,6 +1339,10 @@ function setUpDeptAndSkillGroups() {
 function allActiveChats(chats) {
 	for(var i in chats) 
 	{
+//		if(chats[i].DepartmentID == null || chats[i].DepartmentID == "") continue;// should'nt happen but I have seen it
+		var deptobj = Departments[chats[i].DepartmentID];
+		if(typeof(deptobj) === 'undefined') continue;		// a dept we are not interested in
+
 		if(chats[i].Started !== "" && chats[i].Started !== null)
 		{
 			processStartedChat(chats[i]);	// started, waiting to be answered
@@ -1399,6 +1390,10 @@ function refreshActiveChats(chats) {
 function allInactiveChats(chats) {
 	for(var i in chats)
 	{
+//		if(chats[i].DepartmentID == null || chats[i].DepartmentID == "") continue;// should'nt happen but I have seen it
+		var deptobj = Departments[chats[i].DepartmentID];
+		if(typeof(deptobj) === 'undefined') continue;		// a dept we are not interested in
+
 		if(chats[i].Started !== "" && chats[i].Started !== null)
 		{
 			processStartedChat(chats[i]);	// started
