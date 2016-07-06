@@ -1438,7 +1438,7 @@ function getInactiveChatData() {
 	// "FromDate" will be included even if the created datetime is before the FromDate.
 	var startDate = new Date();
 	startDate.setUTCHours(0,0,0,0);
-
+	startDate.setHours(startDate.getHours() - TOFFSET);	// allow for TIMEZONE
 	console.log("Getting inactive chat info from "+ Object.keys(Folders).length +" folders");
 	var parameters;
 	for(var fid in Folders)	// Inactive chats are by folders
