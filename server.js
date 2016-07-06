@@ -50,6 +50,8 @@ var AID;
 var SETTINGSID;
 var KEY;
 var SLATHRESHOLD;
+var TZONE, TOFFSET;
+var MAXCHATCONCURRENCY;
 var AUTHUSERS = {};
 var DoUserAuth = true;	// default do manual auth from JSON
 
@@ -60,6 +62,8 @@ try
 	SETTINGSID = EnVars.APISETTINGSID || 0;
 	KEY = EnVars.APIKEY || 0;
 	SLATHRESHOLD = EnVars.SLATHRESHOLDS || 90;
+	MAXCHATCONCURRENCY = EnVars.MAXCHATCONCURRENCY || 2;
+	TZONE = EnVars.TIMEZONE || "GMT";
 	DoUserAuth = false;		// if using config file then must be on TechM server so no user auth required
 }
 catch(e)
@@ -70,8 +74,10 @@ catch(e)
 		AID = process.env.AID || 0;
 		SETTINGSID = process.env.APISETTINGSID || 0;
 		KEY = process.env.APIKEY || 0;
-		AUTHUSERS = JSON.parse(process.env.AUTHUSERS) || {};
 		SLATHRESHOLD = process.env.SLATHRESHOLDS || 90;	
+		MAXCHATCONCURRENCY = process.env.MAXCHATCONCURRENCY || 2;	
+		TZONE = process.env.TIMEZONE || "GMT";	
+		AUTHUSERS = JSON.parse(process.env.AUTHUSERS) || {};
 	}
 	else
 		console.log("Error code: "+e.code);
@@ -83,6 +89,14 @@ if(AID == 0 || SETTINGSID == 0 || KEY == 0)
 	process.exit(1);
 }
 
+if(TZONE != "GMT" && TZONE != "BST")
+{
+	console.log("Timezone invalid - must be GMT or BST. Terminating!");
+	process.exit(1);
+}
+TOFFSET = (TZONE == "BST") ? 1 : 0;
+console.log("Time offset is: "+ TOFFSET+" hour");
+console.log("Config loaded successfully");
 var TriggerDomain = "https://h3gdashboard-dev.herokuapp.com";		// used to validate the signature of push data
 
 //****** Callbacks for all URL requests
@@ -207,7 +221,7 @@ var DashMetrics = function(did,name,sg) {
 var OpMetrics  = function(id,name) {
 		this.oid = id;		// operator id
 		this.name = name;
-		this.ccap = 2;		// assume chat capacity of 2
+		this.maxcc = MAXCHATCONCURRENCY;		// max chat concurrenccy
 		this.cconc = 0;		// chat concurrency
 		this.tcan = 0;		// total chats answered
 		this.tcc = 0;	// chats closed (= answered-active)
@@ -327,6 +341,7 @@ function initialiseGlobals () {
 	TimeNow = new Date();
 	EndOfDay = new Date();
 	EndOfDay.setUTCHours(23,59,59,999);	// last milli second of the day
+	EndOfDay.setHours(EndOfDay.getHours() - TOFFSET);	// allow for TIMEZONE
 	Overall = new DashMetrics("Overall","Overall");	
 	OperatorsSetupComplete = false;
 	ApiDataNotReady = 0;
@@ -399,9 +414,10 @@ function BC_API_Request(api_method,params,callBackFunction) {
 		host : 'api.boldchat.com', 
 		port : 443, 
 		path : '/aid/'+AID+'/data/rest/json/v1/'+api_method+'?auth='+authHash+'&'+params, 
-		method : 'GET'
-		};
-	https.request(options, callBackFunction).end();
+		method : 'GET',
+		agent : false
+	};
+	https.request(options, callBackFunction).on('error', function(err){console.log("API request error: "+err.stack)}).end();
 }
 
 function postToArchive(postdata) {
@@ -478,7 +494,7 @@ function deptsCallback(dlist) {
 	{
 		parameters = "DepartmentID="+did;
 		getApiData("getDepartmentOperators",parameters,deptOperatorsCallback,did);	// extra func param due to API
-		sleep(500);
+		sleep(100);
 	}
 }
 
@@ -604,7 +620,7 @@ function processStartedChat(chat) {
 	AllChats[chat.ChatID] = tchat;		// save this chat details
 }
 
-// process unavailable chat object. Occurs when visitor gets the unavailable message as ACD queue is full or nobody available
+/*// process unavailable chat object. Occurs when visitor gets the unavailable message as ACD queue is full or nobody available
 function processUnavailableChat(chat) {
 	if(chat.DepartmentID === null) return;	
 	var deptobj = Departments[chat.DepartmentID];
@@ -618,7 +634,7 @@ function processUnavailableChat(chat) {
 		Overall.tcun++;
 	}
 }
-
+*/
 // active chat means a started chat has been answered by an operator so it is no longer in the queue
 function processAnsweredChat(chat) {
 	var deptobj, opobj, sgobj;
@@ -722,24 +738,23 @@ function processWindowClosed(chat) {
 		Overall.tcaban++;
 		return;
 	}
-
-	deptobj = Departments[chat.DepartmentID];
-	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
-	
-	sgobj = SkillGroups[deptobj.skillgroup];
-
 	if(chat.ChatStatusType == 10 || chat.ChatStatusType == 18)		// blocked chats
 	{
 		Exceptions.chatsBlocked++;
 	}
-	else if(chat.ChatStatusType >= 7 && chat.ChatStatusType <= 15)		// unavailable chat
+
+	deptobj = Departments[chat.DepartmentID];
+	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in	
+	sgobj = SkillGroups[deptobj.skillgroup];
+	
+	if(chat.ChatStatusType >= 7 && chat.ChatStatusType <= 15)		// unavailable chat
 	{
 		Overall.tcun++;
 		deptobj.tcun++;
 		sgobj.tcun++;
 	}
 	
-	if(typeof(AllChats[chat.ChatID]) === 'undefined')		// abandoned and available chats not in list
+	if(typeof(AllChats[chat.ChatID]) === 'undefined')		// abandoned and unavailable chats not in list
 		return;
 	
 	if(AllChats[chat.ChatID].answered == 0 && AllChats[chat.ChatID].started != 0)		// chat started but unanswered
@@ -909,7 +924,7 @@ function updateCSAT(chat) {
 	opobj.csat.FCR = ((opobj.csat.FCR*numo) + chatobj.csat.FCR)/opobj.csat.surveys;
 	opobj.csat.Resolved = ((opobj.csat.Resolved*numo) + chatobj.csat.Resolved)/opobj.csat.surveys;
 	
-	console.log("CSAT updated");
+//	console.log("CSAT updated");
 }
 
 function removeActiveChat(opobj, chatid) {
@@ -1132,10 +1147,7 @@ function calculateACC_CCONC_TCO() {
 			opobj.cconc = ((opobj.tct+opobj.mct)/opobj.tct).toFixed(2);
 		
 		if(opobj.statusdtime != 0)
-		{
 			opobj.tcs = Math.round(((TimeNow - opobj.statusdtime))/1000);
-//			sendToLogs("Operator:status:tcs="+opobj.name+":"+opobj.status+":"+Math.round(((TimeNow - opobj.statusdtime))/1000));
-		}
 		else
 			opobj.tcs = 0;
 		
@@ -1146,7 +1158,7 @@ function calculateACC_CCONC_TCO() {
 		SkillGroups[sgid].mct = SkillGroups[sgid].mct + opobj.mct;
 		if(opobj.status == 2)		// make sure operator is available
 		{
-			opobj.acc = opobj.ccap - opobj.activeChats.length;
+			opobj.acc = opobj.maxcc - opobj.activeChats.length;
 			if(opobj.acc < 0) opobj.acc = 0;			// make sure not negative
 			Overall.acc = Overall.acc + opobj.acc;
 			SkillGroups[sgid].acc = SkillGroups[sgid].acc + opobj.acc;
@@ -1302,7 +1314,7 @@ function getActiveChatData() {
 	{
 		parameters = "DepartmentID="+did;
 		getApiData("getActiveChats",parameters,allActiveChats);
-		sleep(800);
+		sleep(100);
 	}
 }
 
@@ -1362,7 +1374,7 @@ function refreshActiveChatsTimer() {
 	{
 		parameters = "DepartmentID="+did;
 		getApiData("getActiveChats",parameters,refreshActiveChats);
-		sleep(500);
+		sleep(100);
 	}
 	
 	setTimeout(refreshActiveChatsTimer, 60000);
@@ -1409,7 +1421,7 @@ function allInactiveChats(chats) {
 				processWindowClosed(chats[i]);	// closed after starting before being answered
 		}
 		else
-			processWindowClosed(chats[i]);	// closed because unavailable
+			processWindowClosed(chats[i]);	// closed because unavailable or abandoned
 	}
 }
 
@@ -1433,7 +1445,7 @@ function getInactiveChatData() {
 	{
 		parameters = "FolderID="+fid+"&FromDate="+startDate.toISOString();
 		getApiData("getInactiveChats", parameters, allInactiveChats);
-		sleep(800);
+		sleep(100);
 	}	
 }
 
@@ -1556,6 +1568,7 @@ function updateChatStats() {
 
 	var str = "Total chats started today: "+Object.keys(AllChats).length;
 	str = str + "\r\nClients connected: "+io.eio.clientsCount;
+	console.log(str);
 	io.emit('overallStats',Overall);
 	io.emit('skillGroupStats',SkillGroups);
 	io.emit('departmentStats',Departments);
@@ -1565,20 +1578,20 @@ function updateChatStats() {
 	io.emit('exceptions',Exceptions);
 	io.emit('usersLoggedIn',UsersLoggedIn);
 
-	setTimeout(updateChatStats, 5000);	// send update every 2 second
+	setTimeout(updateChatStats, 4000);	// send update every 2 second
 }
 
 // setup all globals
 function doStartOfDay() {
 	initialiseGlobals();	// zero all memory
 	getApiData("getDepartments", 0, deptsCallback);
-	sleep(1000);
+	sleep(500);
 	getApiData("getOperators", 0, operatorsCallback);
-	sleep(1000);
+	sleep(500);
 	getApiData("getFolders", "FolderType=5", foldersCallback);	// get only chat folders
-	sleep(1000);
+	sleep(500);
 	getApiData("getCustomOperatorStatuses", 0, customStatusCallback);
-	sleep(1000);
+	sleep(500);
 	setUpDeptAndSkillGroups();
 	getInactiveChatData();
 	getActiveChatData();
