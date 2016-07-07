@@ -356,7 +356,7 @@ app.post('/chat-started', function(req, res){
 		{
 //			if(req.body.ChatID.DepartmentID !== null && req.body.ChatID.DepartmentID !== "")
 //			{
-				var deptobj = Departments[req.body.ChatID.DepartmentID];
+				var deptobj = Departments[req.body.DepartmentID];
 				if(typeof(deptobj) !== 'undefined')		// a dept we are not interested in
 				{
 					sendToLogs("Chat-started, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
