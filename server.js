@@ -1029,9 +1029,13 @@ function calculateASA_SLA() {
 		if((tchat.status == 2 || tchat.status == 0) && tchat.answered != 0 && tchat.started != 0)
 		{
 			count++;
+			if(tchat.departmentID == 0 || tchat.skillgroup == 0)	// shouldnt be
+				continue;
+				
 			dcount[tchat.departmentID]++;
 			sgcount[tchat.skillgroup]++;
-			speed = tchat.answered - tchat.started;				
+			speed = tchat.answered - tchat.started;
+			if(isNaN(speed)) continue;
 			anstime = anstime + speed;
 			danstime[tchat.departmentID] = danstime[tchat.departmentID] + speed;
 			sganstime[tchat.skillgroup] = sganstime[tchat.skillgroup] + speed;
@@ -1059,6 +1063,9 @@ function calculateASA_SLA() {
 	
 	for(var i in sgcount)
 	{
+		if(isNaN(sganstime[i]))
+			continue;
+
 		if(sgcount[i] != 0)	// musnt divide by 0
 			SkillGroups[i].asa = Math.round((sganstime[i] / sgcount[i])/1000);
 		SkillGroups[i].tac = sgtac[i];
