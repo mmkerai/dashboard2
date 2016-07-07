@@ -221,7 +221,7 @@ var DashMetrics = function(did,name,sg) {
 var OpMetrics  = function(id,name) {
 		this.oid = id;		// operator id
 		this.name = name;
-		this.maxcc = MAXCHATCONCURRENCY;		// max chat concurrenccy
+		this.maxcc = Number(MAXCHATCONCURRENCY);		// max chat concurrenccy
 		this.cconc = 0;		// chat concurrency
 		this.tcan = 0;		// total chats answered
 		this.tcc = 0;	// chats closed (= answered-active)
@@ -1049,6 +1049,9 @@ function calculateASA_SLA() {
 	
 	for(var i in dcount)
 	{
+		if(isNaN(danstime[i]))
+			continue;
+		
 		if(dcount[i] != 0)	// musnt divide by 0
 			Departments[i].asa = Math.round((danstime[i] / dcount[i])/1000);
 		Departments[i].tac = dtac[i];
