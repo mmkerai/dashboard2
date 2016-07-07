@@ -632,9 +632,6 @@ function processAnsweredChat(chat) {
 	deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
 	sgobj = SkillGroups[deptobj.skillgroup];
-	opobj = Operators[chat.OperatorID];
-	if(typeof(opobj) === 'undefined') return false;		// an operator that doesnt exist (may happen if created midday)
-
 /*	if(chat.Answered == null || chat.Answered == "")
 	{
 		Exceptions.chatAnsweredIsBlank++;
@@ -654,8 +651,10 @@ function processAnsweredChat(chat) {
 	Overall.tcan++;	// answered chats
 	sgobj.tcan++;
 	deptobj.tcan++;
+	
+	opobj = Operators[chat.OperatorID];
+	if(typeof(opobj) === 'undefined') return false;		// an operator that doesnt exist (may happen if created midday)
 	opobj.tcan++;
-
 	opobj.activeChats.push(chat.ChatID);
 
 	var speed = AllChats[chat.ChatID].answered - AllChats[chat.ChatID].started;
@@ -695,6 +694,7 @@ function processClosedChat(chat) {
 	}
 		
 	AllChats[chat.ChatID].status = 0;		// inactive/complete/cancelled/closed
+	AllChats[chat.ChatID].answered = new Date(chat.Answered);
 	AllChats[chat.ChatID].ended = new Date(chat.Ended);
 	AllChats[chat.ChatID].closed = new Date(chat.Closed);
 
