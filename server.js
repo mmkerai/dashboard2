@@ -975,7 +975,8 @@ function calculateACT_CPH() {
 			{
 				cph++;
 				dcph[tchat.departmentID]++;
-				Operators[tchat.operatorID].cph++;
+				if(tchat.operatorID !== 0)		// make sure operator id is not missing
+					Operators[tchat.operatorID].cph++;
 			}
 		}
 	}
