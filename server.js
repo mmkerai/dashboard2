@@ -630,21 +630,21 @@ function processAnsweredChat(chat) {
 	var deptobj, opobj, sgobj;
 	
 	deptobj = Departments[chat.DepartmentID];
-	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
+	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
 	sgobj = SkillGroups[deptobj.skillgroup];
 	opobj = Operators[chat.OperatorID];
-	if(typeof(opobj) === 'undefined') return;		// an operator that doesnt exist (may happen if created midday)
+	if(typeof(opobj) === 'undefined') return false;		// an operator that doesnt exist (may happen if created midday)
 
-	if(chat.Answered == null || chat.Answered == "")
+/*	if(chat.Answered == null || chat.Answered == "")
 	{
 		Exceptions.chatAnsweredIsBlank++;
-		return;
+		return false;
 	}
-	
+*/	
 	if(typeof(AllChats[chat.ChatID]) === 'undefined')	// if this chat did not exist (only happens if missed it during startup)
 	{
 		Exceptions.chatAnsweredNotInList++;
-		return;
+		return false;
 	}
 	
 	AllChats[chat.ChatID].answered = new Date(chat.Answered);
@@ -666,6 +666,7 @@ function processAnsweredChat(chat) {
 		sgobj.csla++;
 		opobj.csla++;
 	}
+	return true;
 }
 
 // process closed chat object. closed chat is one that is started and answered.
@@ -674,23 +675,23 @@ function processClosedChat(chat) {
 	var deptobj,opobj,sgobj;
 
 	deptobj = Departments[chat.DepartmentID];
-	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in
+	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
 	sgobj = SkillGroups[deptobj.skillgroup];
 
-/*	if(chat.Ended == null || chat.Ended == "")		// should not happen
+	if(chat.Ended == null || chat.Ended == "")		// should not happen
 	{
 		Exceptions.chatEndedIsBlank++;
-		return;
+		return false;
 	}
 	if(chat.Closed == null || chat.Closed == "")	// should not happen
 	{
 		Exceptions.chatClosedIsBlank++;
-		return;
-	}*/
+		return false;
+	}
 	if(typeof(AllChats[chat.ChatID]) === 'undefined')	// if this chat did not exist (only happens if missed it during startup)
 	{
 		Exceptions.chatClosedNotInList++;
-		return;
+		return false;
 	}
 		
 	AllChats[chat.ChatID].status = 0;		// inactive/complete/cancelled/closed
@@ -700,9 +701,8 @@ function processClosedChat(chat) {
 	if(chat.OperatorID != "" && chat.OperatorID != null)
 	{
 		opobj = Operators[chat.OperatorID];
-		if(typeof(opobj) === 'undefined') return;		// an operator that doesnt exist (may happen if created during startup)
+		if(typeof(opobj) === 'undefined') return false;		// an operator that doesnt exist (may happen if created during startup)
 		// add the total chat time for this chat
-	//	sendToLogs("TCT by minute is "+(opobj.tct+opobj.mct)+", TCT by calc is "+opobj.tcta);
 		var chattime = Math.round((AllChats[chat.ChatID].closed - AllChats[chat.ChatID].started)/1000);
 		opobj.tcta = opobj.tcta + chattime;
 		// now remove from active chat list and update stats
@@ -713,6 +713,7 @@ function processClosedChat(chat) {
 
 		updateCconc(AllChats[chat.ChatID]);	// update chat conc now that it is closed
 	}
+	return true;
 }
 
 // process window closed chat object. This happens if visitor closes chat by closing the window
@@ -723,7 +724,7 @@ function processWindowClosed(chat) {
 	{
 		Exceptions.chatsAbandoned++;
 		Overall.tcaban++;
-		return;
+		return false;
 	}
 	if(chat.ChatStatusType == 10 || chat.ChatStatusType == 18)		// blocked chats
 	{
@@ -731,7 +732,7 @@ function processWindowClosed(chat) {
 	}
 
 	deptobj = Departments[chat.DepartmentID];
-	if(typeof(deptobj) === 'undefined') return;		// a dept we are not interested in	
+	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in	
 	sgobj = SkillGroups[deptobj.skillgroup];
 	
 	if(chat.ChatStatusType >= 7 && chat.ChatStatusType <= 15)		// unavailable chat
@@ -742,7 +743,7 @@ function processWindowClosed(chat) {
 	}
 	
 	if(typeof(AllChats[chat.ChatID]) === 'undefined')		// abandoned and unavailable chats not in list
-		return;
+		return false;
 	
 	if(AllChats[chat.ChatID].answered == 0 && AllChats[chat.ChatID].started != 0)		// chat started but unanswered
 	{
@@ -764,6 +765,7 @@ function processWindowClosed(chat) {
 	AllChats[chat.ChatID].ended = new Date(chat.Ended);
 	AllChats[chat.ChatID].closed = new Date(chat.Closed);
 	updateCSAT(chat);
+	return true;
 }
 
 // process operator status changed. or unavailable
@@ -773,12 +775,12 @@ function processOperatorStatusChanged(ostatus) {
 	if(typeof(Operators[opid]) === 'undefined')
 	{
 		Exceptions.operatorIDUndefined++;
-		return;
+		return false;
 	}
 
 	var depts = new Array();
 	depts = OperatorDepts[opid];
-	if(typeof(depts) === 'undefined') return;	// operator depts not recognised
+	if(typeof(depts) === 'undefined') return false;	// operator depts not recognised
 
 	var oldstatus = Operators[opid].status	// save old status for later processing
 	// Get the custom status via async API call as currently not available in the trigger
@@ -851,6 +853,7 @@ function processOperatorStatusChanged(ostatus) {
 			}
 		}
 	}
+	return true;
 }
 
 function updateCconc(tchat) {
@@ -873,6 +876,7 @@ function updateCconc(tchat) {
 
 function updateCSAT(chat) {
 	var chatobj = AllChats[chat.ChatID];
+	if(typeof chatobj === 'undefined') return false;
 	chatobj.csat.OSAT = Number(chat.rateadvisor) || null;
 	chatobj.csat.NPS = Number(chat.NPS) || null;
 	var ft = chat.firsttime || null;
@@ -881,7 +885,7 @@ function updateCSAT(chat) {
 	if(chatobj.csat.NPS == null && chatobj.csat.OSAT == null && ft == null && resolved == null)
 	{
 		Exceptions.noCsatInfo++;
-		return;
+		return false;
 	}
 	// update dept and operator stats
 	chatobj.csat.FCR = (ft == "Yes" && resolved == "Yes") ? 1 : 0;
@@ -912,6 +916,7 @@ function updateCSAT(chat) {
 	opobj.csat.Resolved = ((opobj.csat.Resolved*numo) + chatobj.csat.Resolved)/opobj.csat.surveys;
 	
 //	console.log("CSAT updated");
+	return true;
 }
 
 function removeActiveChat(opobj, chatid) {
@@ -1399,17 +1404,21 @@ function allInactiveChats(chats) {
 			processStartedChat(chats[i]);	// started
 			if(chats[i].Answered !== "" && chats[i].Answered !== null)
 			{
-				processAnsweredChat(chats[i]);	//  answered
-				processClosedChat(chats[i]);	// and closed
-				if(Object.keys(chats[i].CustomFields).length > 0)
+				if(processAnsweredChat(chats[i])	//  answered
 				{
-					var chat = chats[i];
-					chat.NPS = chat.CustomFields.NPS || null;
-					chat.rateadvisor = chat.CustomFields.rateadvisor || null;
-					chat.firsttime = chat.CustomFields.firsttime || null;
-					chat.resolved = chat.CustomFields.resolved || null;
-					delete chat["CustomFields"];
-					updateCSAT(chats[i]);
+					if(processClosedChat(chats[i]))	// and closed
+					{
+						if(Object.keys(chats[i].CustomFields).length > 0)
+						{
+							var chat = chats[i];
+							chat.NPS = chat.CustomFields.NPS || null;
+							chat.rateadvisor = chat.CustomFields.rateadvisor || null;
+							chat.firsttime = chat.CustomFields.firsttime || null;
+							chat.resolved = chat.CustomFields.resolved || null;
+							delete chat["CustomFields"];
+							updateCSAT(chats[i]);
+						}
+					}
 				}
 			}
 			else
