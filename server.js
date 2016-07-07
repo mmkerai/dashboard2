@@ -1404,7 +1404,7 @@ function allInactiveChats(chats) {
 			processStartedChat(chats[i]);	// started
 			if(chats[i].Answered !== "" && chats[i].Answered !== null)
 			{
-				if(processAnsweredChat(chats[i])	//  answered
+				if(processAnsweredChat(chats[i]))	//  answered
 				{
 					if(processClosedChat(chats[i]))	// and closed
 					{
