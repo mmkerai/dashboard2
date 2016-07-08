@@ -964,6 +964,8 @@ function calculateACT_CPH() {
 		if(tchat.status == 0 && tchat.ended != 0 && tchat.answered != 0)		// chat ended
 		{
 			count++;
+			if(tchat.departmentID == 0 || tchat.skillgroup == 0)	// shouldnt be
+				continue;
 			sgid = Departments[tchat.departmentID].skillgroup;
 			dcount[tchat.departmentID]++;
 			sgcount[sgid]++; 
@@ -975,7 +977,7 @@ function calculateACT_CPH() {
 			{
 				cph++;
 				dcph[tchat.departmentID]++;
-				if(tchat.operatorID !== 0)		// make sure operator id is not missing
+				if(tchat.operatorID)		// make sure operator id is not missing
 					Operators[tchat.operatorID].cph++;
 			}
 		}

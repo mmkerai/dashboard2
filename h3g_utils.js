@@ -60,7 +60,7 @@ function checksignedin()
 {
 	var name = readCookie("username");
 	var pwd = readCookie("password");
-	$('#rtaversion').text("RTA Dashboard v1.03");
+	$('#rtaversion').text("RTA Dashboard v1.04");
 	$('#download').hide();
 //	console.log("User cookie: "+name+" and pwd "+pwd);
 	if(name == null || pwd == null)
@@ -297,7 +297,7 @@ function showOperatorMetrics(rowid, data) {
 	{
 		st = ChatStatus[data.status]+":"+data.cstatus;
 		tcs = toHHMMSS(data.tcs);
-		mcc = data.ccap;
+		mcc = data.maxcc;
 		ac = data.activeChats.length;
 	}
 	
