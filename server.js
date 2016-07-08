@@ -970,6 +970,7 @@ function calculateACT_CPH() {
 			dcount[tchat.departmentID]++;
 			sgcount[sgid]++; 
 			ctime = tchat.ended - tchat.answered;
+			if(isNaN(ctime)) continue;
 			ochattime = ochattime + ctime;
 			dchattime[tchat.departmentID] = dchattime[tchat.departmentID] + ctime;	
 			sgchattime[sgid] = sgchattime[sgid] + ctime;	
