@@ -255,6 +255,7 @@ var	Operators;	// array of operator ids and name objects
 var	CustomStatus;	// array of custom status names
 var ApiDataNotReady;	// Flag to show when data has been received from API so that data can be processed
 var TimeNow;			// global for current time
+var StartOfDay;			// global time for start of the day before all stats are reset
 var EndOfDay;			// global time for end of the day before all stats are reset
 var Overall;		// top level stats
 var	OperatorsSetupComplete;
@@ -339,6 +340,9 @@ function initialiseGlobals () {
 	Operators = new Object();
 	CustomStatus = new Object();
 	TimeNow = new Date();
+	StartOfDay = new Date();
+	StartOfDay.setUTCHours(0,0,0,0);	// first milli second of the day
+	StartOfDay.setHours(StartOfDay.getHours() - TOFFSET);	// allow for TIMEZONE
 	EndOfDay = new Date();
 	EndOfDay.setUTCHours(23,59,59,999);	// last milli second of the day
 	EndOfDay.setHours(EndOfDay.getHours() - TOFFSET);	// allow for TIMEZONE
@@ -1056,8 +1060,8 @@ function calculateASA_SLA() {
 	
 	for(var i in dcount)
 	{
-		if(isNaN(danstime[i]))
-			continue;
+//		if(isNaN(danstime[i]))
+//			continue;
 		
 		if(dcount[i] != 0)	// musnt divide by 0
 			Departments[i].asa = Math.round((danstime[i] / dcount[i])/1000);
@@ -1066,8 +1070,8 @@ function calculateASA_SLA() {
 	
 	for(var i in sgcount)
 	{
-		if(isNaN(sganstime[i]))
-			continue;
+//		if(isNaN(sganstime[i]))
+//			continue;
 
 		if(sgcount[i] != 0)	// musnt divide by 0
 			SkillGroups[i].asa = Math.round((sganstime[i] / sgcount[i])/1000);
@@ -1454,14 +1458,15 @@ function getInactiveChatData() {
 
 	// set date to start of today. Search seems to work by looking at closed time i.e. everything that closed after
 	// "FromDate" will be included even if the created datetime is before the FromDate.
-	var startDate = new Date();
-	startDate.setUTCHours(0,0,0,0);
-	startDate.setHours(startDate.getHours() - TOFFSET);	// allow for TIMEZONE
+//	var startDate = new Date();
+//	startDate.setUTCHours(0,0,0,0);
+//	startDate.setHours(startDate.getHours() - TOFFSET);	// allow for TIMEZONE
 	console.log("Getting inactive chat info from "+ Object.keys(Folders).length +" folders");
+	console.log("Start Date: "+ StartOfDay.toISOString());
 	var parameters;
 	for(var fid in Folders)	// Inactive chats are by folders
 	{
-		parameters = "FolderID="+fid+"&FromDate="+startDate.toISOString();
+		parameters = "FolderID="+fid+"&FromDate="+StartOfDay.toISOString();
 		getApiData("getInactiveChats", parameters, allInactiveChats);
 		sleep(100);
 	}	
