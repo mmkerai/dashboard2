@@ -341,6 +341,7 @@ function initialiseGlobals () {
 	CustomStatus = new Object();
 	TimeNow = new Date();
 	StartOfDay = new Date();
+	StartOfDay.setHours(StartOfDay.getHours() + TOFFSET);	// allow for TIMEZONE
 	StartOfDay.setUTCHours(0,0,0,0);	// first milli second of the day
 	StartOfDay.setHours(StartOfDay.getHours() - TOFFSET);	// allow for TIMEZONE
 	EndOfDay = new Date();
@@ -1388,6 +1389,7 @@ function refreshActiveChatsTimer() {
 	{
 		parameters = "DepartmentID="+did;
 		getApiData("getActiveChats",parameters,refreshActiveChats);
+		ApiDataNotReady--;	// do not count this API request
 		sleep(100);
 	}
 	
