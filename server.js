@@ -1,5 +1,5 @@
 /* RTA Dashboard for H3G. 
- * This script should run in Heroku or on local server
+ * This script should run on Heroku
  */
 /* acronyms used in this script
 // cconc - chat concurrency
@@ -153,18 +153,14 @@ app.get('/csat.js', function(req, res){
 });
 //********************************* Global class exceptions
 var Exception = function() {
-		this.chatAnsweredIsBlank = 0;
 		this.chatAnsweredNotInList = 0;
-		this.chatEndedIsBlank = 0;
-		this.chatClosedIsBlank = 0;		
 		this.chatClosedNotInList = 0;
 		this.chatsAbandoned = 0;
-		this.chatsUnavailable = 0;
 		this.chatsBlocked = 0;
-		this.customStatusUndefined = 0;
 		this.operatorIDUndefined = 0;
 		this.noCsatInfo = 0;
 		this.signatureInvalid = 0;
+		this.refreshedAnsweredChat = 0;
 };
 
 //******* Global class for csat data
@@ -357,18 +353,9 @@ function initialiseGlobals () {
 app.post('/chat-started', function(req, res){
 	if(validateSignature(req.body, TriggerDomain+'/chat-started'))
 	{
+		sendToLogs("Chat-started, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
 		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
-		{
-//			if(req.body.ChatID.DepartmentID !== null && req.body.ChatID.DepartmentID !== "")
-//			{
-				var deptobj = Departments[req.body.DepartmentID];
-				if(typeof(deptobj) !== 'undefined')		// a dept we are not interested in
-				{
-					sendToLogs("Chat-started, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
-					processStartedChat(req.body);
-				}
-//			}
-		}
+				processStartedChat(req.body);
 	}
 	res.send({ "result": "success" });
 });
@@ -410,11 +397,9 @@ app.post('/chat-window-closed', function(req, res){
 app.post('/operator-status-changed', function(req, res) { 
 	if(validateSignature(req.body, TriggerDomain+'/operator-status-changed'))
 	{
+		sendToLogs("operator-status-changed, operator id: "+Operators[req.body.LoginID].name);
 		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
-		{
 			processOperatorStatusChanged(req.body);
-			sendToLogs("operator-status-changed, operator id: "+Operators[req.body.LoginID].name);
-		}
 	}
 	res.send({ "result": "success" });
 });
@@ -624,10 +609,14 @@ function operatorCustomStatusCallback(dlist) {
 
 // process started chat object and update all relevat dept, operator and global metrics
 function processStartedChat(chat) {
+	var deptobj = Departments[chat.DepartmentID];
+	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
+	
 	var tchat = new ChatData(chat.ChatID, chat.DepartmentID, Departments[chat.DepartmentID].skillgroup);
 	tchat.started = new Date(chat.Started);
 	tchat.status = 1;	// waiting to be answered
 	AllChats[chat.ChatID] = tchat;		// save this chat details
+	return true;
 }
 
 // active chat means a started chat has been answered by an operator so it is no longer in the queue
@@ -637,13 +626,8 @@ function processAnsweredChat(chat) {
 	deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
 	sgobj = SkillGroups[deptobj.skillgroup];
-/*	if(chat.Answered == null || chat.Answered == "")
-	{
-		Exceptions.chatAnsweredIsBlank++;
-		return false;
-	}
-*/	
-	if(typeof(AllChats[chat.ChatID]) === 'undefined')	// if this chat did not exist (only happens if missed it during startup)
+	
+	if(typeof(AllChats[chat.ChatID]) === 'undefined')	// this only happens if missed it during startup
 	{
 		Exceptions.chatAnsweredNotInList++;
 		return false;
@@ -682,17 +666,7 @@ function processClosedChat(chat) {
 	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
 	sgobj = SkillGroups[deptobj.skillgroup];
 
-	if(chat.Ended == null || chat.Ended == "")		// should not happen
-	{
-		Exceptions.chatEndedIsBlank++;
-		return false;
-	}
-	if(chat.Closed == null || chat.Closed == "")	// should not happen
-	{
-		Exceptions.chatClosedIsBlank++;
-		return false;
-	}
-	if(typeof(AllChats[chat.ChatID]) === 'undefined')	// if this chat did not exist (only happens if missed it during startup)
+	if(typeof(AllChats[chat.ChatID]) === 'undefined')	// this only happens if missed it during startup
 	{
 		Exceptions.chatClosedNotInList++;
 		return false;
@@ -725,6 +699,10 @@ function processClosedChat(chat) {
 function processWindowClosed(chat) {
 	var deptobj,opobj,sgobj;
 
+	deptobj = Departments[chat.DepartmentID];
+	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in	
+	sgobj = SkillGroups[deptobj.skillgroup];
+	
 	if(chat.ChatStatusType == 1)		// abandoned (closed during pre chat form) chats
 	{
 		Exceptions.chatsAbandoned++;
@@ -736,10 +714,6 @@ function processWindowClosed(chat) {
 		Exceptions.chatsBlocked++;
 	}
 
-	deptobj = Departments[chat.DepartmentID];
-	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in	
-	sgobj = SkillGroups[deptobj.skillgroup];
-	
 	if(chat.ChatStatusType >= 7 && chat.ChatStatusType <= 15)		// unavailable chat
 	{
 		Overall.tcun++;
@@ -1302,7 +1276,7 @@ function calculateOperatorConc() {
 
 // gets operator availability info 
 function getOperatorAvailabilityData() {
-	if(ApiDataNotReady || OperatorsSetupComplete === false)
+	if(!OperatorsSetupComplete)
 	{
 		console.log("Static data not ready (OA): "+ApiDataNotReady);
 		setTimeout(getOperatorAvailabilityData, 2000);
@@ -1314,7 +1288,7 @@ function getOperatorAvailabilityData() {
 
 // gets current active chats 
 function getActiveChatData() {
-	if(ApiDataNotReady || OperatorsSetupComplete === false)
+	if(!OperatorsSetupComplete)
 	{
 		console.log("Static data not ready (AC): "+ApiDataNotReady);
 		setTimeout(getActiveChatData, 1000);
@@ -1363,25 +1337,22 @@ function setUpDeptAndSkillGroups() {
 function allActiveChats(chats) {
 	for(var i in chats) 
 	{
-//		if(chats[i].DepartmentID == null || chats[i].DepartmentID == "") continue;// should'nt happen but I have seen it
-		var deptobj = Departments[chats[i].DepartmentID];
-		if(typeof(deptobj) === 'undefined') continue;		// a dept we are not interested in
-
 		if(chats[i].Started !== "" && chats[i].Started !== null)
 		{
-			processStartedChat(chats[i]);	// started, waiting to be answered
-			if(chats[i].Answered !== "" && chats[i].Answered !== null)
-				processAnsweredChat(chats[i]);	// chat was answered
+			if(processStartedChat(chats[i]))	// started, waiting to be answered
+			{
+				if(chats[i].Answered !== "" && chats[i].Answered !== null)
+					processAnsweredChat(chats[i]);	// chat was answered
+			}
 		}
 	}
 }
 
 // process all active chat objects 
 function refreshActiveChatsTimer() {
-	if(ApiDataNotReady || OperatorsSetupComplete === false)
+	if(!OperatorsSetupComplete)
 	{
-		console.log("Static data not ready (RAC): "+ApiDataNotReady);
-		setTimeout(refreshActiveChatsTimer, 10000);
+		setTimeout(refreshActiveChatsTimer, 60000);
 		return;
 	}
 	
@@ -1405,7 +1376,10 @@ function refreshActiveChats(chats) {
 			if(chats[i].Answered !== "" && chats[i].Answered !== null)
 			{
 				if(AllChats[chats[i].ChatID].status == 1)	// if chat was waiting to be answered
+				{
 					processAnsweredChat(chats[i]);
+					Exceptions.refreshedAnsweredChat++;
+				}
 			}
 		}
 	}
@@ -1415,34 +1389,32 @@ function refreshActiveChats(chats) {
 function allInactiveChats(chats) {
 	for(var i in chats)
 	{
-//		if(chats[i].DepartmentID == null || chats[i].DepartmentID == "") continue;// should'nt happen but I have seen it
-		var deptobj = Departments[chats[i].DepartmentID];
-		if(typeof(deptobj) === 'undefined') continue;		// a dept we are not interested in
-
 		if(chats[i].Started !== "" && chats[i].Started !== null)
 		{
-			processStartedChat(chats[i]);	// started
-			if(chats[i].Answered !== "" && chats[i].Answered !== null)
+			if(processStartedChat(chats[i]))	// started
 			{
-				if(processAnsweredChat(chats[i]))	//  answered
+				if(chats[i].Answered !== "" && chats[i].Answered !== null)
 				{
-					if(processClosedChat(chats[i]))	// and closed
+					if(processAnsweredChat(chats[i]))	//  answered
 					{
-						if(Object.keys(chats[i].CustomFields).length > 0)
+						if(processClosedChat(chats[i]))	// and closed
 						{
-							var chat = chats[i];
-							chat.NPS = chat.CustomFields.NPS || null;
-							chat.rateadvisor = chat.CustomFields.rateadvisor || null;
-							chat.firsttime = chat.CustomFields.firsttime || null;
-							chat.resolved = chat.CustomFields.resolved || null;
-							delete chat["CustomFields"];
-							updateCSAT(chats[i]);
+							if(Object.keys(chats[i].CustomFields).length > 0)
+							{
+								var chat = chats[i];
+								chat.NPS = chat.CustomFields.NPS || null;
+								chat.rateadvisor = chat.CustomFields.rateadvisor || null;
+								chat.firsttime = chat.CustomFields.firsttime || null;
+								chat.resolved = chat.CustomFields.resolved || null;
+								delete chat["CustomFields"];
+								updateCSAT(chats[i]);
+							}
 						}
 					}
 				}
+				else
+					processWindowClosed(chats[i]);	// closed after starting before being answered
 			}
-			else
-				processWindowClosed(chats[i]);	// closed after starting before being answered
 		}
 		else
 			processWindowClosed(chats[i]);	// closed because unavailable or abandoned
@@ -1451,7 +1423,7 @@ function allInactiveChats(chats) {
 
 // gets today's chat data incase system was started during the day
 function getInactiveChatData() {
-	if(ApiDataNotReady > 0 || OperatorsSetupComplete === false)
+	if(!OperatorsSetupComplete)
 	{
 		console.log("Static data not ready (IC): "+ApiDataNotReady);
 		setTimeout(getInactiveChatData, 1000);
@@ -1579,7 +1551,7 @@ function updateChatStats() {
 	TimeNow = new Date();		// update the time for all calculations
 	if(TimeNow > EndOfDay)		// we have skipped to a new day
 	{
-		console.log("New day started, stats reset");
+		console.log(TimeNow.toISOString()+": New day started, stats reset");
 		var csvdata = getCsvChatData();
 		postToArchive(csvdata);
 		doStartOfDay();
@@ -1591,8 +1563,8 @@ function updateChatStats() {
 	calculateACT_CPH();
 	calculateACC_CCONC_TCO();
 
-	var str = "Total chats started today: "+Object.keys(AllChats).length;
-	str = str + "\r\nClients connected: "+io.eio.clientsCount;
+	var str = TimeNow.toISOString()+": Chats started today: "+Object.keys(AllChats).length;
+//	str = str + "\r\nClients connected: "+io.eio.clientsCount;
 	console.log(str);
 	io.emit('overallStats',Overall);
 	io.emit('skillGroupStats',SkillGroups);

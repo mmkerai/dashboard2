@@ -2,6 +2,7 @@
 
 var ChatStatus = ["Logged Out","Away","Available"];
 var csvfile = null;
+var RTAVersion = "RTA Dashboard v1.05";
 
 function readCookie(name)
 {
@@ -60,7 +61,7 @@ function checksignedin()
 {
 	var name = readCookie("username");
 	var pwd = readCookie("password");
-	$('#rtaversion').text("RTA Dashboard v1.04");
+	$('#rtaversion').text(RTAVersion);
 	$('#download').hide();
 //	console.log("User cookie: "+name+" and pwd "+pwd);
 	if(name == null || pwd == null)
