@@ -88,14 +88,14 @@ if(AID == 0 || SETTINGSID == 0 || KEY == 0)
 	console.log("BoldChat API Environmental Variables not set. Terminating!");
 	process.exit(1);
 }
-
+/*
 if(TZONE != "GMT" && TZONE != "BST")
 {
 	console.log("Timezone invalid - must be GMT or BST. Terminating!");
 	process.exit(1);
 }
 TOFFSET = (TZONE == "BST") ? 1 : 0;
-console.log("Time offset is: "+ TOFFSET+" hour");
+console.log("Time offset is: "+ TOFFSET+" hour");*/
 console.log("Config loaded successfully");
 var TriggerDomain = "https://h3gdashboard-dev.herokuapp.com";		// used to validate the signature of push data
 
@@ -337,12 +337,12 @@ function initialiseGlobals () {
 	CustomStatus = new Object();
 	TimeNow = new Date();
 	StartOfDay = new Date();
-	StartOfDay.setHours(StartOfDay.getHours() + TOFFSET);	// allow for TIMEZONE
+//	StartOfDay.setHours(StartOfDay.getHours() + TOFFSET);	// allow for TIMEZONE
 	StartOfDay.setUTCHours(0,0,0,0);	// first milli second of the day
-	StartOfDay.setHours(StartOfDay.getHours() - TOFFSET);	// allow for TIMEZONE
+//	StartOfDay.setHours(StartOfDay.getHours() - TOFFSET);	// allow for TIMEZONE
 	EndOfDay = new Date();
 	EndOfDay.setUTCHours(23,59,59,999);	// last milli second of the day
-	EndOfDay.setHours(EndOfDay.getHours() - TOFFSET);	// allow for TIMEZONE
+//	EndOfDay.setHours(EndOfDay.getHours() - TOFFSET);	// allow for TIMEZONE
 	Overall = new DashMetrics("Overall","Overall");	
 	OperatorsSetupComplete = false;
 	ApiDataNotReady = 0;
@@ -1035,9 +1035,6 @@ function calculateASA_SLA() {
 	
 	for(var i in dcount)
 	{
-//		if(isNaN(danstime[i]))
-//			continue;
-		
 		if(dcount[i] != 0)	// musnt divide by 0
 			Departments[i].asa = Math.round((danstime[i] / dcount[i])/1000);
 		Departments[i].tac = dtac[i];
@@ -1045,9 +1042,6 @@ function calculateASA_SLA() {
 	
 	for(var i in sgcount)
 	{
-//		if(isNaN(sganstime[i]))
-//			continue;
-
 		if(sgcount[i] != 0)	// musnt divide by 0
 			SkillGroups[i].asa = Math.round((sganstime[i] / sgcount[i])/1000);
 		SkillGroups[i].tac = sgtac[i];
