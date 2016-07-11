@@ -1436,7 +1436,7 @@ function getInactiveChatData() {
 	{
 		parameters = "FolderID="+fid+"&FromDate="+StartOfDay.toISOString();
 		getApiData("getInactiveChats", parameters, allInactiveChats);
-		sleep(100);
+		sleep(200);
 	}	
 }
 
@@ -1576,13 +1576,13 @@ function updateChatStats() {
 function doStartOfDay() {
 	initialiseGlobals();	// zero all memory
 	getApiData("getDepartments", 0, deptsCallback);
-	sleep(500);
+	sleep(100);
 	getApiData("getOperators", 0, operatorsCallback);
-	sleep(500);
+	sleep(100);
 	getApiData("getFolders", "FolderType=5", foldersCallback);	// get only chat folders
-	sleep(500);
+	sleep(100);
 	getApiData("getCustomOperatorStatuses", 0, customStatusCallback);
-	sleep(500);
+	sleep(100);
 	setUpDeptAndSkillGroups();
 	getInactiveChatData();
 	getActiveChatData();
