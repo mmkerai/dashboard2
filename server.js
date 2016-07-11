@@ -1197,12 +1197,14 @@ function getApiData(method, params, fcallback, cbparam) {
 		response.on('end', function () {
 			ApiDataNotReady--;
 			var jsonObj;
-			try {
+			try
+			{
 				jsonObj = JSON.parse(str);
-			}
-			catch (e){
-				console.log("API or JSON error");
-				return;
+			} 
+			catch (e) 
+			{
+				console.log("Network Bandwidth issue");
+				exit(1);
 			}
 			var data = new Array();
 			var next = jsonObj.Next;
