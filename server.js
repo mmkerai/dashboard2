@@ -627,10 +627,10 @@ function processAnsweredChat(chat) {
 	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
 	sgobj = SkillGroups[deptobj.skillgroup];
 	
-	if(typeof(AllChats[chat.ChatID]) === 'undefined')	// this only happens if missed it during startup
+	if(typeof(AllChats[chat.ChatID]) === 'undefined')	// this only happens if triggers are missed
 	{
 		Exceptions.chatAnsweredNotInList++;
-		return false;
+		processStartedChat(chat);
 	}
 	
 	AllChats[chat.ChatID].answered = new Date(chat.Answered);
@@ -666,14 +666,14 @@ function processClosedChat(chat) {
 	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
 	sgobj = SkillGroups[deptobj.skillgroup];
 
-	if(typeof(AllChats[chat.ChatID]) === 'undefined')	// this only happens if missed it during startup
+	if(typeof(AllChats[chat.ChatID]) === 'undefined')	// this only happens if triggers are missed
 	{
 		Exceptions.chatClosedNotInList++;
-		return false;
+		processStartedChat(chat);
+		processAnsweredChat(chat);
 	}
 		
 	AllChats[chat.ChatID].status = 0;		// inactive/complete/cancelled/closed
-	AllChats[chat.ChatID].answered = new Date(chat.Answered);
 	AllChats[chat.ChatID].ended = new Date(chat.Ended);
 	AllChats[chat.ChatID].closed = new Date(chat.Closed);
 
@@ -1066,7 +1066,6 @@ function calculateLWT_CIQ() {
 	for(var i in AllChats)
 	{
 		tchat = AllChats[i];
-//		if(tchat.status == 1 && tchat.answered == 0 && tchat.started != 0 && tchat.ended == 0)		// chat not answered yet
 		if(tchat.status == 1)		// chat not answered yet
 		{
 			Overall.ciq++;
