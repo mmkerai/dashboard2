@@ -293,8 +293,9 @@ function validateSignature(body, triggerUrl) {
 	if(encrypted == body.signature)
 		return true;
 	
-	console.log("Trigger signature validation error: "+triggerUrl);
-	Exceptions.signatureInvalid++;
+	var str = "Trigger signature validation error: "+triggerUrl;
+	console.log(str);
+	sendToLogs(str);
 //	debugLog(triggerUrl,body);
 	return true;	// true while testing - change to false afterwards
 };
@@ -1203,7 +1204,7 @@ function getApiData(method, params, fcallback, cbparam) {
 			catch (e) 
 			{
 				console.log("Network Bandwidth issue");
-				exit(1);
+				process.exit(1);
 			}
 			var data = new Array();
 			var next = jsonObj.Next;
@@ -1212,7 +1213,7 @@ function getApiData(method, params, fcallback, cbparam) {
 			{
 				console.log("No API data returned: "+str);
 				sendToLogs("No API data returned: "+str);
-				return;		// exit out if error json message received
+				process.exit(1);		// exit out if error json message received
 			}
 			fcallback(data, cbparam);
 
