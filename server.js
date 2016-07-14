@@ -671,7 +671,10 @@ function processClosedChat(chat) {
 	{
 		Exceptions.chatClosedNotInList++;
 		processStartedChat(chat);
-		processAnsweredChat(chat);
+		if(chat.Answered !== "" && chat.Answered !== null)
+		{
+			processAnsweredChat(chat);
+		}
 	}
 		
 	AllChats[chat.ChatID].status = 0;		// inactive/complete/cancelled/closed
