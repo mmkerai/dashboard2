@@ -1207,6 +1207,7 @@ function getApiData(method, params, fcallback, cbparam) {
 			catch (e) 
 			{
 				console.log("Network Bandwidth issue");
+				sendToLogs("Network Bandwidth issue);
 				process.exit(1);
 			}
 			var data = new Array();
@@ -1216,7 +1217,7 @@ function getApiData(method, params, fcallback, cbparam) {
 			{
 				console.log("No API data returned: "+str);
 				sendToLogs("No API data returned: "+str);
-				process.exit(1);		// exit out if error json message received
+				return;
 			}
 			fcallback(data, cbparam);
 
