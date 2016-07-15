@@ -1206,17 +1206,17 @@ function getApiData(method, params, fcallback, cbparam) {
 			} 
 			catch (e) 
 			{
-				console.log("Network Bandwidth issue");
-				sendToLogs("Network Bandwidth issue);
-				process.exit(1);
+				console.log(TimeNow+ ": API did not return JSON message");
+				postToArchive(TimeNow+ ": API did not return JSON message");
+				return;
 			}
 			var data = new Array();
 			var next = jsonObj.Next;
 			data = jsonObj.Data;
 			if(data === 'undefined' || data == null)
 			{
-				console.log("No API data returned: "+str);
-				sendToLogs("No API data returned: "+str);
+				console.log(TimeNow+ ": No JSON data: "+str);
+				postToArchive(TimeNow+ ": No JSON data: "+str);
 				return;
 			}
 			fcallback(data, cbparam);
