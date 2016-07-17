@@ -161,6 +161,8 @@ var Exception = function() {
 		this.noCsatInfo = 0;
 		this.signatureInvalid = 0;
 		this.refreshedAnsweredChat = 0;
+		this.APIDataError = 0;
+		this.jsonDataError = 0;
 };
 
 //******* Global class for csat data
@@ -275,12 +277,14 @@ if(DoUserAuth)
 }
 
 function sleep(milliseconds) {
-  var start = new Date().getTime();
-  for(var i = 0; i < 1e7; i++) {
-    if ((new Date().getTime() - start) > milliseconds){
-      break;
-    }
-  }
+	var start = new Date().getTime();
+	for(var i = 0; i < 1e7; i++)
+	{
+		if((new Date().getTime() - start) > milliseconds)
+		{
+			break;
+		}
+	}
 }
 
 function validateSignature(body, triggerUrl) {
@@ -294,6 +298,7 @@ function validateSignature(body, triggerUrl) {
 		return true;
 	
 	var str = "Trigger signature validation error: "+triggerUrl;
+	Exceptions.signatureInvalid++;
 	console.log(str);
 	sendToLogs(str);
 //	debugLog(triggerUrl,body);
@@ -417,30 +422,25 @@ function BC_API_Request(api_method,params,callBackFunction) {
 		method : 'GET',
 		agent : false
 	};
-	https.request(options, callBackFunction).on('error', function(err){console.log("API request error: "+err.stack)}).end();
-}
-
-function postToArchive(postdata) {
-	var options = {
-		host : 'uber-electronics.com', 
-		port : 443, 
-		path : '/home/mkerai/APItriggers/h3gendofday.php', 
-		method : 'POST',
-		headers: {
-          'Content-Type': 'text/plain',
-          'Content-Length': Buffer.byteLength(postdata)
-		}
-	};
-	var post_req = https.request(options, function(res){
-		res.setEncoding('utf8');
-		res.on('data', function (chunk) {
-//			console.log('Response: ' + chunk);
-			});
+//	https.request(options, callBackFunction).on('error', function(err){console.log("API request error: "+err.stack)}).end();
+	ApiDataNotReady++;		// flag to track api calls	
+	var getReq = https.request(options, function(res) {
+//		console.log("\nstatus code: ", res.statusCode);
+		var str = "";
+		res.on('data', function(data) {
+			str += data;
 		});
-	post_req.write(postdata);
-	post_req.end();
-	post_req.on('error', function(err){console.log("HTML error"+err.stack)});
-	console.log("End of day archived successfully");
+		res.on('end', function() {
+			ApiDataNotReady--;
+			callBackFunction(str);
+		});
+		res.on('error', function(err){
+			ApiDataNotReady--;
+			console.log("API request error: ", err);
+		});     
+	});
+    //end the request
+    getReq.end();
 }
 
 function debugLog(name, dataobj) {
@@ -461,7 +461,7 @@ function sendToLogs(text) {
 }
 
 function deptsCallback(dlist) {
-	var dname, newname, str, sg,ch1,ch2,ch3;
+	var dname,newname,str,sg,ch1,ch2,ch3;
 // sort alphabetically first
 	dlist.sort(function(a,b) {
 		var nameA=a.Name.toLowerCase();
@@ -684,7 +684,7 @@ function processClosedChat(chat) {
 	if(chat.OperatorID != "" && chat.OperatorID != null)
 	{
 		opobj = Operators[chat.OperatorID];
-		if(typeof(opobj) === 'undefined') return false;		// an operator that doesnt exist (may happen if created during startup)
+		if(typeof(opobj) === 'undefined') return false;	// shouldnt happen
 		// add the total chat time for this chat
 		var chattime = Math.round((AllChats[chat.ChatID].closed - AllChats[chat.ChatID].started)/1000);
 		opobj.tcta = opobj.tcta + chattime;
@@ -1187,51 +1187,40 @@ function loadNext(method, next, callback) {
 }
 
 // calls extraction API and receives JSON objects 
-function getApiData(method, params, fcallback, cbparam) {
-	ApiDataNotReady++;		// flag to track api calls
-	
-	BC_API_Request(method, params, function (response) {
-		var str = '';
-		//another chunk of data has been received, so append it to `str`
-		response.on('data', function (chunk) {
-			str += chunk;
-		});
-		//the whole response has been received, take final action.
-		response.on('end', function () {
-			ApiDataNotReady--;
-			var jsonObj;
-			try
-			{
-				jsonObj = JSON.parse(str);
-			} 
-			catch (e) 
-			{
-				console.log(TimeNow+ ": API did not return JSON message");
-				postToArchive(TimeNow+ ": API did not return JSON message");
-				return;
-			}
-			var data = new Array();
-			var next = jsonObj.Next;
-			data = jsonObj.Data;
-			if(data === 'undefined' || data == null)
-			{
-				console.log(TimeNow+ ": No JSON data: "+str);
-				postToArchive(TimeNow+ ": No JSON data: "+str);
-				return;
-			}
-			fcallback(data, cbparam);
+function getApiData(method,params,fcallback,cbparam) {
+	var emsg;
+	BC_API_Request(method,params,function(str)
+	{
+		var jsonObj;
+		try
+		{
+			jsonObj = JSON.parse(str);
+		} 
+		catch (e) 
+		{
+			Exceptions.APIDataError++;
+			emsg = TimeNow+ ": API did not return JSON message: "+str;
+			console.log(emsg);
+			sendToLogs(emsg);
+			return;
+		}
+		var data = new Array();
+		data = jsonObj.Data;
+		if(data === 'undefined' || data == null)
+		{
+			Exceptions.jsonDataError++;
+			emsg = TimeNow+ ": No JSON data: "+str;
+			console.log(emsg);
+			sendToLogs(emsg);
+			return;
+		}
+		fcallback(data, cbparam);
 
-			if(typeof next !== 'undefined') 
-			{
-				loadNext(method, next, fcallback);
-			}
-		});
-		// in case there is a html error
-		response.on('error', function(err) {
-			// handle errors with the request itself
-			console.error("Error with the request: ", err.message);
-			ApiDataNotReady--;
-		});
+		var next = jsonObj.Next;
+		if(typeof next !== 'undefined') 
+		{
+			loadNext(method, next, fcallback);
+		}
 	});
 }
 
@@ -1432,8 +1421,6 @@ function getInactiveChatData() {
 
 	// set date to start of today. Search seems to work by looking at closed time i.e. everything that closed after
 	// "FromDate" will be included even if the created datetime is before the FromDate.
-//	var startDate = new Date();
-//	startDate.setUTCHours(0,0,0,0);
 //	startDate.setHours(startDate.getHours() - TOFFSET);	// allow for TIMEZONE
 	console.log("Getting inactive chat info from "+ Object.keys(Folders).length +" folders");
 	console.log("Start Date: "+ StartOfDay.toISOString());
@@ -1548,6 +1535,8 @@ function removeSocket(id, evname) {
 function updateChatStats() {
 	var socketid;
 	
+	if(!OperatorsSetupComplete) return;		//try again later
+
 	TimeNow = new Date();		// update the time for all calculations
 	if(TimeNow > EndOfDay)		// we have skipped to a new day
 	{
@@ -1555,7 +1544,7 @@ function updateChatStats() {
 		var csvdata = getCsvChatData();
 		postToArchive(csvdata);
 		doStartOfDay();
-		setTimeout(updateChatStats, 8000);
+//		setTimeout(updateChatStats, 8000);
 		return;
 	}
 	calculateLWT_CIQ();
@@ -1564,7 +1553,7 @@ function updateChatStats() {
 	calculateACC_CCONC_TCO();
 
 	var str = TimeNow.toISOString()+": Chats started today: "+Object.keys(AllChats).length;
-//	str = str + "\r\nClients connected: "+io.eio.clientsCount;
+//	str = str + "\r\nClients connected: "+io.eio.clientsCount;	// useful for debuging socket.io errors
 	console.log(str);
 	io.emit('overallStats',Overall);
 	io.emit('skillGroupStats',SkillGroups);
@@ -1575,7 +1564,7 @@ function updateChatStats() {
 	io.emit('exceptions',Exceptions);
 	io.emit('usersLoggedIn',UsersLoggedIn);
 
-	setTimeout(updateChatStats, 4000);	// send update every 2 second
+//	setTimeout(updateChatStats, 4000);	// send update every 2 second
 }
 
 // setup all globals
@@ -1605,6 +1594,6 @@ function checkOperatorAvailability() {
 }
 console.log("Server started on port "+PORT);
 doStartOfDay();		// initialise everything
-setTimeout(updateChatStats,10000);	// updates socket io data at infinitum
+setInterval(updateChatStats,4000);	// updates socket io data at infinitum
 setTimeout(refreshActiveChatsTimer, 60000);	
 
