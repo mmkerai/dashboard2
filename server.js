@@ -443,6 +443,29 @@ function BC_API_Request(api_method,params,callBackFunction) {
     getReq.end();
 }
 
+function postToArchive(postdata) {
+	var options = {
+		host : 'uber-electronics.com', 
+		port : 443, 
+		path : '/home/mkerai/APItriggers/h3gendofday.php', 
+		method : 'POST',
+		headers: {
+ //         'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Type': 'text/plain',
+          'Content-Length': Buffer.byteLength(postdata)
+		}
+	};
+	var post_req = https.request(options, function(res){
+		res.setEncoding('utf8');
+		res.on('data', function (chunk) {
+//			console.log('Response: ' + chunk);
+			});
+		});
+	post_req.write(postdata);
+	post_req.end();
+	console.log("End of day archived successfully");
+}
+
 function debugLog(name, dataobj) {
 	console.log(name+": ");
 	for(key in dataobj) 
@@ -717,32 +740,34 @@ function processWindowClosed(chat) {
 	{
 		Exceptions.chatsBlocked++;
 	}
-
-	if(chat.ChatStatusType >= 7 && chat.ChatStatusType <= 15)		// unavailable chat
+	
+	if(chat.ChatStatusType == 7 || chat.ChatStatusType == 8 || (chat.ChatStatusType >= 11 && chat.ChatStatusType <= 15))	// unavailable chat 7, 8, 11, 12, 13, 14 or 15 
 	{
 		Overall.tcun++;
 		deptobj.tcun++;
 		sgobj.tcun++;
-	}
-	
-	if(typeof(AllChats[chat.ChatID]) === 'undefined')		// abandoned and unavailable chats not in list
-		return false;
-	
-	if(AllChats[chat.ChatID].answered == 0 && AllChats[chat.ChatID].started != 0)		// chat started but unanswered
+	}	
+	else if(typeof(AllChats[chat.ChatID]) !== 'undefined')
 	{
-		if(chat.OperatorID == 0 || chat.OperatorID == null)	// operator unassigned
+		if(AllChats[chat.ChatID].answered == 0 && AllChats[chat.ChatID].started != 0)		// chat started but unanswered
 		{
-			Overall.tcuq++;
-			deptobj.tcuq++;
-			sgobj.tcuq++;
-		}
-		else
-		{
-			Overall.tcua++;
-			deptobj.tcua++;			
-			sgobj.tcua++;			
+			if(chat.OperatorID == 0 || chat.OperatorID == null)	// operator unassigned
+			{
+				Overall.tcuq++;
+				deptobj.tcuq++;
+				sgobj.tcuq++;
+			}
+			else
+			{
+				Overall.tcua++;
+				deptobj.tcua++;			
+				sgobj.tcua++;			
+			}
 		}
 	}
+	
+	if(typeof(AllChats[chat.ChatID]) === 'undefined')		// chats not started are not in list
+		return false;
 
 	AllChats[chat.ChatID].status = 0;		// inactive/complete/cancelled/closed
 	AllChats[chat.ChatID].ended = new Date(chat.Ended);
@@ -1176,14 +1201,14 @@ function calculateACC_CCONC_TCO() {
 }
 
 // this function calls API again if data is truncated
-function loadNext(method, next, callback) {
+function loadNext(method,next,callback,params) {
 	var str = [];
 	for(var key in next) {
 		if (next.hasOwnProperty(key)) {
 			str.push(encodeURIComponent(key) + "=" + encodeURIComponent(next[key]));
 		}
 	}
-	getApiData(method, str.join("&"), callback);
+	getApiData(method,str.join("&"),callback,params);
 }
 
 // calls extraction API and receives JSON objects 
@@ -1209,7 +1234,7 @@ function getApiData(method,params,fcallback,cbparam) {
 		if(data === 'undefined' || data == null)
 		{
 			Exceptions.jsonDataError++;
-			emsg = TimeNow+ ": No JSON data: "+str;
+			emsg = TimeNow+ ":"+method+": No data: "+str;
 			console.log(emsg);
 			sendToLogs(emsg);
 			return;
@@ -1219,7 +1244,7 @@ function getApiData(method,params,fcallback,cbparam) {
 		var next = jsonObj.Next;
 		if(typeof next !== 'undefined') 
 		{
-			loadNext(method, next, fcallback);
+			loadNext(method,next,fcallback,cbparam);
 		}
 	});
 }
