@@ -50,8 +50,8 @@ var AID;
 var SETTINGSID;
 var KEY;
 var SLATHRESHOLD;
-var TZONE, TOFFSET;
 var MAXCHATCONCURRENCY;
+var TZONE, TOFFSET;
 var AUTHUSERS = {};
 var DoUserAuth = true;	// default do manual auth from JSON
 
@@ -151,18 +151,28 @@ app.get('/csat.html', function(req, res){
 app.get('/csat.js', function(req, res){
 	res.sendFile(__dirname + '/csat.js');
 });
+
+process.on('uncaughtException', function (err) {
+  console.log('Exception: ' + err);
+});
+
 //********************************* Global class exceptions
 var Exception = function() {
 		this.chatAnsweredNotInList = 0;
 		this.chatClosedNotInList = 0;
 		this.chatsAbandoned = 0;
 		this.chatsBlocked = 0;
+		this.chatsStarted = 0;
+		this.chatsAnswered = 0;
+		this.chatsClosed = 0;
+		this.chatsWinClosed = 0;
+		this.opStatusChanged = 0;
 		this.operatorIDUndefined = 0;
 		this.noCsatInfo = 0;
 		this.signatureInvalid = 0;
 		this.refreshedAnsweredChat = 0;
-		this.APIDataError = 0;
-		this.jsonDataError = 0;
+		this.APIJsonError = 0;
+		this.noJsonDataMsg = 0;
 };
 
 //******* Global class for csat data
@@ -185,6 +195,7 @@ var ChatData = function(chatid, dept, sg) {
 		this.answered = 0;			// so it is easy to do the calculations
 		this.ended = 0;
 		this.closed = 0;
+		this.statustype = 0;	// as per chatstatustype field in BC
 		this.csat = new Csat();
 };
 
@@ -357,17 +368,19 @@ function initialiseGlobals () {
 }
 // Process incoming Boldchat triggered chat data
 app.post('/chat-started', function(req, res){
+	Exceptions.chatsStarted++;
 	if(validateSignature(req.body, TriggerDomain+'/chat-started'))
 	{
 		sendToLogs("Chat-started, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
 		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
-				processStartedChat(req.body);
+			processStartedChat(req.body);
 	}
 	res.send({ "result": "success" });
 });
 
 // Process incoming Boldchat triggered chat data
 app.post('/chat-answered', function(req, res){
+	Exceptions.chatsAnswered++;
 	if(validateSignature(req.body, TriggerDomain+'/chat-answered'))
 	{
 		sendToLogs("Chat-answered, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
@@ -379,6 +392,7 @@ app.post('/chat-answered', function(req, res){
 
 // Process incoming Boldchat triggered chat data
 app.post('/chat-closed', function(req, res){
+	Exceptions.chatsClosed++;
 	if(validateSignature(req.body, TriggerDomain+'/chat-closed'))
 	{
 		sendToLogs("Chat-closed, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
@@ -390,6 +404,7 @@ app.post('/chat-closed', function(req, res){
 
 // Process incoming Boldchat triggered chat data
 app.post('/chat-window-closed', function(req, res){
+	Exceptions.chatsWinClosed++;
 	if(validateSignature(req.body, TriggerDomain+'/chat-window-closed'))
 	{
 		sendToLogs("Chat-window-closed, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
@@ -401,6 +416,7 @@ app.post('/chat-window-closed', function(req, res){
 
 // Process incoming Boldchat triggered operator data
 app.post('/operator-status-changed', function(req, res) { 
+	Exceptions.opStatusChanged++;
 	if(validateSignature(req.body, TriggerDomain+'/operator-status-changed'))
 	{
 		sendToLogs("operator-status-changed, operator id: "+Operators[req.body.LoginID].name);
@@ -450,7 +466,6 @@ function postToArchive(postdata) {
 		path : '/home/mkerai/APItriggers/h3gendofday.php', 
 		method : 'POST',
 		headers: {
- //         'Content-Type': 'application/x-www-form-urlencoded',
           'Content-Type': 'text/plain',
           'Content-Length': Buffer.byteLength(postdata)
 		}
@@ -463,6 +478,7 @@ function postToArchive(postdata) {
 		});
 	post_req.write(postdata);
 	post_req.end();
+	post_req.on('error', function(err){console.log("HTML error"+err.stack)});
 	console.log("End of day archived successfully");
 }
 
@@ -770,6 +786,7 @@ function processWindowClosed(chat) {
 		return false;
 
 	AllChats[chat.ChatID].status = 0;		// inactive/complete/cancelled/closed
+	AllChats[chat.ChatID].statustype = chat.ChatStatusType;		
 	AllChats[chat.ChatID].ended = new Date(chat.Ended);
 	AllChats[chat.ChatID].closed = new Date(chat.Closed);
 	updateCSAT(chat);
@@ -1118,7 +1135,7 @@ function calculateLWT_CIQ() {
 	Overall.lwt = maxwait;
 }
 
-//use operators by dept to calc chat concurrency and available chat capacity
+//use operators by dept to calc chat concurrency and available chat capacity and total chats offered
 function calculateACC_CCONC_TCO() {
 	var depts = new Array();
 	var opobj, sgid;
@@ -1223,7 +1240,7 @@ function getApiData(method,params,fcallback,cbparam) {
 		} 
 		catch (e) 
 		{
-			Exceptions.APIDataError++;
+			Exceptions.APIJsonError++;
 			emsg = TimeNow+ ": API did not return JSON message: "+str;
 			console.log(emsg);
 			sendToLogs(emsg);
@@ -1233,7 +1250,7 @@ function getApiData(method,params,fcallback,cbparam) {
 		data = jsonObj.Data;
 		if(data === 'undefined' || data == null)
 		{
-			Exceptions.jsonDataError++;
+			Exceptions.noJsonDataMsg++;
 			emsg = TimeNow+ ":"+method+": No data: "+str;
 			console.log(emsg);
 			sendToLogs(emsg);
@@ -1569,7 +1586,6 @@ function updateChatStats() {
 		var csvdata = getCsvChatData();
 		postToArchive(csvdata);
 		doStartOfDay();
-//		setTimeout(updateChatStats, 8000);
 		return;
 	}
 	calculateLWT_CIQ();
@@ -1619,6 +1635,6 @@ function checkOperatorAvailability() {
 }
 console.log("Server started on port "+PORT);
 doStartOfDay();		// initialise everything
-setInterval(updateChatStats,4000);	// updates socket io data at infinitum
+setInterval(updateChatStats,3000);	// updates socket io data at infinitum
 setTimeout(refreshActiveChatsTimer, 60000);	
 
