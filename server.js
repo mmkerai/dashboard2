@@ -330,7 +330,8 @@ function getUnencryptedSignature(body, triggerUrl) {
 
 	var separator = triggerUrl.indexOf('?') === -1 ? '?' : '&';
 	var unc = triggerUrl + separator + paramNameValues.join('&');
-	return unc.replace(/%20/g,'+');
+	var adj = unc.replace(/%20/g,'+');		// %20 to a + (old style)
+	return adj.replace(/\'/g,'%27');	// ' should be encoded (old style)
 }
 
 function encryptSignature(unencryptedSignature) {
