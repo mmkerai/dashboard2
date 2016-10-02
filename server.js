@@ -160,7 +160,7 @@ process.on('uncaughtException', function (err) {
 
 //********************************* Global class exceptions
 var Exception = function() {
-		this. = 0;
+		this.chatsStarted = 0;
 		this.chatsAnswered = 0;
 		this.chatsClosed = 0;
 		this.chatsWinClosed = 0;
