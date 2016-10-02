@@ -170,6 +170,7 @@ var Exception = function() {
 		this.operatorIDUndefined = 0;
 		this.noCsatInfo = 0;
 		this.signatureInvalid = 0;
+		this.chatsStartinList = 0;
 		this.chatAnsweredNotInList = 0;
 		this.chatClosedNotInList = 0;
 		this.refreshedAnsweredChat = 0;
@@ -1261,7 +1262,7 @@ function calculateMetrics() {
 		tchat = AllChats[i];
 		if(tchat.started != 0)
 		{
-			cstarted++;
+			Exceptions.chatsStartinList++;
 			if(tchat.answered != 0)
 			{
 				can++;	//	Overall.tcan++;
