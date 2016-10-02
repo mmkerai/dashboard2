@@ -1298,9 +1298,9 @@ function calculateMetrics() {
 	}
 	for(var sgid in SkillGroups)
 	{
-		SkillGroups[sgid].tcan = scan[Departments[i].skillgroup];
-		SkillGroups[sgid].tcan = scua[Departments[i].skillgroup];
-		SkillGroups[sgid].tcan = scuq[Departments[i].skillgroup];		
+		SkillGroups[sgid].tcan = scan[sgid];
+		SkillGroups[sgid].tcan = scua[sgid];
+		SkillGroups[sgid].tcan = scuq[sgid];		
 	}
 }
 
