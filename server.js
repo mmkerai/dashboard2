@@ -1271,7 +1271,7 @@ function calculateMetrics() {
 			}
 			else if(tchat.ended != 0)	// chat ended therefore must be unanswered
 			{
-				if(chat.OperatorID == 0 || chat.OperatorID == null)	// operator unassigned
+				if(tchat.operatorID == 0)	// operator unassigned
 				{
 					cuq++;		//Overall.tcuq++;
 					dcuq[tchat.departmentID]++;				
