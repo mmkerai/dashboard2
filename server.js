@@ -170,7 +170,6 @@ var Exception = function() {
 		this.operatorIDUndefined = 0;
 		this.noCsatInfo = 0;
 		this.signatureInvalid = 0;
-		this.chatsStartinList = 0;
 		this.chatAnsweredNotInList = 0;
 		this.chatClosedNotInList = 0;
 		this.refreshedAnsweredChat = 0;
@@ -658,8 +657,7 @@ function operatorCustomStatusCallback(dlist) {
 
 // process started chat object and update all relevat dept, operator and global metrics
 function processStartedChat(chat) {
-	var deptobj = Departments[chat.DepartmentID];
-	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
+	if(typeof(Departments[chat.DepartmentID]) === 'undefined') return false;		// a dept we are not interested in
 	
 	var tchat = new ChatData(chat.ChatID, chat.DepartmentID, Departments[chat.DepartmentID].skillgroup);
 	tchat.started = new Date(chat.Started);
@@ -670,11 +668,9 @@ function processStartedChat(chat) {
 
 // active chat means a started chat has been answered by an operator so it is no longer in the queue
 function processAnsweredChat(chat) {
-	var deptobj, opobj, sgobj;
+	var opobj;
 	
-	deptobj = Departments[chat.DepartmentID];
-	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
-	sgobj = SkillGroups[deptobj.skillgroup];
+	if(typeof(Departments[chat.DepartmentID]) === 'undefined') return false;		// a dept we are not interested in
 	
 	if(typeof(AllChats[chat.ChatID]) === 'undefined')	// this only happens if triggers are missed
 	{
@@ -699,8 +695,8 @@ function processAnsweredChat(chat) {
 	if(speed < (SLATHRESHOLD*1000))		// sla threshold in milliseconds
 	{
 		Overall.csla++;
-		deptobj.csla++;
-		sgobj.csla++;
+		Departments[chat.DepartmentID].csla++;
+		SkillGroups[Departments[chat.DepartmentID].skillgroup].csla++;
 		opobj.csla++;
 	}
 	return true;
@@ -709,11 +705,9 @@ function processAnsweredChat(chat) {
 // process closed chat object. closed chat is one that is started and answered.
 // Otherwise go to processwindowclosed
 function processClosedChat(chat) {
-	var deptobj,opobj,sgobj;
+	var opobj;
 
-	deptobj = Departments[chat.DepartmentID];
-	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
-	sgobj = SkillGroups[deptobj.skillgroup];
+	if(typeof(Departments[chat.DepartmentID]) === 'undefined') return false;		// a dept we are not interested in
 
 	if(typeof(AllChats[chat.ChatID]) === 'undefined')	// this only happens if triggers are missed
 	{
@@ -1237,12 +1231,14 @@ function calculateACC_CCONC_TCO() {
 // calculate the main metrics offered, active, answered, unanswered and unavailable
 function calculateMetrics() {
 	var tchat;
-	var dcan = new Object();
+	var dcan,dcua,dcuq;
+	var scan,scua,scuq;
+/*	var dcan = new Object();
 	var dcua = new Object();
 	var dcuq = new Object();
 	var scan = new Object();
 	var scua = new Object();
-	var scuq = new Object();
+	var scuq = new Object();*/
 	// first zero out 
 	var can = 0;
 	var cua = 0;
@@ -1262,10 +1258,9 @@ function calculateMetrics() {
 		tchat = AllChats[i];
 		if(tchat.started != 0)
 		{
-			Exceptions.chatsStartinList++;
 			if(tchat.answered != 0)
 			{
-				can++;	//	Overall.tcan++;
+				can++;
 				dcan[tchat.departmentID]++;				
 				scan[tchat.skillgroup]++;				
 			}
