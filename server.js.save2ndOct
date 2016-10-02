@@ -685,9 +685,9 @@ function processAnsweredChat(chat) {
 	AllChats[chat.ChatID].operatorID = chat.OperatorID;
 	AllChats[chat.ChatID].status = 2;		// active chat
 	
-//	Overall.tcan++;	// answered chats
-//	sgobj.tcan++;
-//	deptobj.tcan++;
+	Overall.tcan++;	// answered chats
+	sgobj.tcan++;
+	deptobj.tcan++;
 	
 	opobj = Operators[chat.OperatorID];
 	if(typeof(opobj) === 'undefined') return false;		// an operator that doesnt exist (may happen if created midday)
@@ -767,15 +767,11 @@ function processWindowClosed(chat) {
 	
 	if(chat.ChatStatusType == 7 || chat.ChatStatusType == 8 || (chat.ChatStatusType >= 11 && chat.ChatStatusType <= 15))	// unavailable chat 7, 8, 11, 12, 13, 14 or 15 
 	{
-//		if(typeof(AllChats[chat.ChatID]) !== 'undefined' && AllChats[chat.ChatID].answered != 0)	// chat can be unavail and answered if transfered
-
-		{
-			Overall.tcun++;
-			deptobj.tcun++;
-			sgobj.tcun++;
-		}
+		Overall.tcun++;
+		deptobj.tcun++;
+		sgobj.tcun++;
 	}	
-/*	else if(typeof(AllChats[chat.ChatID]) !== 'undefined')
+	else if(typeof(AllChats[chat.ChatID]) !== 'undefined')
 	{
 		if(AllChats[chat.ChatID].answered == 0 && AllChats[chat.ChatID].started != 0)		// chat started but unanswered
 		{
@@ -792,7 +788,7 @@ function processWindowClosed(chat) {
 				sgobj.tcua++;			
 			}
 		}
-	}*/
+	}
 	
 	if(typeof(AllChats[chat.ChatID]) === 'undefined')		// chats not started are not in list
 		return false;
@@ -1233,76 +1229,6 @@ function calculateACC_CCONC_TCO() {
 	}	
 }
 
-// calculate the main metrics offered, active, answered, unanswered and unavailable
-function calculateMetrics() {
-	var tchat;
-	var dcan = new Object();
-	var dcua = new Object();
-	var dcuq = new Object();
-	var scan = new Object();
-	var scua = new Object();
-	var scuq = new Object();
-	// first zero out 
-	var can = 0;
-	var cua = 0;
-	var cuq = 0;
-	for(var i in Departments)
-	{
-		dcan[Departments[i].name] = 0;
-		dcua[Departments[i].name] = 0;
-		dcuq[Departments[i].name] = 0;
-		scan[Departments[i].skillgroup] = 0;
-		scua[Departments[i].skillgroup] = 0;
-		scuq[Departments[i].skillgroup] = 0;
-	}
-	
-	for(var i in AllChats)
-	{
-		tchat = AllChats[i];
-		if(tchat.started != 0)
-		{
-			cstarted++;
-			if(tchat.answered != 0)
-			{
-				can++;	//	Overall.tcan++;
-				dcan[tchat.departmentID]++;				
-				scan[tchat.skillgroup]++;				
-			}
-			else if(tchat.ended != 0)	// chat ended therefore must be unanswered
-			{
-				if(chat.OperatorID == 0 || chat.OperatorID == null)	// operator unassigned
-				{
-					cuq++;		//Overall.tcuq++;
-					dcuq[tchat.departmentID]++;				
-					scuq[tchat.skillgroup]++;				
-				}
-				else
-				{
-					cua++;		//Overall.tcua++;
-					dcua[tchat.departmentID]++;				
-					scua[tchat.skillgroup]++;				
-				}				
-			}
-		}
-	}
-	
-	Overall.tcan = can;
-	Overall.tcuq = cuq;
-	Overall.tcua = cua;
-	for(var did in Departments)
-	{
-		Departments[did].tcan = dcan[Departments[did].name];
-		Departments[did].tcua = dcua[Departments[did].name];
-		Departments[did].tcuq = dcuq[Departments[did].name];
-	}
-	for(var sgid in SkillGroups)
-	{
-		SkillGroups[sgid].tcan = scan[Departments[i].skillgroup];
-		SkillGroups[sgid].tcan = scua[Departments[i].skillgroup];
-		SkillGroups[sgid].tcan = scuq[Departments[i].skillgroup];		
-	}
-}
-
 // this function calls API again if data is truncated
 function loadNext(method,next,callback,params) {
 	var str = [];
@@ -1716,7 +1642,6 @@ function updateChatStats() {
 		doStartOfDay();
 		return;
 	}
-	calculateMetrics();
 	calculateLWT_CIQ();
 	calculateASA_SLA();
 	calculateACT_CPH();
