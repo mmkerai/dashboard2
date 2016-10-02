@@ -153,11 +153,11 @@ app.get('/csat.html', function(req, res){
 app.get('/csat.js', function(req, res){
 	res.sendFile(__dirname + '/csat.js');
 });
-/*
+
 process.on('uncaughtException', function (err) {
   console.log('Exception: ' + err);
 });
-*/
+
 //********************************* Global class exceptions
 var Exception = function() {
 		this.chatsStarted = 0;
@@ -657,7 +657,8 @@ function operatorCustomStatusCallback(dlist) {
 
 // process started chat object and update all relevat dept, operator and global metrics
 function processStartedChat(chat) {
-	if(typeof(Departments[chat.DepartmentID]) === 'undefined') return false;		// a dept we are not interested in
+	var deptobj = Departments[chat.DepartmentID];
+	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
 	
 	var tchat = new ChatData(chat.ChatID, chat.DepartmentID, Departments[chat.DepartmentID].skillgroup);
 	tchat.started = new Date(chat.Started);
@@ -668,9 +669,11 @@ function processStartedChat(chat) {
 
 // active chat means a started chat has been answered by an operator so it is no longer in the queue
 function processAnsweredChat(chat) {
-	var opobj;
+	var deptobj, opobj, sgobj;
 	
-	if(typeof(Departments[chat.DepartmentID]) === 'undefined') return false;		// a dept we are not interested in
+	deptobj = Departments[chat.DepartmentID];
+	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
+	sgobj = SkillGroups[deptobj.skillgroup];
 	
 	if(typeof(AllChats[chat.ChatID]) === 'undefined')	// this only happens if triggers are missed
 	{
@@ -682,9 +685,9 @@ function processAnsweredChat(chat) {
 	AllChats[chat.ChatID].operatorID = chat.OperatorID;
 	AllChats[chat.ChatID].status = 2;		// active chat
 	
-//	Overall.tcan++;	// answered chats
-//	sgobj.tcan++;
-//	deptobj.tcan++;
+	Overall.tcan++;	// answered chats
+	sgobj.tcan++;
+	deptobj.tcan++;
 	
 	opobj = Operators[chat.OperatorID];
 	if(typeof(opobj) === 'undefined') return false;		// an operator that doesnt exist (may happen if created midday)
@@ -695,8 +698,8 @@ function processAnsweredChat(chat) {
 	if(speed < (SLATHRESHOLD*1000))		// sla threshold in milliseconds
 	{
 		Overall.csla++;
-		Departments[chat.DepartmentID].csla++;
-		SkillGroups[Departments[chat.DepartmentID].skillgroup].csla++;
+		deptobj.csla++;
+		sgobj.csla++;
 		opobj.csla++;
 	}
 	return true;
@@ -705,9 +708,11 @@ function processAnsweredChat(chat) {
 // process closed chat object. closed chat is one that is started and answered.
 // Otherwise go to processwindowclosed
 function processClosedChat(chat) {
-	var opobj;
+	var deptobj,opobj,sgobj;
 
-	if(typeof(Departments[chat.DepartmentID]) === 'undefined') return false;		// a dept we are not interested in
+	deptobj = Departments[chat.DepartmentID];
+	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
+	sgobj = SkillGroups[deptobj.skillgroup];
 
 	if(typeof(AllChats[chat.ChatID]) === 'undefined')	// this only happens if triggers are missed
 	{
@@ -762,15 +767,11 @@ function processWindowClosed(chat) {
 	
 	if(chat.ChatStatusType == 7 || chat.ChatStatusType == 8 || (chat.ChatStatusType >= 11 && chat.ChatStatusType <= 15))	// unavailable chat 7, 8, 11, 12, 13, 14 or 15 
 	{
-//		if(typeof(AllChats[chat.ChatID]) !== 'undefined' && AllChats[chat.ChatID].answered != 0)	// chat can be unavail and answered if transfered
-
-		{
-			Overall.tcun++;
-			deptobj.tcun++;
-			sgobj.tcun++;
-		}
+		Overall.tcun++;
+		deptobj.tcun++;
+		sgobj.tcun++;
 	}	
-/*	else if(typeof(AllChats[chat.ChatID]) !== 'undefined')
+	else if(typeof(AllChats[chat.ChatID]) !== 'undefined')
 	{
 		if(AllChats[chat.ChatID].answered == 0 && AllChats[chat.ChatID].started != 0)		// chat started but unanswered
 		{
@@ -787,7 +788,7 @@ function processWindowClosed(chat) {
 				sgobj.tcua++;			
 			}
 		}
-	}*/
+	}
 	
 	if(typeof(AllChats[chat.ChatID]) === 'undefined')		// chats not started are not in list
 		return false;
@@ -1228,81 +1229,6 @@ function calculateACC_CCONC_TCO() {
 	}	
 }
 
-// calculate the main metrics offered, active, answered, unanswered and unavailable
-function calculateMetrics() {
-	var tchat;
-	var dcan = new Array();
-	var dcua = new Array();
-	var dcuq = new Array();
-	var scan = new Array();
-	var scua = new Array();
-	var scuq = new Array();
-/*	var dcan = new Object();
-	var dcua = new Object();
-	var dcuq = new Object();
-	var scan = new Object();
-	var scua = new Object();
-	var scuq = new Object();*/
-	// first zero out 
-	var can = 0;
-	var cua = 0;
-	var cuq = 0;
-	for(var i in Departments)
-	{
-		dcan[Departments[i].name] = 0;
-		dcua[Departments[i].name] = 0;
-		dcuq[Departments[i].name] = 0;
-		scan[Departments[i].skillgroup] = 0;
-		scua[Departments[i].skillgroup] = 0;
-		scuq[Departments[i].skillgroup] = 0;
-	}
-	
-	for(var i in AllChats)
-	{
-		tchat = AllChats[i];
-		if(tchat.started != 0)
-		{
-			if(tchat.answered != 0)
-			{
-				can++;
-				dcan[tchat.departmentID]++;				
-				scan[tchat.skillgroup]++;				
-			}
-			else if(tchat.ended != 0)	// chat ended therefore must be unanswered
-			{
-				if(tchat.operatorID == 0)	// operator unassigned
-				{
-					cuq++;		//Overall.tcuq++;
-					dcuq[tchat.departmentID]++;				
-					scuq[tchat.skillgroup]++;				
-				}
-				else
-				{
-					cua++;		//Overall.tcua++;
-					dcua[tchat.departmentID]++;				
-					scua[tchat.skillgroup]++;				
-				}				
-			}
-		}
-	}
-	
-	Overall.tcan = can;
-	Overall.tcuq = cuq;
-	Overall.tcua = cua;
-	for(var did in Departments)
-	{
-		Departments[did].tcan = dcan[Departments[did].name];
-		Departments[did].tcua = dcua[Departments[did].name];
-		Departments[did].tcuq = dcuq[Departments[did].name];
-	}
-	for(var sgid in SkillGroups)
-	{
-		SkillGroups[sgid].tcan = scan[sgid];
-		SkillGroups[sgid].tcan = scua[sgid];
-		SkillGroups[sgid].tcan = scuq[sgid];		
-	}
-}
-
 // this function calls API again if data is truncated
 function loadNext(method,next,callback,params) {
 	var str = [];
@@ -1716,7 +1642,6 @@ function updateChatStats() {
 		doStartOfDay();
 		return;
 	}
-	calculateMetrics();
 	calculateLWT_CIQ();
 	calculateASA_SLA();
 	calculateACT_CPH();
