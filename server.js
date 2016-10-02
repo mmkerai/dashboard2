@@ -1231,8 +1231,12 @@ function calculateACC_CCONC_TCO() {
 // calculate the main metrics offered, active, answered, unanswered and unavailable
 function calculateMetrics() {
 	var tchat;
-	var dcan,dcua,dcuq;
-	var scan,scua,scuq;
+	var dcan = new Array();
+	var dcua = new Array();
+	var dcuq = new Array();
+	var scan = new Array();
+	var scua = new Array();
+	var scuq = new Array();
 /*	var dcan = new Object();
 	var dcua = new Object();
 	var dcuq = new Object();
