@@ -62,7 +62,7 @@ try
 	SETTINGSID = EnVars.APISETTINGSID || 0;
 	KEY = EnVars.APIKEY || 0;
 	SLATHRESHOLD = EnVars.SLATHRESHOLDS || 90;
-	INQTHRESHOLD = EnVars.INQTHRESHOLD || 180;	 // 3 mins
+	INQTHRESHOLD = EnVars.INQTHRESHOLD || 300;	 // 5 mins
 	MAXCHATCONCURRENCY = EnVars.MAXCHATCONCURRENCY || 2;
 	TZONE = EnVars.TIMEZONE || "GMT";
 	DoUserAuth = false;		// if using config file then must be on TechM server so no user auth required
@@ -767,15 +767,18 @@ function processWindowClosed(chat) {
 	
 	if(chat.ChatStatusType == 7 || chat.ChatStatusType == 8 || (chat.ChatStatusType >= 11 && chat.ChatStatusType <= 15))	// unavailable chat 7, 8, 11, 12, 13, 14 or 15 
 	{
-		Overall.tcun++;
-		deptobj.tcun++;
-		sgobj.tcun++;
+		if(chat.Answered == "" || chat.Answered == null)	// only count as unavail if not answered
+		{
+			Overall.tcun++;
+			deptobj.tcun++;
+			sgobj.tcun++;
+		}
 	}	
 	else if(typeof(AllChats[chat.ChatID]) !== 'undefined')
 	{
 		if(AllChats[chat.ChatID].answered == 0 && AllChats[chat.ChatID].started != 0)		// chat started but unanswered
 		{
-			if(chat.OperatorID == 0 || chat.OperatorID == null)	// operator unassigned
+			if(chat.OperatorID == "" || chat.OperatorID == null)	// operator unassigned
 			{
 				Overall.tcuq++;
 				deptobj.tcuq++;
@@ -1346,7 +1349,7 @@ function getActiveChatData() {
 	}
 }
 
-// setup dept and skills by operator for easy indexing
+// setup dept and skills by operator for easy indexing. Used during start up only
 function setUpDeptAndSkillGroups() {
 	if(ApiDataNotReady)
 	{
@@ -1402,8 +1405,7 @@ function refreshActiveChatsTimer() {
 	{
 		parameters = "DepartmentID="+did;
 		getApiData("getActiveChats",parameters,refreshActiveChats);
-		ApiDataNotReady--;	// do not count this API request
-		sleep(100);
+		sleep(500);
 	}
 }
 
@@ -1428,16 +1430,12 @@ function refreshActiveChats(chats) {
 // If chats have been waiting to be answered a long time then trigger may be missed so
 // get individual chat info. This is done every minute in case triggers are missed
 function longWaitChatsTimer() {
-	if(LongWaitChats.length > 0)
-	{	
-		for(var cid in LongWaitChats)	// for each chat
-		{
-			parameters = "ChatID="+cid;
-			getApiData("getChat",parameters,updateLongWaitChat);
-			ApiDataNotReady--;	// do not count this API request
-			Exceptions.longWaitChats++;
-			sleep(100);
-		}
+	for(var i in LongWaitChats)	// for each chat
+	{
+		parameters = "ChatID="+LongWaitChats[i];
+		getApiData("getChat",parameters,updateLongWaitChat);
+		Exceptions.longWaitChats++;
+		sleep(500);
 	}
 }
 
@@ -1455,7 +1453,6 @@ function updateLongWaitChat(chat) {
 				if(chat.Closed !== "" && chat.Closed !== null)
 				{
 					processClosedChat(chat);
-					Exceptions.longWaitChatUpdate++;
 				}
 			}
 		}		
