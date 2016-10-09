@@ -162,6 +162,7 @@ process.on('uncaughtException', function (err) {
 var Exception = function() {
 		this.chatsStarted = 0;
 		this.chatsAnswered = 0;
+		this.chatReassigned = 0;
 		this.chatsClosed = 0;
 		this.chatsWinClosed = 0;
 		this.opStatusChanged = 0;
@@ -377,61 +378,73 @@ function initialiseGlobals () {
 // Process incoming Boldchat triggered chat data
 app.post('/chat-started', function(req, res){
 	Exceptions.chatsStarted++;
+	res.send({ "result": "success" });
 	if(validateSignature(req.body, TriggerDomain+'/chat-started'))
 	{
 		sendToLogs("Chat-started, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
 		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
 			processStartedChat(req.body);
 	}
-	res.send({ "result": "success" });
 });
 
 // Process incoming Boldchat triggered chat data
 app.post('/chat-answered', function(req, res){
 	Exceptions.chatsAnswered++;
+	res.send({ "result": "success" });
 	if(validateSignature(req.body, TriggerDomain+'/chat-answered'))
 	{
 		sendToLogs("Chat-answered, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
 		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
 			processAnsweredChat(req.body);
 	}
+});
+
+// Process incoming Boldchat triggered chat re-assigned message
+app.post('/chat-reassigned', function(req, res) { 
+	Exceptions.chatReassigned++;
 	res.send({ "result": "success" });
+	if(validateSignature(req.body, TriggerDomain+'/chat-reassigned'))
+	{
+		sendToLogs("chat-reassigned, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
+		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
+			processReassignedChat(req.body);
+	}
 });
 
 // Process incoming Boldchat triggered chat data
 app.post('/chat-closed', function(req, res){
 	Exceptions.chatsClosed++;
+	res.send({ "result": "success" });
 	if(validateSignature(req.body, TriggerDomain+'/chat-closed'))
 	{
 		sendToLogs("Chat-closed, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
 		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
 			processClosedChat(req.body);
 	}
-	res.send({ "result": "success" });
 });
 
 // Process incoming Boldchat triggered chat data
 app.post('/chat-window-closed', function(req, res){
 	Exceptions.chatsWinClosed++;
+	res.send({ "result": "success" });
 	if(validateSignature(req.body, TriggerDomain+'/chat-window-closed'))
 	{
 		sendToLogs("Chat-window-closed, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
 		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
 			processWindowClosed(req.body);
 	}
-	res.send({ "result": "success" });
 });
 
 // Process incoming Boldchat triggered operator data
 app.post('/operator-status-changed', function(req, res) { 
 	Exceptions.opStatusChanged++;
+	res.send({ "result": "success" });
 	if(validateSignature(req.body, TriggerDomain+'/operator-status-changed'))
 	{
-		sendToLogs("operator-status-changed, operator id: "+Operators[req.body.LoginID].name);
+		sendToLogs("operator-status-changed, operator: "+Operators[req.body.LoginID].name);
 		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
 			processOperatorStatusChanged(req.body);
 	}
-	res.send({ "result": "success" });
 });
 
 // Set up code for outbound BoldChat API calls.  All of the capture callback code should ideally be packaged as an object.
@@ -705,6 +718,39 @@ function processAnsweredChat(chat) {
 	return true;
 }
 
+// process re-assigned chat object
+function processReassignedChat(chat) {
+
+	var deptobj = Departments[chat.DepartmentID];
+	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
+
+	var tchat = AllChats[chat.ChatID];
+	
+	if(typeof(tchat) === 'undefined')	// this only happens if triggers are missed
+	{
+		processStartedChat(chat);
+		if(chat.Answered !== "" && chat.Answered !== null)
+		{
+			processAnsweredChat(chat);
+		}
+	}
+	
+	var opobj = Operators[chat.OperatorID];
+	if(typeof(opobj) === 'undefined') return false;		// an operator that doesnt exist (may happen if created midday)
+
+//	console.log("Previous Operator: "+Operators[tchat.operatorID].name);
+//	console.log("New Operator: "+opobj.name);
+//	TODO: skillgroup adjustments
+	removeActiveChat(Operators[tchat.operatorID], chat.ChatID); // remove from previous op
+	Operators[tchat.operatorID].tcan--;		// remove chat answereed credit from this operator
+	Departments[tchat.departmentID].tcan--;		// remove chat answereed credit from this dept
+	tchat.operatorID = chat.OperatorID;		// assign new operator to this chat
+	tchat.departmentID = chat.DepartmentID;		// assign new department to this chat
+	opobj.tcan++;							// and give him credit
+	opobj.activeChats.push(chat.ChatID);	// credit the new operator
+	deptobj.tcan++;							// and dept
+}
+
 // process closed chat object. closed chat is one that is started and answered.
 // Otherwise go to processwindowclosed
 function processClosedChat(chat) {
@@ -728,21 +774,20 @@ function processClosedChat(chat) {
 	AllChats[chat.ChatID].ended = new Date(chat.Ended);
 	AllChats[chat.ChatID].closed = new Date(chat.Closed);
 
-	if(chat.OperatorID != "" && chat.OperatorID != null)
-	{
-		opobj = Operators[chat.OperatorID];
-		if(typeof(opobj) === 'undefined') return false;	// shouldnt happen
-		// add the total chat time for this chat
-		var chattime = Math.round((AllChats[chat.ChatID].closed - AllChats[chat.ChatID].started)/1000);
-		opobj.tcta = opobj.tcta + chattime;
-		// now remove from active chat list and update stats
-		removeActiveChat(opobj, chat.ChatID);	
-		opobj.tcc = opobj.tcan - opobj.activeChats.length;	// answered chat less active
-		if(opobj.tcc > 0)
-			opobj.act = Math.round(opobj.tcta/opobj.tcc);
+	opobj = Operators[AllChats[chat.ChatID].operatorID];
+	if(typeof(opobj) === 'undefined') return false;	// shouldnt happen
 
-		updateCconc(AllChats[chat.ChatID]);	// update chat conc now that it is closed
-	}
+	// add the total chat time for this chat
+	var chattime = Math.round((AllChats[chat.ChatID].closed - AllChats[chat.ChatID].started)/1000);
+	opobj.tcta = opobj.tcta + chattime;
+	// now remove from active chat list and update stats
+	removeActiveChat(opobj, chat.ChatID);	
+	opobj.tcc = opobj.tcan - opobj.activeChats.length;	// answered chat less active
+	if(opobj.tcc > 0)
+		opobj.act = Math.round(opobj.tcta/opobj.tcc);
+
+	updateCconc(AllChats[chat.ChatID]);	// update chat conc now that it is closed
+
 	return true;
 }
 
@@ -891,8 +936,11 @@ function processOperatorStatusChanged(ostatus) {
 	}
 	return true;
 }
-
+// This is called after chat is closed to save concurrency time
 function updateCconc(tchat) {
+	if(tchat.answered == 0)	// if not answered chat then ignore
+		return;
+	
 	var sh,sm,eh,em,sindex,eindex;
 	var conc = new Array();
 	conc = OperatorCconc[tchat.operatorID];		// chat concurrency array
@@ -1120,7 +1168,6 @@ function calculateLWT_CIQ() {
 	}
 	
 	// now recalculate the lwt by dept and save the overall
-	LongWaitChats = [];		// clear the array for refresh timer processing
 	for(var i in AllChats)
 	{
 		tchat = AllChats[i];
@@ -1131,7 +1178,10 @@ function calculateLWT_CIQ() {
 			SkillGroups[Departments[tchat.departmentID].skillgroup].ciq++;
 			waittime = Math.round((TimeNow - tchat.started)/1000);
 			if(waittime > INQTHRESHOLD)		// if this chat has been waiting a long time
-				LongWaitChats.push(tchat.chatID);
+			{
+				if(!LongWaitChats.includes(tchat.chatID))	// add to list if not already in
+					LongWaitChats.push(tchat.chatID);
+			}
 				
 			if(Departments[tchat.departmentID].lwt < waittime)
 			{
@@ -1430,12 +1480,11 @@ function refreshActiveChats(chats) {
 // If chats have been waiting to be answered a long time then trigger may be missed so
 // get individual chat info. This is done every minute in case triggers are missed
 function longWaitChatsTimer() {
-	for(var i in LongWaitChats)	// for each chat
+	if(LongWaitChats.length > 0)	// check not empty
 	{
-		parameters = "ChatID="+LongWaitChats[i];
+		parameters = "ChatID="+LongWaitChats.shift();	// get from FIFO
 		getApiData("getChat",parameters,updateLongWaitChat);
 		Exceptions.longWaitChats++;
-		sleep(500);
 	}
 }
 
@@ -1686,5 +1735,5 @@ console.log("Server started on port "+PORT);
 doStartOfDay();		// initialise everything
 setInterval(updateChatStats,3000);	// updates socket io data at infinitum
 //setInterval(refreshActiveChatsTimer, 60000);	
-setInterval(longWaitChatsTimer, 60000);
+setInterval(longWaitChatsTimer, 20000);
 
