@@ -723,10 +723,8 @@ function processReassignedChat(chat) {
 
 	var deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
-
-	var tchat = AllChats[chat.ChatID];
 	
-	if(typeof(tchat) === 'undefined')	// this only happens if triggers are missed
+	if(typeof(AllChats[chat.ChatID]) === 'undefined')	// this only happens if triggers are missed
 	{
 		processStartedChat(chat);
 		if(chat.Answered !== "" && chat.Answered !== null)
@@ -735,6 +733,7 @@ function processReassignedChat(chat) {
 		}
 	}
 	
+	var tchat = AllChats[chat.ChatID];
 	var opobj = Operators[chat.OperatorID];
 	if(typeof(opobj) === 'undefined') return false;		// an operator that doesnt exist (may happen if created midday)
 
