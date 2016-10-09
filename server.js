@@ -734,20 +734,23 @@ function processReassignedChat(chat) {
 	}
 	
 	var tchat = AllChats[chat.ChatID];
-	var opobj = Operators[chat.OperatorID];
-	if(typeof(opobj) === 'undefined') return false;		// an operator that doesnt exist (may happen if created midday)
+	if(tchat.operatorID != 0)		// only adjust metrics if reassigned after answered previously
+	{
+		var opobj = Operators[chat.OperatorID];
+		if(typeof(opobj) === 'undefined') return false;		// an operator that doesnt exist (may happen if created midday)
 
-	console.log("Previous Operator: "+Operators[tchat.operatorID].name);
-	console.log("New Operator: "+opobj.name);
-//	TODO: skillgroup adjustments
-	removeActiveChat(Operators[tchat.operatorID], chat.ChatID); // remove from previous op
-	Operators[tchat.operatorID].tcan--;		// remove chat answereed credit from this operator
-	Departments[tchat.departmentID].tcan--;		// remove chat answereed credit from this dept
-	tchat.operatorID = chat.OperatorID;		// assign new operator to this chat
-	tchat.departmentID = chat.DepartmentID;		// assign new department to this chat
-	opobj.tcan++;							// and give him credit
-	opobj.activeChats.push(chat.ChatID);	// credit the new operator
-	deptobj.tcan++;							// and dept
+		console.log("Previous Operator: "+Operators[tchat.operatorID].name);
+		console.log("New Operator: "+opobj.name);
+	//	TODO: skillgroup adjustments
+		removeActiveChat(Operators[tchat.operatorID], chat.ChatID); // remove from previous op
+		Operators[tchat.operatorID].tcan--;		// remove chat answereed credit from this operator
+		Departments[tchat.departmentID].tcan--;		// remove chat answereed credit from this dept
+		tchat.operatorID = chat.OperatorID;		// assign new operator to this chat
+		tchat.departmentID = chat.DepartmentID;		// assign new department to this chat
+		opobj.tcan++;							// and give him credit
+		opobj.activeChats.push(chat.ChatID);	// credit the new operator
+		deptobj.tcan++;							// and dept
+	}
 }
 
 // process closed chat object. closed chat is one that is started and answered.
