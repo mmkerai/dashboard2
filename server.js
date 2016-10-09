@@ -1178,19 +1178,15 @@ function calculateLWT_CIQ() {
 			waittime = Math.round((TimeNow - tchat.started)/1000);
 			if(waittime > INQTHRESHOLD)		// if this chat has been waiting a long time
 			{
-				if(!LongWaitChats.includes(tchat.chatID))	// add to list if not already in
+				if(LongWaitChats.indexOf(tchat.chatID) == -1)	// add to list if not already in
 					LongWaitChats.push(tchat.chatID);
 			}
 				
 			if(Departments[tchat.departmentID].lwt < waittime)
-			{
 				Departments[tchat.departmentID].lwt = waittime;
-			}
 			
 			if(SkillGroups[tchat.skillgroup].lwt < waittime)
-			{
 				SkillGroups[tchat.skillgroup].lwt = waittime;
-			}
 			
 			if(maxwait < waittime)
 				maxwait = waittime;
@@ -1394,7 +1390,7 @@ function getActiveChatData() {
 	{
 		parameters = "DepartmentID="+did;
 		getApiData("getActiveChats",parameters,allActiveChats);
-		sleep(100);
+		sleep(500);
 	}
 }
 
@@ -1570,7 +1566,7 @@ function getInactiveChatData() {
 	{
 		parameters = "FolderID="+fid+"&FromDate="+StartOfDay.toISOString();
 		getApiData("getInactiveChats", parameters, allInactiveChats);
-		sleep(200);
+		sleep(300);
 	}	
 }
 
