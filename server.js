@@ -737,8 +737,8 @@ function processReassignedChat(chat) {
 	var opobj = Operators[chat.OperatorID];
 	if(typeof(opobj) === 'undefined') return false;		// an operator that doesnt exist (may happen if created midday)
 
-//	console.log("Previous Operator: "+Operators[tchat.operatorID].name);
-//	console.log("New Operator: "+opobj.name);
+	console.log("Previous Operator: "+Operators[tchat.operatorID].name);
+	console.log("New Operator: "+opobj.name);
 //	TODO: skillgroup adjustments
 	removeActiveChat(Operators[tchat.operatorID], chat.ChatID); // remove from previous op
 	Operators[tchat.operatorID].tcan--;		// remove chat answereed credit from this operator
