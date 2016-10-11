@@ -76,7 +76,7 @@ catch(e)
 		SETTINGSID = process.env.APISETTINGSID || 0;
 		KEY = process.env.APIKEY || 0;
 		SLATHRESHOLD = process.env.SLATHRESHOLDS || 90;	
-		INQTHRESHOLD = process.env.INQTHRESHOLD || 180;	 
+		INQTHRESHOLD = process.env.INQTHRESHOLD || 300;	 
 		MAXCHATCONCURRENCY = process.env.MAXCHATCONCURRENCY || 2;	
 		TZONE = process.env.TIMEZONE || "GMT";	
 		AUTHUSERS = JSON.parse(process.env.AUTHUSERS) || {};
@@ -155,7 +155,9 @@ app.get('/csat.js', function(req, res){
 });
 
 process.on('uncaughtException', function (err) {
-  console.log('Exception: ' + err);
+	var estr = 'Exception: ' + err;
+	console.log(estr);
+	postToArchive(estr);
 });
 
 //********************************* Global class exceptions
@@ -739,8 +741,8 @@ function processReassignedChat(chat) {
 		var opobj = Operators[chat.OperatorID];
 		if(typeof(opobj) === 'undefined') return false;		// an operator that doesnt exist (may happen if created midday)
 
-		console.log("Previous Operator: "+Operators[tchat.operatorID].name);
-		console.log("New Operator: "+opobj.name);
+//		console.log("Previous Operator: "+Operators[tchat.operatorID].name);
+//		console.log("New Operator: "+opobj.name);
 	//	TODO: skillgroup adjustments
 		removeActiveChat(Operators[tchat.operatorID], chat.ChatID); // remove from previous op
 		Operators[tchat.operatorID].tcan--;		// remove chat answereed credit from this operator
@@ -938,6 +940,7 @@ function processOperatorStatusChanged(ostatus) {
 	}
 	return true;
 }
+
 // This is called after chat is closed to save concurrency time
 function updateCconc(tchat) {
 	if(tchat.answered == 0)	// if not answered chat then ignore
@@ -1047,7 +1050,7 @@ function calculateACT_CPH() {
 	for(var i in AllChats)
 	{
 		tchat = AllChats[i];
-		if(tchat.status == 0 && tchat.ended != 0 && tchat.answered != 0)		// chat ended
+		if(tchat.status == 0 && tchat.closed != 0 && tchat.answered != 0)		// chat ended
 		{
 			count++;
 			if(tchat.departmentID == 0 || tchat.skillgroup == 0)	// shouldnt be
@@ -1055,12 +1058,12 @@ function calculateACT_CPH() {
 			sgid = Departments[tchat.departmentID].skillgroup;
 			dcount[tchat.departmentID]++;
 			sgcount[sgid]++; 
-			ctime = tchat.ended - tchat.answered;
+			ctime = tchat.closed - tchat.answered;
 			if(isNaN(ctime)) continue;
 			ochattime = ochattime + ctime;
 			dchattime[tchat.departmentID] = dchattime[tchat.departmentID] + ctime;	
 			sgchattime[sgid] = sgchattime[sgid] + ctime;	
-			if(tchat.ended >= pastHour)
+			if(tchat.closed >= pastHour)
 			{
 				cph++;
 				dcph[tchat.departmentID]++;
@@ -1361,7 +1364,10 @@ function calculateOperatorConc() {
 		for(var i in conc)
 		{
 			if(conc[i] > 0) chattime++;		// all chats
-			if(conc[i] > 1) mchattime++;	// multichats
+			for(var j=1;conc[i] > j;j++)	// multichats
+			{
+				mchattime++;	// multichats
+			}
 		}
 		opobj.tct = chattime*60;			// minutes to seconds
 		opobj.mct = mchattime*60;		// minutes to seconds
@@ -1445,9 +1451,7 @@ function allActiveChats(chats) {
 // process all active chat objects. This is done every minute in case triggers are missed
 function refreshActiveChatsTimer() {
 	if(!OperatorsSetupComplete)
-	{
 		return;
-	}
 	
 	for(var did in Departments)	// active chats are by department
 	{

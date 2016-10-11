@@ -2,7 +2,7 @@
 
 var ChatStatus = ["Logged Out","Away","Available"];
 var csvfile = null;
-var RTAVersion = "RTA Dashboard v1.13";
+var RTAVersion = "RTA Dashboard v1.14";
 
 function readCookie(name)
 {
