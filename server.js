@@ -22,7 +22,7 @@
 // aavail - total number of agents available
 // status - current status 0 - logged out, 1 - away, 2 - available
 // tcs - time in current status
-// tcta - total time if all chats
+// tcta - total time of all chats
 // tct - total chat time (in atleast 1 chat)
 // mct - multi chat time (time in more than 1 chat)
 // csla - no of chats within sla
@@ -771,11 +771,10 @@ function processReassignedChat(chat) {
 // process closed chat object. closed chat is one that is started and answered.
 // Otherwise go to processwindowclosed
 function processClosedChat(chat) {
-	var deptobj,opobj,sgobj;
 
-	deptobj = Departments[chat.DepartmentID];
+	var deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
-	sgobj = SkillGroups[deptobj.skillgroup];
+	var sgobj = SkillGroups[deptobj.skillgroup];
 
 	if(typeof(AllChats[chat.ChatID]) === 'undefined')	// this only happens if triggers are missed
 	{
@@ -791,20 +790,24 @@ function processClosedChat(chat) {
 	AllChats[chat.ChatID].ended = new Date(chat.Ended);
 	AllChats[chat.ChatID].closed = new Date(chat.Closed);
 
-	opobj = Operators[AllChats[chat.ChatID].operatorID];
+	var opobj = Operators[AllChats[chat.ChatID].operatorID];
 	if(typeof(opobj) === 'undefined') return false;	// shouldnt happen
 	// remove from active chat list and update stats
-	removeActiveChat(opobj, chat.ChatID);	
+	removeActiveChat(opobj, chat.ChatID);
+	
 	opobj.tcc++;		//chats closed
+	Overall.tcc++;
 	deptobj.tcc++;
 	sgobj.tcc++;
 	// add the total chat time for this chat
 	var chattime = Math.round((AllChats[chat.ChatID].closed - AllChats[chat.ChatID].answered)/1000);
 	opobj.tcta = opobj.tcta + chattime;
+	Overall.tcta = Overall.tcta + chattime;
 	deptobj.tcta = deptobj.tcta + chattime;
 	sgobj.tcta = sgobj.tcta + chattime;
 
 	opobj.act = Math.round(opobj.tcta/opobj.tcc);
+	Overall.act = Math.round(Overall.tcta/Overall.tcc);
 	deptobj.act = Math.round(deptobj.tcta/deptobj.tcc);
 	sgobj.act = Math.round(sgobj.tcta/sgobj.tcc);
 

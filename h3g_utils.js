@@ -283,9 +283,9 @@ function showTopMetrics(rowid, data) {
 
 function showOperatorMetrics(rowid, data) {
 
-	var act = 0;
-	if(data.tcan > 0)
-		act = Math.round(data.tct/data.tcan);
+//	var act = 0;
+//	if(data.tcan > 0)
+//		act = Math.round(data.tct/data.tcan);
 	
 	if(typeof(data.did) !== 'undefined')	// this is for a dept not operator
 	{
@@ -309,7 +309,7 @@ function showOperatorMetrics(rowid, data) {
 	rowid.cells[5].innerHTML = data.acc;
 	rowid.cells[6].innerHTML = data.tcan;
 	rowid.cells[7].innerHTML = data.cph;	
-	rowid.cells[8].outerHTML = NF.printACT(act);	
+	rowid.cells[8].outerHTML = NF.printACT(data.act);	
 	rowid.cells[9].outerHTML = NF.printConcurrency(data.cconc);
 }
 
