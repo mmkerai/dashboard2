@@ -26,13 +26,9 @@ $(document).ready(function() {
 	socket.on('connect_timeout', function(data){
 		console.log("socket timeout at "+ new Date().toGMTString());
 	});
-
- 	socket.on('authErrorResponse', function(data) {
-		$("#message1").text(data);
-		$("#topTable").hide();
-		$("#signinform").show();
+	socket.on('connect_error', function(data){
+		console.log("socket connect error at "+ new Date().toGMTString());
 	});
-
  	socket.on('errorResponse', function(data) {
 		$("#message1").text(data);
 	});

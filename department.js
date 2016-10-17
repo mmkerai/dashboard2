@@ -25,6 +25,11 @@ did = getURLParameter("did");
 	socket.on('connect_timeout', function(data){
 		console.log("socket timeout at "+ new Date().toGMTString());
 	});
+	socket.on('connect_error', function(data){
+		console.log("socket connect error at "+ new Date().toGMTString());
+	});
+	socket.on('error', function(data){
+		console.log("socket error at "+ new Date().toGMTString());
 
  	socket.on('authErrorResponse', function(data){
 		$("#message1").text(data);

@@ -560,7 +560,7 @@ function deptsCallback(dlist) {
 	{
 		parameters = "DepartmentID="+did;
 		getApiData("getDepartmentOperators",parameters,deptOperatorsCallback,did);	// extra func param due to API
-		sleep(100);
+		sleep(400);
 	}
 }
 
@@ -800,7 +800,7 @@ function processClosedChat(chat) {
 	deptobj.tcc++;
 	sgobj.tcc++;
 	// add the total chat time for this chat
-	var chattime = Math.round((AllChats[chat.ChatID].closed - AllChats[chat.ChatID].answered)/1000);
+	var chattime = Math.round((AllChats[chat.ChatID].ended - AllChats[chat.ChatID].answered)/1000);
 	opobj.tcta = opobj.tcta + chattime;
 	Overall.tcta = Overall.tcta + chattime;
 	deptobj.tcta = deptobj.tcta + chattime;
