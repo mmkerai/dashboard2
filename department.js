@@ -30,7 +30,7 @@ did = getURLParameter("did");
 	});
 	socket.on('error', function(data){
 		console.log("socket error at "+ new Date().toGMTString());
-
+	});
  	socket.on('authErrorResponse', function(data){
 		$("#message1").text(data);
 		$("#deptTable").hide();
