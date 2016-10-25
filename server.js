@@ -1,4 +1,4 @@
-/* RTA Dashboard for H3G. 
+/* RTA Dashboard for H3G.
  * This script should run on Heroku
  */
 // Version 1.15 16th Oct 2016
@@ -9,7 +9,7 @@
 // lwt - longest waiting time
 // tco - chats offered (chats active, answered and abandoned)
 // tac - total active chats (answered)
-// tcan - total chats answered complete and active 
+// tcan - total chats answered complete and active
 // tcuq - total chats unanswered/abandoned in queue
 // tcua - total chats unanswered/abandoned after assigned
 // tcun - total chats unavailable
@@ -39,7 +39,7 @@ var bodyParser = require('body-parser');
 app.use( bodyParser.json() );       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
   extended: true
-})); 
+}));
 
 //********** Get port used by Heroku or use a default
 var PORT = Number(process.env.PORT || 3000);
@@ -77,10 +77,10 @@ catch(e)
 		AID = process.env.AID || 0;
 		SETTINGSID = process.env.APISETTINGSID || 0;
 		KEY = process.env.APIKEY || 0;
-		SLATHRESHOLD = process.env.SLATHRESHOLDS || 90;	
-		INQTHRESHOLD = process.env.INQTHRESHOLD || 300;	 
-		MAXCHATCONCURRENCY = process.env.MAXCHATCONCURRENCY || 2;	
-		TZONE = process.env.TIMEZONE || "GMT";	
+		SLATHRESHOLD = process.env.SLATHRESHOLDS || 90;
+		INQTHRESHOLD = process.env.INQTHRESHOLD || 300;
+		MAXCHATCONCURRENCY = process.env.MAXCHATCONCURRENCY || 2;
+		TZONE = process.env.TIMEZONE || "GMT";
 		AUTHUSERS = JSON.parse(process.env.AUTHUSERS) || {};
 	}
 	else
@@ -119,7 +119,7 @@ app.get('/skillgroup.html', function(req, res){
 app.get('/department.html', function(req, res){
 	res.sendFile(__dirname + '/department.html');
 });
-app.get('/h3g_dashboard.css', function(req, res){ 
+app.get('/h3g_dashboard.css', function(req, res){
 	res.sendFile(__dirname + '/h3g_dashboard.css');
 });
 app.get('/dashboard.js', function(req, res){
@@ -185,9 +185,9 @@ var Exception = function() {
 
 //******* Global class for csat data
 var Csat = function() {
-		this.surveys = 0;	
-		this.NPS = 0;	
-		this.FCR = 0;		
+		this.surveys = 0;
+		this.NPS = 0;
+		this.FCR = 0;
 		this.OSAT = 0;
 		this.Resolved = 0;
 };
@@ -203,6 +203,7 @@ var ChatData = function(chatid, dept, sg) {
 		this.answered = 0;			// so it is easy to do the calculations
 		this.ended = 0;
 		this.closed = 0;
+		this.winclosed = 0;
 		this.statustype = 0;	// as per chatstatustype field in BC
 		this.csat = new Csat();
 };
@@ -251,14 +252,14 @@ var OpMetrics  = function(id,name) {
 		this.cstatus = "";	// custom status
 		this.statusdtime = 0;	// start time of current status
 		this.activeChats = new Array();
-		this.acc = 0;	// available chat capacity - only valid if operator is available	
-		this.tcs = 0;	// time in current status	
+		this.acc = 0;	// available chat capacity - only valid if operator is available
+		this.tcs = 0;	// time in current status
 		this.tcta = 0;	// total chat time for all chats
 		this.act = 0;	// average chat time for operator
 		this.tct = 0;	// total chat time with atleast one chat
 		this.mct = 0;	// multi chat time i.e. more than 1 chat
 		this.csat = new Csat();
-};																				
+};
 
 //********************************* Global variables for chat data
 var LoggedInUsers;	// used for socket ids
@@ -311,7 +312,7 @@ function sleep(milliseconds) {
 }
 
 function validateSignature(body, triggerUrl) {
-	
+
 	var unencrypted = getUnencryptedSignature(body, triggerUrl);
 	var encrypted = encryptSignature(unencrypted);
 //	console.log('unencrypted signature', unencrypted);
@@ -319,7 +320,7 @@ function validateSignature(body, triggerUrl) {
 //	console.log('trigger signature: '+ body.signature);
 	if(encrypted == body.signature)
 		return true;
-	
+
 	var str = "Trigger signature validation error: "+triggerUrl;
 	Exceptions.signatureInvalid++;
 	console.log(str);
@@ -356,13 +357,13 @@ function initialiseGlobals () {
 	LoggedInUsers = new Array();
 	UsersLoggedIn = new Object();
 	AllChats = new Object();
-	Departments = new Object();	
-	SkillGroups = new Object();	
+	Departments = new Object();
+	SkillGroups = new Object();
 	DeptOperators = new Object();
 	OperatorDepts = new Object();
 	OperatorCconc = new Object();
 	OperatorSkills = new Object();
-	Folders = new Object();	
+	Folders = new Object();
 	Operators = new Object();
 	CustomStatus = new Object();
 	TimeNow = new Date();
@@ -373,7 +374,7 @@ function initialiseGlobals () {
 	EndOfDay = new Date();
 	EndOfDay.setUTCHours(23,59,59,999);	// last milli second of the day
 //	EndOfDay.setHours(EndOfDay.getHours() - TOFFSET);	// allow for TIMEZONE
-	Overall = new DashMetrics("Overall","Overall");	
+	Overall = new DashMetrics("Overall","Overall");
 	OperatorsSetupComplete = false;
 	ApiDataNotReady = 0;
 	Exceptions = new Exception();
@@ -406,7 +407,7 @@ app.post('/chat-answered', function(req, res){
 });
 
 // Process incoming Boldchat triggered chat re-assigned message
-app.post('/chat-reassigned', function(req, res) { 
+app.post('/chat-reassigned', function(req, res) {
 	Exceptions.chatReassigned++;
 	res.send({ "result": "success" });
 	if(validateSignature(req.body, TriggerDomain+'/chat-reassigned'))
@@ -442,7 +443,7 @@ app.post('/chat-window-closed', function(req, res){
 });
 
 // Process incoming Boldchat triggered operator data
-app.post('/operator-status-changed', function(req, res) { 
+app.post('/operator-status-changed', function(req, res) {
 	Exceptions.opStatusChanged++;
 	res.send({ "result": "success" });
 	if(validateSignature(req.body, TriggerDomain+'/operator-status-changed'))
@@ -459,14 +460,14 @@ function BC_API_Request(api_method,params,callBackFunction) {
 	var auth = AID + ':' + SETTINGSID + ':' + (new Date()).getTime();
 	var authHash = auth + ':' + crypto.createHash('sha512').update(auth + KEY).digest('hex');
 	var options = {
-		host : 'api.boldchat.com', 
-		port : 443, 
-		path : '/aid/'+AID+'/data/rest/json/v1/'+api_method+'?auth='+authHash+'&'+params, 
+		host : 'api.boldchat.com',
+		port : 443,
+		path : '/aid/'+AID+'/data/rest/json/v1/'+api_method+'?auth='+authHash+'&'+params,
 		method : 'GET',
 		agent : false
 	};
 //	https.request(options, callBackFunction).on('error', function(err){console.log("API request error: "+err.stack)}).end();
-	ApiDataNotReady++;		// flag to track api calls	
+	ApiDataNotReady++;		// flag to track api calls
 	var getReq = https.request(options, function(res) {
 //		console.log("\nstatus code: ", res.statusCode);
 		var str = "";
@@ -480,7 +481,7 @@ function BC_API_Request(api_method,params,callBackFunction) {
 		res.on('error', function(err){
 			ApiDataNotReady--;
 			console.log("API request error: ", err);
-		});     
+		});
 	});
     //end the request
     getReq.end();
@@ -488,9 +489,9 @@ function BC_API_Request(api_method,params,callBackFunction) {
 
 function postToArchive(postdata) {
 	var options = {
-		host : 'uber-electronics.com', 
-		port : 443, 
-		path : '/home/mkerai/APItriggers/h3gendofday.php', 
+		host : 'uber-electronics.com',
+		port : 443,
+		path : '/home/mkerai/APItriggers/h3gendofday.php',
 		method : 'POST',
 		headers: {
           'Content-Type': 'text/plain',
@@ -511,7 +512,7 @@ function postToArchive(postdata) {
 
 function debugLog(name, dataobj) {
 	console.log(name+": ");
-	for(key in dataobj) 
+	for(key in dataobj)
 	{
 		if(dataobj.hasOwnProperty(key))
 			console.log(key +":"+dataobj[key]);
@@ -538,7 +539,7 @@ function deptsCallback(dlist) {
 			return 1;
 		return 0; //default return value (no sorting)
 	});
-	
+
 	for(var i in dlist)
 	{
 		dname = dlist[i].Name;
@@ -548,7 +549,7 @@ function deptsCallback(dlist) {
 		ch2 = dname.indexOf("]");
 		sg = dname.substring(ch1+1,ch2);	// name between the brackets
 		str = dname.substring(ch2+1);		// remainder of the name
-		ch3 = str.match("[A-Za-z0-9]+").index;	
+		ch3 = str.match("[A-Za-z0-9]+").index;
 		newname = str.substring(ch3);
 
 		Departments[dlist[i].DepartmentID] = new DashMetrics(dlist[i].DepartmentID,newname,sg);
@@ -565,7 +566,7 @@ function deptsCallback(dlist) {
 }
 
 function operatorsCallback(dlist) {
-	
+
 // sort alphabetically first
 	dlist.sort(function(a,b) {
 		var nameA=a.Name.toLowerCase();
@@ -577,9 +578,9 @@ function operatorsCallback(dlist) {
 		return 0; //default return value (no sorting)
 	});
 
-	for(var i in dlist) 
+	for(var i in dlist)
 	{
-		Operators[dlist[i].LoginID] = new OpMetrics(dlist[i].LoginID,dlist[i].Name);																			
+		Operators[dlist[i].LoginID] = new OpMetrics(dlist[i].LoginID,dlist[i].Name);
 		var conc = new Array(1440).fill(0);	// initialise with zeros
 		OperatorCconc[dlist[i].LoginID] = conc;
 	}
@@ -588,7 +589,7 @@ function operatorsCallback(dlist) {
 }
 
 function foldersCallback(dlist) {
-	for(var i in dlist) 
+	for(var i in dlist)
 	{
 		if(dlist[i].FolderType == 5)		// select only chat folder types
 		{
@@ -600,7 +601,7 @@ function foldersCallback(dlist) {
 }
 
 function customStatusCallback(dlist) {
-	for(var i in dlist) 
+	for(var i in dlist)
 	{
 			CustomStatus[dlist[i].CustomOperatorStatusID] = dlist[i].Name;
 	}
@@ -610,11 +611,11 @@ function customStatusCallback(dlist) {
 
 function deptOperatorsCallback(dlist, dept) {
 	var doperators = new Array();
-	for(var i in dlist) 
+	for(var i in dlist)
 	{
 		doperators.push(dlist[i].LoginID);
 	}
-	
+
 	DeptOperators[dept] = doperators;
 	console.log("Operators in dept: "+dept+" - "+DeptOperators[dept].length);
 	sendToLogs("Operators in dept: "+dept+" - "+DeptOperators[dept].length);
@@ -670,7 +671,7 @@ function operatorCustomStatusCallback(dlist) {
 			Operators[dlist[0].LoginID].cstatus = st;
 			Operators[dlist[0].LoginID].statusdtime = TimeNow;
 		}
-		sendToLogs("Operator: "+Operators[dlist[0].LoginID].name+", Status: "+st);	
+		sendToLogs("Operator: "+Operators[dlist[0].LoginID].name+", Status: "+st);
 	}
 }
 
@@ -678,7 +679,7 @@ function operatorCustomStatusCallback(dlist) {
 function processStartedChat(chat) {
 	var deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
-	
+
 	var tchat = new ChatData(chat.ChatID, chat.DepartmentID, Departments[chat.DepartmentID].skillgroup);
 	tchat.started = new Date(chat.Started);
 	tchat.status = 1;	// waiting to be answered
@@ -689,25 +690,25 @@ function processStartedChat(chat) {
 // active chat means a started chat has been answered by an operator so it is no longer in the queue
 function processAnsweredChat(chat) {
 	var deptobj, opobj, sgobj;
-	
+
 	deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
 	sgobj = SkillGroups[deptobj.skillgroup];
-	
+
 	if(typeof(AllChats[chat.ChatID]) === 'undefined')	// this only happens if triggers are missed
 	{
 		Exceptions.chatAnsweredNotInList++;
 		processStartedChat(chat);
 	}
-	
+
 	AllChats[chat.ChatID].answered = new Date(chat.Answered);
 	AllChats[chat.ChatID].operatorID = chat.OperatorID;
 	AllChats[chat.ChatID].status = 2;		// active chat
-	
+
 	Overall.tcan++;	// answered chats
 	sgobj.tcan++;
 	deptobj.tcan++;
-	
+
 	opobj = Operators[chat.OperatorID];
 	if(typeof(opobj) === 'undefined') return false;		// an operator that doesnt exist (may happen if created midday)
 	opobj.tcan++;
@@ -738,7 +739,7 @@ function processReassignedChat(chat) {
 
 	var deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
-	
+
 	if(typeof(AllChats[chat.ChatID]) === 'undefined')	// this only happens if triggers are missed
 	{
 		processStartedChat(chat);
@@ -747,7 +748,7 @@ function processReassignedChat(chat) {
 			processAnsweredChat(chat);
 		}
 	}
-	
+
 	var tchat = AllChats[chat.ChatID];
 	if(tchat.operatorID != 0)		// only adjust metrics if reassigned after answered previously
 	{
@@ -785,7 +786,7 @@ function processClosedChat(chat) {
 			processAnsweredChat(chat);
 		}
 	}
-		
+
 	AllChats[chat.ChatID].status = 0;		// inactive/complete/cancelled/closed
 	AllChats[chat.ChatID].ended = new Date(chat.Ended);
 	AllChats[chat.ChatID].closed = new Date(chat.Closed);
@@ -794,7 +795,7 @@ function processClosedChat(chat) {
 	if(typeof(opobj) === 'undefined') return false;	// shouldnt happen
 	// remove from active chat list and update stats
 	removeActiveChat(opobj, chat.ChatID);
-	
+
 	opobj.tcc++;		//chats closed
 	Overall.tcc++;
 	deptobj.tcc++;
@@ -821,9 +822,9 @@ function processWindowClosed(chat) {
 	var deptobj,opobj,sgobj;
 
 	deptobj = Departments[chat.DepartmentID];
-	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in	
+	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
 	sgobj = SkillGroups[deptobj.skillgroup];
-	
+
 	if(chat.ChatStatusType == 1)		// abandoned (closed during pre chat form) chats
 	{
 		Exceptions.chatsAbandoned++;
@@ -834,8 +835,8 @@ function processWindowClosed(chat) {
 	{
 		Exceptions.chatsBlocked++;
 	}
-	
-	if(chat.ChatStatusType == 7 || chat.ChatStatusType == 8 || (chat.ChatStatusType >= 11 && chat.ChatStatusType <= 15))	// unavailable chat 7, 8, 11, 12, 13, 14 or 15 
+
+	if(chat.ChatStatusType == 7 || chat.ChatStatusType == 8 || (chat.ChatStatusType >= 11 && chat.ChatStatusType <= 15))	// unavailable chat 7, 8, 11, 12, 13, 14 or 15
 	{
 		if(chat.Answered == "" || chat.Answered == null)	// only count as unavail if not answered
 		{
@@ -843,9 +844,8 @@ function processWindowClosed(chat) {
 			deptobj.tcun++;
 			sgobj.tcun++;
 		}
-	}	
-	
-	if(typeof(AllChats[chat.ChatID]) !== 'undefined')	// chat started other wise it wouldnt be in the allchats list
+	}
+	else if(typeof(AllChats[chat.ChatID]) !== 'undefined')	// chat started other wise it wouldnt be in the allchats list
 	{
 		if(AllChats[chat.ChatID].answered == 0)		// chat started but unanswered and now win closed
 		{
@@ -858,23 +858,28 @@ function processWindowClosed(chat) {
 			else
 			{
 				Overall.tcua++;
-				deptobj.tcua++;			
-				sgobj.tcua++;			
+				deptobj.tcua++;
+				sgobj.tcua++;
 			}
 		}
-		AllChats[chat.ChatID].status = 0;		// inactive/complete/cancelled/closed
-		AllChats[chat.ChatID].statustype = chat.ChatStatusType;		
-		AllChats[chat.ChatID].ended = new Date(chat.Ended);
-		AllChats[chat.ChatID].closed = new Date(chat.Closed);
-		updateCSAT(chat);
 	}
+	
+    if(typeof(AllChats[chat.ChatID]) !== 'undefined')
+    {
+  		AllChats[chat.ChatID].status = 0;		// inactive/complete/cancelled/closed
+  		AllChats[chat.ChatID].statustype = chat.ChatStatusType;
+  		AllChats[chat.ChatID].ended = new Date(chat.Ended);
+  		AllChats[chat.ChatID].closed = new Date(chat.Closed);
+  		AllChats[chat.ChatID].winclosed = new Date(chat.WindowClosed);
+  		updateCSAT(chat);
+    }
 	return true;
 }
 
 // process operator status changed. or unavailable
 function processOperatorStatusChanged(ostatus) {
 
-	var opid = ostatus.LoginID;	
+	var opid = ostatus.LoginID;
 	if(typeof(Operators[opid]) === 'undefined')
 	{
 		Exceptions.operatorIDUndefined++;
@@ -943,7 +948,7 @@ function processOperatorStatusChanged(ostatus) {
 			Overall.oavail--;
 			SkillGroups[OperatorSkills[opid]].oavail--;
 		}
-		
+
 		for(var did in depts)
 		{
 			if(oldstatus == 1) 		// if operator was away
@@ -963,11 +968,11 @@ function processOperatorStatusChanged(ostatus) {
 function updateCconc(tchat) {
 	if(tchat.answered == 0)	// if not answered chat then ignore
 		return;
-	
+
 	var sh,sm,eh,em,sindex,eindex;
 	var conc = new Array();
 	conc = OperatorCconc[tchat.operatorID];		// chat concurrency array
-		
+
 	sh = tchat.answered.getHours();
 	sm = tchat.answered.getMinutes();
 	eh = tchat.closed.getHours();
@@ -977,7 +982,7 @@ function updateCconc(tchat) {
 	for(var count=sindex; count <= eindex; count++)
 	{
 		conc[count]++; // save chat activity for the closed chats
-	}			
+	}
 	OperatorCconc[tchat.operatorID] = conc;		// save it back for next time
 }
 
@@ -997,21 +1002,21 @@ function updateCSAT(chat) {
 	// update dept and operator stats
 	chatobj.csat.FCR = (ft == "Yes" && resolved == "Yes") ? 1 : 0;
 	chatobj.csat.Resolved = (resolved == "Yes") ? 1 : 0;
-	
+
 	var opobj = Operators[chat.OperatorID];
 	var deptobj = Departments[chat.DepartmentID];
 	if(typeof(opobj) === 'undefined' || typeof(deptobj) === 'undefined') return;
 	var sgobj = SkillGroups[deptobj.skillgroup];
-	
+
 	var nums = sgobj.csat.surveys++;
 	var numd = deptobj.csat.surveys++;
 	var numo = opobj.csat.surveys++;
-	
+
 	sgobj.csat.NPS = ((sgobj.csat.NPS*nums) + chatobj.csat.NPS)/sgobj.csat.surveys;
 	sgobj.csat.OSAT = ((sgobj.csat.OSAT*nums) + chatobj.csat.OSAT)/sgobj.csat.surveys;
 	sgobj.csat.FCR = ((sgobj.csat.FCR*nums) + chatobj.csat.FCR)/sgobj.csat.surveys;
 	sgobj.csat.Resolved = ((sgobj.csat.Resolved*nums) + chatobj.csat.Resolved)/sgobj.csat.surveys;
-	
+
 	deptobj.csat.NPS = ((deptobj.csat.NPS*numd) + chatobj.csat.NPS)/deptobj.csat.surveys;
 	deptobj.csat.OSAT = ((deptobj.csat.OSAT*numd) + chatobj.csat.OSAT)/deptobj.csat.surveys;
 	deptobj.csat.FCR = ((deptobj.csat.FCR*numd) + chatobj.csat.FCR)/deptobj.csat.surveys;
@@ -1021,7 +1026,7 @@ function updateCSAT(chat) {
 	opobj.csat.OSAT = ((opobj.csat.OSAT*numo) + chatobj.csat.OSAT)/opobj.csat.surveys;
 	opobj.csat.FCR = ((opobj.csat.FCR*numo) + chatobj.csat.FCR)/opobj.csat.surveys;
 	opobj.csat.Resolved = ((opobj.csat.Resolved*numo) + chatobj.csat.Resolved)/opobj.csat.surveys;
-	
+
 //	console.log("CSAT updated");
 	return true;
 }
@@ -1049,7 +1054,7 @@ function calculateCPH() {
 		Departments[i].cph = 0;
 		SkillGroups[Departments[i].skillgroup].cph = 0;
 	}
-	
+
 	for(var i in Operators)
 	{
 		Operators[i].cph = 0;
@@ -1077,7 +1082,7 @@ function calculateCPH() {
 function calculateLWT_CIQ_TAC() {
 	var tchat, waittime;
 	var maxwait = 0;
-	
+
 	Overall.ciq = 0;
 	Overall.tac = 0;
 	// first zero out the lwt for all dept
@@ -1090,7 +1095,7 @@ function calculateLWT_CIQ_TAC() {
 		SkillGroups[Departments[i].skillgroup].ciq = 0;
 		SkillGroups[Departments[i].skillgroup].tac = 0;
 	}
-	
+
 	// now recalculate the lwt by dept and save the overall
 	for(var i in AllChats)
 	{
@@ -1106,13 +1111,13 @@ function calculateLWT_CIQ_TAC() {
 				if(LongWaitChats.indexOf(tchat.chatID) == -1)	// add to list if not already in
 					LongWaitChats.push(tchat.chatID);
 			}
-				
+
 			if(Departments[tchat.departmentID].lwt < waittime)
 				Departments[tchat.departmentID].lwt = waittime;
-			
+
 			if(SkillGroups[tchat.skillgroup].lwt < waittime)
 				SkillGroups[tchat.skillgroup].lwt = waittime;
-			
+
 			if(maxwait < waittime)
 				maxwait = waittime;
 		}
@@ -1121,7 +1126,7 @@ function calculateLWT_CIQ_TAC() {
 			Overall.tac++;
 			Departments[tchat.departmentID].tac++;
 			SkillGroups[tchat.skillgroup].tac++;
-		}			
+		}
 	}
 	Overall.lwt = maxwait;
 }
@@ -1154,18 +1159,18 @@ function calculateACC_CCONC() {
 	{
 		depts = OperatorDepts[i];
 		if(typeof(depts) === 'undefined') continue;	// operator not recognised
-		
+
 		opobj = Operators[i];
 		if(typeof(opobj) === 'undefined') continue;	// operator not recognised
-		
+
 		if(opobj.tct != 0)
 			opobj.cconc = ((opobj.tct+opobj.mct)/opobj.tct).toFixed(2);
-		
+
 		if(opobj.statusdtime != 0)
 			opobj.tcs = Math.round(((TimeNow - opobj.statusdtime))/1000);
 		else
 			opobj.tcs = 0;
-		
+
 		Overall.tct = Overall.tct + opobj.tct;
 		Overall.mct = Overall.mct + opobj.mct;
 		sgid = OperatorSkills[i];
@@ -1188,7 +1193,7 @@ function calculateACC_CCONC() {
 			Departments[depts[x]].acc = Departments[depts[x]].acc + opobj.acc;
 		}
 	}
-	
+
 	// calculate TCO
 	Overall.tco = Overall.tcan + Overall.tcua + Overall. tcuq;
 	if(Overall.tct != 0)
@@ -1205,13 +1210,13 @@ function calculateACC_CCONC() {
 		SkillGroups[sgid].tco = SkillGroups[sgid].tcan + SkillGroups[sgid].tcuq + SkillGroups[sgid].tcua;
 		if(SkillGroups[sgid].tct != 0)		// dont divide by zero
 			SkillGroups[sgid].cconc = ((SkillGroups[sgid].tct+SkillGroups[sgid].mct)/SkillGroups[sgid].tct).toFixed(2);
-	}	
+	}
 }
 
 // calculate the main metrics offered, active, answered, unanswered and unavailable
 function calculateTCAN_TCUA_TCUQ() {
 	var tchat;
-	// first zero out 
+	// first zero out
 	Overall.tcan = 0;
 	Overall.tcua = 0;
 	Overall.tcuq = 0;
@@ -1224,7 +1229,7 @@ function calculateTCAN_TCUA_TCUQ() {
 		SkillGroups[Departments[i].skillgroup].tcua = 0;
 		SkillGroups[Departments[i].skillgroup].tcuq = 0;
 	}
-	
+
 	for(var i in AllChats)
 	{
 		tchat = AllChats[i];
@@ -1233,25 +1238,25 @@ function calculateTCAN_TCUA_TCUQ() {
 			if(tchat.answered != 0)
 			{
 				Overall.tcan++;
-				Departments[tchat.departmentID].tcan++;				
-				SkillGroups[tchat.skillgroup].tcan++;				
+				Departments[tchat.departmentID].tcan++;
+				SkillGroups[tchat.skillgroup].tcan++;
 			}
 			else if(tchat.ended != 0)	// chat ended therefore must be unanswered
 			{
 				if(tchat.operatorID == 0)	// operator unassigned
 				{
 					Overall.tcuq++;
-					Departments[tchat.departmentID].tcuq++;				
-					SkillGroups[tchat.skillgroup].tcuq++;				
+					Departments[tchat.departmentID].tcuq++;
+					SkillGroups[tchat.skillgroup].tcuq++;
 				}
 				else
 				{
-					Overall.tcua++;	
-					Departments[tchat.departmentID].tcua++;				
-					SkillGroups[tchat.skillgroup].tcua++;				
-				}				
+					Overall.tcua++;
+					Departments[tchat.departmentID].tcua++;
+					SkillGroups[tchat.skillgroup].tcua++;
+				}
 			}
-		
+
 		}
 	}
 }
@@ -1267,7 +1272,7 @@ function loadNext(method,next,callback,params) {
 	getApiData(method,str.join("&"),callback,params);
 }
 
-// calls extraction API and receives JSON objects 
+// calls extraction API and receives JSON objects
 function getApiData(method,params,fcallback,cbparam) {
 	var emsg;
 	BC_API_Request(method,params,function(str)
@@ -1276,8 +1281,8 @@ function getApiData(method,params,fcallback,cbparam) {
 		try
 		{
 			jsonObj = JSON.parse(str);
-		} 
-		catch (e) 
+		}
+		catch (e)
 		{
 			Exceptions.APIJsonError++;
 			emsg = TimeNow+ ": API did not return JSON message: "+str;
@@ -1298,7 +1303,7 @@ function getApiData(method,params,fcallback,cbparam) {
 		fcallback(data, cbparam);
 
 		var next = jsonObj.Next;
-		if(typeof next !== 'undefined') 
+		if(typeof next !== 'undefined')
 		{
 			loadNext(method,next,fcallback,cbparam);
 		}
@@ -1321,7 +1326,7 @@ function calculateOperatorConc() {
 	var opobj = new Object();
 	var chattime, mchattime;
 	var conc;
-	
+
 	for(var op in OperatorCconc)
 	{
 		opobj = Operators[op];
@@ -1331,7 +1336,7 @@ function calculateOperatorConc() {
 			continue;
 		}
 		chattime=0;
-		mchattime=0;	
+		mchattime=0;
 		conc = new Array();
 		conc = OperatorCconc[op];
 		for(var i in conc)
@@ -1347,7 +1352,7 @@ function calculateOperatorConc() {
 	}
 }
 
-// gets operator availability info 
+// gets operator availability info
 function getOperatorAvailabilityData() {
 	if(!OperatorsSetupComplete)
 	{
@@ -1359,7 +1364,7 @@ function getOperatorAvailabilityData() {
 	setTimeout(checkOperatorAvailability,60000);		// check if successful after a minute
 }
 
-// gets current active chats 
+// gets current active chats
 function getActiveChatData() {
 	if(!OperatorsSetupComplete)
 	{
@@ -1367,7 +1372,7 @@ function getActiveChatData() {
 		setTimeout(getActiveChatData, 1000);
 		return;
 	}
-	
+
 	for(var did in Departments)	// active chats are by department
 	{
 		parameters = "DepartmentID="+did;
@@ -1398,7 +1403,7 @@ function setUpDeptAndSkillGroups() {
 
 			depts.push(did);	// add dept to list of operators
 			OperatorDepts[ops[k]] = depts;
-			OperatorSkills[ops[k]] = Departments[did].skillgroup;	// not an array so will be overwritten by subsequent 
+			OperatorSkills[ops[k]] = Departments[did].skillgroup;	// not an array so will be overwritten by subsequent
 																	// values. i.e. operator can only belong to 1 skill group
 		}
 	}
@@ -1406,9 +1411,9 @@ function setUpDeptAndSkillGroups() {
 	OperatorsSetupComplete = true;
 }
 
-// process all active chat objects 
+// process all active chat objects
 function allActiveChats(chats) {
-	for(var i in chats) 
+	for(var i in chats)
 	{
 		if(chats[i].Started !== "" && chats[i].Started !== null)
 		{
@@ -1432,9 +1437,9 @@ function longWaitChatsTimer() {
 	}
 }
 
-// Process the long wait chat in case triggers were missed 
+// Process the long wait chat in case triggers were missed
 function updateLongWaitChat(chat) {
-	
+
 	if(typeof(AllChats[chat.ChatID]) !== 'undefined')
 	{
 		if(chat.Answered !== "" && chat.Answered !== null)
@@ -1448,9 +1453,9 @@ function updateLongWaitChat(chat) {
 					processClosedChat(chat);
 				}
 			}
-		}		
+		}
 		else if(chat.WindowClosed !== "" && chat.WindowClosed !== null)
-		{			
+		{
 			if(AllChats[chat.ChatID].status == 1)	// if chat was waiting to be answered now closed means unanswered
 			{
 				processWindowClosed(chat);
@@ -1516,10 +1521,10 @@ function getInactiveChatData() {
 		parameters = "FolderID="+fid+"&FromDate="+StartOfDay.toISOString();
 		getApiData("getInactiveChats", parameters, allInactiveChats);
 		sleep(300);
-	}	
+	}
 }
 
-function getCsvChatData() {	
+function getCsvChatData() {
 	var key, value;
 	var csvChats = "";
 	var tchat = new Object();
@@ -1548,17 +1553,17 @@ function getCsvChatData() {
 				value = "\"=\"\"" + tchat[key] + "\"\"\"";
 			else
 				value = tchat[key];
-			
+
 			csvChats = csvChats +value+ ",";
 		}
 		csvChats = csvChats + "\r\n";
 	}
-	return(csvChats);	
+	return(csvChats);
 }
 
 // Set up socket actions and responses
 io.on('connection', function(socket){
-	
+
 	//  authenticate user name and password
 	socket.on('authenticate', function(user){
 		console.log("authentication request received for: "+user.name);
@@ -1580,22 +1585,22 @@ io.on('connection', function(socket){
 			socket.emit('authResponse',{name: user.name, pwd: user.pwd});
 			sendToLogs("authentication successful: "+user.name);
 		}
-	});	
-	
+	});
+
 	socket.on('disconnect', function(data){
 		console.log("connection disconnect");
-		var index = LoggedInUsers.indexOf(socket.id);	
+		var index = LoggedInUsers.indexOf(socket.id);
 		if(index > -1) LoggedInUsers.splice(index, 1);	// remove from list of valid users
 
 		if(UsersLoggedIn[socket.id] !== undefined)
 		{
 			var username = UsersLoggedIn[socket.id];
-			UsersLoggedIn[socket.id] = undefined;		
+			UsersLoggedIn[socket.id] = undefined;
 			if(io.sockets.sockets[username] !== undefined)
 				io.sockets.sockets[username] = undefined;
 		}
 	});
-	
+
 	socket.on('end', function(data){
 		removeSocket(socket.id, "end");
 	});
@@ -1608,19 +1613,19 @@ io.on('connection', function(socket){
 		console.log("Download chats requested");
 		sendToLogs("Download chats requested");
 		var csvdata = getCsvChatData();
-		socket.emit('chatsCsvResponse',csvdata);	
+		socket.emit('chatsCsvResponse',csvdata);
 		});
 });
 
 function removeSocket(id, evname) {
 		console.log("Socket "+evname+" at "+ TimeNow);
-		var index = LoggedInUsers.indexOf(id);	
-		if(index >= 0) LoggedInUsers.splice(index, 1);	// remove from list of valid users	
+		var index = LoggedInUsers.indexOf(id);
+		if(index >= 0) LoggedInUsers.splice(index, 1);	// remove from list of valid users
 }
 
 function updateChatStats() {
 	var socketid;
-	
+
 	if(!OperatorsSetupComplete) return;		//try again later
 
 	TimeNow = new Date();		// update the time for all calculations
@@ -1678,4 +1683,3 @@ console.log("Server started on port "+PORT);
 doStartOfDay();		// initialise everything
 setInterval(updateChatStats,3000);	// updates socket io data at infinitum
 setInterval(longWaitChatsTimer, 30000);
-
