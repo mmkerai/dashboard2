@@ -842,16 +842,17 @@ function processWindowClosed(chat) {
 	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
 	sgobj = SkillGroups[deptobj.skillgroup];
 
-  if(typeof(AllChats[chat.ChatID]) === 'undefined') // add to list
-  {
-    AllChats[chat.ChatID] = new ChatData(chat.ChatID, chat.DepartmentID, deptobj.skillgroup);
-  }
+	if(typeof(AllChats[chat.ChatID]) === 'undefined') // add to list
+	{
+		AllChats[chat.ChatID] = new ChatData(chat.ChatID, chat.DepartmentID, deptobj.skillgroup);
+	}
 
-  AllChats[chat.ChatID].status = 0;		// inactive/complete/cancelled/closed
-  AllChats[chat.ChatID].statustype = chat.ChatStatusType;
-  AllChats[chat.ChatID].ended = new Date(chat.Ended);
-  AllChats[chat.ChatID].closed = new Date(chat.Closed);
-  AllChats[chat.ChatID].winclosed = new Date(chat.WindowClosed);
+	AllChats[chat.ChatID].status = 0;		// inactive/complete/cancelled/closed
+	AllChats[chat.ChatID].statustype = chat.ChatStatusType;
+	AllChats[chat.ChatID].operatorID = chat.OperatorID;
+	AllChats[chat.ChatID].ended = new Date(chat.Ended);
+	AllChats[chat.ChatID].closed = new Date(chat.Closed);
+	AllChats[chat.ChatID].winclosed = new Date(chat.WindowClosed);
 	if(chat.ChatStatusType == 1)		// abandoned (closed during pre chat form) chats
 	{
 		Exceptions.chatsAbandoned++;
@@ -888,7 +889,7 @@ function processWindowClosed(chat) {
 		}
 	}
 
-  updateCSAT(chat);
+	updateCSAT(chat);
 	return true;
 }
 
@@ -1257,7 +1258,7 @@ function calculateTCAN_TCUA_TCUQ() {
 				Departments[tchat.departmentID].ntcan++;
 				SkillGroups[tchat.skillgroup].ntcan++;
 			}
-			else if(tchat.ended != 0)	// chat ended therefore must be unanswered
+			else if(tchat.closed != 0)	// chat closed therefore must be unanswered
 			{
 				if(tchat.operatorID == 0)	// operator unassigned
 				{
@@ -1272,7 +1273,6 @@ function calculateTCAN_TCUA_TCUQ() {
 					SkillGroups[tchat.skillgroup].ntcua++;
 				}
 			}
-
 		}
 	}
 }
@@ -1719,7 +1719,7 @@ function doStartOfDay() {
 	sleep(100);
 	setUpDeptAndSkillGroups();
 	getActiveChatData();
-  getInactiveChatData();
+	getInactiveChatData();
 	getOperatorAvailabilityData();
 }
 
