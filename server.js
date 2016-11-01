@@ -1489,7 +1489,7 @@ function unavailableChatsTimer() {
 		var parameters = "FolderID="+folder.Fid+"&FromDate="+folder.Since;
 		getApiData("getInactiveChats",parameters,updateUnavailableChats);
 		var stime = new Date().toISOString();
-		UnavailableFifo.push(Fid: folder.Fid, Since: stime);
+		UnavailableFifo.push({Fid: folder.Fid, Since: stime});
 	}
 }
 
@@ -1571,7 +1571,7 @@ function getInactiveChatData() {
 		parameters = "FolderID="+fid+"&FromDate="+StartOfDay.toISOString();
 		getApiData("getInactiveChats", parameters, allInactiveChats);
 		stime = new Date().toISOString();
-		UnavailableFifo.push(Fid: folder.Fid, Since: stime);
+		UnavailableFifo.push({Fid: folder.Fid, Since: stime});
 		sleep(300);
 	}
 }
