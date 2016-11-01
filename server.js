@@ -1571,7 +1571,7 @@ function getInactiveChatData() {
 		parameters = "FolderID="+fid+"&FromDate="+StartOfDay.toISOString();
 		getApiData("getInactiveChats", parameters, allInactiveChats);
 		stime = new Date().toISOString();
-		UnavailableFifo.push({Fid: folder.Fid, Since: stime});
+		UnavailableFifo.push({Fid: fid, Since: stime});
 		sleep(300);
 	}
 }
