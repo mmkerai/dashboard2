@@ -1485,10 +1485,11 @@ function updateLongWaitChat(chat) {
 function unavailableChatsTimer() {
 	if(UnavailableFifo.length > 0)	// check not empty
 	{
-    var folder = UnavailableFifo.shift();
-    var parameters = "FolderID="+folder.Fid+"&FromDate="+folder.Since;
+		var folder = UnavailableFifo.shift();
+		var parameters = "FolderID="+folder.Fid+"&FromDate="+folder.Since;
 		getApiData("getInactiveChats",parameters,updateUnavailableChats);
-		UnavailableFifo.push(Fid: folder.Fid, Since: new Date().toISOString());
+		var stime = new Date().toISOString();
+		UnavailableFifo.push(Fid: folder.Fid, Since: stime);
 	}
 }
 
@@ -1564,12 +1565,13 @@ function getInactiveChatData() {
 //	startDate.setHours(startDate.getHours() - TOFFSET);	// allow for TIMEZONE
 	console.log("Getting inactive chat info from "+ Object.keys(Folders).length +" folders");
 	console.log("Start Date: "+ StartOfDay.toISOString());
-	var parameters;
+	var parameters, stime;
 	for(var fid in Folders)	// Inactive chats are by folders
 	{
 		parameters = "FolderID="+fid+"&FromDate="+StartOfDay.toISOString();
 		getApiData("getInactiveChats", parameters, allInactiveChats);
-    UnavailableFifo.push(Fid: fid, Since: new Date().toISOString());
+		stime = new Date().toISOString();
+		UnavailableFifo.push(Fid: folder.Fid, Since: stime);
 		sleep(300);
 	}
 }
