@@ -767,9 +767,9 @@ function processReassignedChat(chat) {
 	}
 
 	var tchat = AllChats[chat.ChatID];
-	if(tchat.operatorID != 0)		// only adjust metrics if reassigned after answered previously
+	if(tchat.operatorID != 0 && tchat.operatorID != 'undefined')// only adjust metrics if reassigned after answered previously
 	{
-    removeActiveChat(Operators[tchat.operatorID], chat.ChatID); // remove from previous op
+		removeActiveChat(Operators[tchat.operatorID], chat.ChatID); // remove from previous op
 		var opobj = Operators[chat.OperatorID];
 		if(typeof(opobj) === 'undefined') return false;		// an operator that doesnt exist (may happen if created midday)
 
@@ -777,12 +777,12 @@ function processReassignedChat(chat) {
 //		console.log("New Operator: "+opobj.name);
 		Operators[tchat.operatorID].tcan--;		// remove chat answereed credit from this operator
 		Departments[tchat.departmentID].tcan--;		// remove chat answereed credit from this dept
-    SkillGroups[tchat.skillgroup].tcan--;		// remove chat answereed credit from this skillgroup
+		SkillGroups[tchat.skillgroup].tcan--;		// remove chat answereed credit from this skillgroup
 		tchat.operatorID = chat.OperatorID;		// assign new operator to this chat
 		tchat.departmentID = chat.DepartmentID;		// assign new department to this chat
 		opobj.tcan++;							// and give him credit
 		opobj.activeChats.push(chat.ChatID);	// credit the new operator
-    deptobj.tcan++;							// and dept
+		deptobj.tcan++;							// and dept
 		sgobj.tcan++;							// and skillgroup
 	}
 }
@@ -849,7 +849,7 @@ function processWindowClosed(chat) {
 
 	AllChats[chat.ChatID].status = 0;		// inactive/complete/cancelled/closed
 	AllChats[chat.ChatID].statustype = chat.ChatStatusType;
-	AllChats[chat.ChatID].operatorID = chat.OperatorID;
+	AllChats[chat.ChatID].operatorID = chat.OperatorID || 0;
 	AllChats[chat.ChatID].ended = new Date(chat.Ended);
 	AllChats[chat.ChatID].closed = new Date(chat.Closed);
 	AllChats[chat.ChatID].winclosed = new Date(chat.WindowClosed);
@@ -1260,7 +1260,7 @@ function calculateTCAN_TCUA_TCUQ() {
 			}
 			else if(tchat.closed != 0)	// chat closed therefore must be unanswered
 			{
-				if(tchat.operatorID == 0)	// operator unassigned
+				if(tchat.operatorID == 0 || tchat.operatorID == 'undefined')	// operator unassigned
 				{
 					Overall.ntcuq++;
 					Departments[tchat.departmentID].ntcuq++;
