@@ -1,7 +1,7 @@
 /* RTA Dashboard for H3G.
  * This script should run on Heroku
  */
-// Version 1.15 16th Oct 2016
+// Version 1.17 1st Nov 2016
 /* acronyms used in this script
 // cconc - chat concurrency
 // cph - chats per hour
@@ -131,6 +131,12 @@ app.get('/skillgroup.js', function(req, res){
 app.get('/department.js', function(req, res){
 	res.sendFile(__dirname + '/department.js');
 });
+app.get('/newdash.html', function(req, res){
+	res.sendFile(__dirname + '/newdash.html');
+});
+app.get('/newdash.js', function(req, res){
+	res.sendFile(__dirname + '/newdash.js');
+});
 app.get('/favicon.ico', function(req, res){
 	res.sendFile(__dirname + '/favicon.ico');
 });
@@ -226,7 +232,11 @@ var DashMetrics = function(did,name,sg) {
 		this.tcan = 0;
 		this.tcuq = 0;
 		this.tcua = 0;
-		this.tcun = 0;
+    this.tcun = 0;
+    this.ntcan = 0;
+		this.ntcuq = 0;
+		this.ntcua = 0;
+		this.ntcun = 0;
 		this.tcaban = 0;
 		this.asa = 0;
 		this.tata = 0	// total time to answer for all answered chat (used to calc asa)
@@ -284,6 +294,7 @@ var	GetOperatorAvailabilitySuccess;
 var AuthUsers = new Object();
 var Exceptions;
 var LongWaitChats;
+var UnavailableFifo;
 
 // load list of authorised users and their passwords
 if(DoUserAuth)
@@ -380,7 +391,7 @@ function initialiseGlobals () {
 	Exceptions = new Exception();
 	GetOperatorAvailabilitySuccess = false;
 	LongWaitChats = new Array();
-
+  UnavailableFifo = new Array();
 }
 // Process incoming Boldchat triggered chat data
 app.post('/chat-started', function(req, res){
@@ -680,7 +691,12 @@ function processStartedChat(chat) {
 	var deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
 
-	var tchat = new ChatData(chat.ChatID, chat.DepartmentID, Departments[chat.DepartmentID].skillgroup);
+  var tchat = AllChats[chat.ChatID];
+  if(typeof(tchat) === 'undefined')	  // not yet in today's list
+	{
+	   tchat = new ChatData(chat.ChatID, chat.DepartmentID, Departments[chat.DepartmentID].skillgroup);
+	}
+
 	tchat.started = new Date(chat.Started);
 	tchat.status = 1;	// waiting to be answered
 	AllChats[chat.ChatID] = tchat;		// save this chat details
@@ -739,6 +755,7 @@ function processReassignedChat(chat) {
 
 	var deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
+  var sgobj = SkillGroups[deptobj.skillgroup];
 
 	if(typeof(AllChats[chat.ChatID]) === 'undefined')	// this only happens if triggers are missed
 	{
@@ -752,20 +769,21 @@ function processReassignedChat(chat) {
 	var tchat = AllChats[chat.ChatID];
 	if(tchat.operatorID != 0)		// only adjust metrics if reassigned after answered previously
 	{
+    removeActiveChat(Operators[tchat.operatorID], chat.ChatID); // remove from previous op
 		var opobj = Operators[chat.OperatorID];
 		if(typeof(opobj) === 'undefined') return false;		// an operator that doesnt exist (may happen if created midday)
 
 //		console.log("Previous Operator: "+Operators[tchat.operatorID].name);
 //		console.log("New Operator: "+opobj.name);
-	//	TODO: skillgroup adjustments
-		removeActiveChat(Operators[tchat.operatorID], chat.ChatID); // remove from previous op
 		Operators[tchat.operatorID].tcan--;		// remove chat answereed credit from this operator
 		Departments[tchat.departmentID].tcan--;		// remove chat answereed credit from this dept
+    SkillGroups[tchat.skillgroup].tcan--;		// remove chat answereed credit from this skillgroup
 		tchat.operatorID = chat.OperatorID;		// assign new operator to this chat
 		tchat.departmentID = chat.DepartmentID;		// assign new department to this chat
 		opobj.tcan++;							// and give him credit
 		opobj.activeChats.push(chat.ChatID);	// credit the new operator
-		deptobj.tcan++;							// and dept
+    deptobj.tcan++;							// and dept
+		sgobj.tcan++;							// and skillgroup
 	}
 }
 
@@ -813,7 +831,6 @@ function processClosedChat(chat) {
 	sgobj.act = Math.round(sgobj.tcta/sgobj.tcc);
 
 	updateCconc(AllChats[chat.ChatID]);	// update chat conc now that it is closed
-
 	return true;
 }
 
@@ -825,6 +842,16 @@ function processWindowClosed(chat) {
 	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
 	sgobj = SkillGroups[deptobj.skillgroup];
 
+  if(typeof(AllChats[chat.ChatID]) === 'undefined') // add to list
+  {
+    AllChats[chat.ChatID] = new ChatData(chat.ChatID, chat.DepartmentID, deptobj.skillgroup);
+  }
+
+  AllChats[chat.ChatID].status = 0;		// inactive/complete/cancelled/closed
+  AllChats[chat.ChatID].statustype = chat.ChatStatusType;
+  AllChats[chat.ChatID].ended = new Date(chat.Ended);
+  AllChats[chat.ChatID].closed = new Date(chat.Closed);
+  AllChats[chat.ChatID].winclosed = new Date(chat.WindowClosed);
 	if(chat.ChatStatusType == 1)		// abandoned (closed during pre chat form) chats
 	{
 		Exceptions.chatsAbandoned++;
@@ -845,34 +872,23 @@ function processWindowClosed(chat) {
 			sgobj.tcun++;
 		}
 	}
-	else if(typeof(AllChats[chat.ChatID]) !== 'undefined')	// chat started other wise it wouldnt be in the allchats list
+	else if(AllChats[chat.ChatID].answered == 0 && AllChats[chat.ChatID].started != 0)		// chat started but unanswered and now win closed
 	{
-		if(AllChats[chat.ChatID].answered == 0)		// chat started but unanswered and now win closed
+		if(chat.OperatorID == "" || chat.OperatorID == null)	// operator unassigned
 		{
-			if(chat.OperatorID == "" || chat.OperatorID == null)	// operator unassigned
-			{
-				Overall.tcuq++;
-				deptobj.tcuq++;
-				sgobj.tcuq++;
-			}
-			else
-			{
-				Overall.tcua++;
-				deptobj.tcua++;
-				sgobj.tcua++;
-			}
+			Overall.tcuq++;
+			deptobj.tcuq++;
+			sgobj.tcuq++;
+		}
+		else
+		{
+			Overall.tcua++;
+			deptobj.tcua++;
+			sgobj.tcua++;
 		}
 	}
-	
-    if(typeof(AllChats[chat.ChatID]) !== 'undefined')
-    {
-  		AllChats[chat.ChatID].status = 0;		// inactive/complete/cancelled/closed
-  		AllChats[chat.ChatID].statustype = chat.ChatStatusType;
-  		AllChats[chat.ChatID].ended = new Date(chat.Ended);
-  		AllChats[chat.ChatID].closed = new Date(chat.Closed);
-  		AllChats[chat.ChatID].winclosed = new Date(chat.WindowClosed);
-  		updateCSAT(chat);
-    }
+
+  updateCSAT(chat);
 	return true;
 }
 
@@ -1195,7 +1211,7 @@ function calculateACC_CCONC() {
 	}
 
 	// calculate TCO
-	Overall.tco = Overall.tcan + Overall.tcua + Overall. tcuq;
+	Overall.tco = Overall.tcan + Overall.tcua + Overall.tcuq;
 	if(Overall.tct != 0)
 		Overall.cconc = ((Overall.tct+Overall.mct)/Overall.tct).toFixed(2);
 
@@ -1217,17 +1233,17 @@ function calculateACC_CCONC() {
 function calculateTCAN_TCUA_TCUQ() {
 	var tchat;
 	// first zero out
-	Overall.tcan = 0;
-	Overall.tcua = 0;
-	Overall.tcuq = 0;
+	Overall.ntcan = 0;
+	Overall.ntcua = 0;
+	Overall.ntcuq = 0;
 	for(var i in Departments)
 	{
-		Departments[i].tcan = 0;
-		Departments[i].tcua = 0;
-		Departments[i].tcuq = 0;
-		SkillGroups[Departments[i].skillgroup].tcan = 0;
-		SkillGroups[Departments[i].skillgroup].tcua = 0;
-		SkillGroups[Departments[i].skillgroup].tcuq = 0;
+		Departments[i].ntcan = 0;
+		Departments[i].ntcua = 0;
+		Departments[i].ntcuq = 0;
+		SkillGroups[Departments[i].skillgroup].ntcan = 0;
+		SkillGroups[Departments[i].skillgroup].ntcua = 0;
+		SkillGroups[Departments[i].skillgroup].ntcuq = 0;
 	}
 
 	for(var i in AllChats)
@@ -1237,23 +1253,23 @@ function calculateTCAN_TCUA_TCUQ() {
 		{
 			if(tchat.answered != 0)
 			{
-				Overall.tcan++;
-				Departments[tchat.departmentID].tcan++;
-				SkillGroups[tchat.skillgroup].tcan++;
+				Overall.ntcan++;
+				Departments[tchat.departmentID].ntcan++;
+				SkillGroups[tchat.skillgroup].ntcan++;
 			}
 			else if(tchat.ended != 0)	// chat ended therefore must be unanswered
 			{
 				if(tchat.operatorID == 0)	// operator unassigned
 				{
-					Overall.tcuq++;
-					Departments[tchat.departmentID].tcuq++;
-					SkillGroups[tchat.skillgroup].tcuq++;
+					Overall.ntcuq++;
+					Departments[tchat.departmentID].ntcuq++;
+					SkillGroups[tchat.skillgroup].ntcuq++;
 				}
 				else
 				{
-					Overall.tcua++;
-					Departments[tchat.departmentID].tcua++;
-					SkillGroups[tchat.skillgroup].tcua++;
+					Overall.ntcua++;
+					Departments[tchat.departmentID].ntcua++;
+					SkillGroups[tchat.skillgroup].ntcua++;
 				}
 			}
 
@@ -1465,6 +1481,37 @@ function updateLongWaitChat(chat) {
 	} // if not answered or closed then this chat must still be in the queue so ignore
 }
 
+// get inactive chats by folder to calc unavailable. This is done every 12 sec
+function unavailableChatsTimer() {
+	if(UnavailableFifo.length > 0)	// check not empty
+	{
+    var folder = UnavailableFifo.shift();
+    var parameters = "FolderID="+folder.Fid+"&FromDate="+folder.Since;
+		getApiData("getInactiveChats",parameters,updateUnavailableChats);
+		UnavailableFifo.push(Fid: folder.Fid, Since: new Date().toISOString());
+	}
+}
+
+// find all unavailable chats from inactive chats response
+function updateUnavailableChats(chats) {
+  var deptobj,sgobj;
+	for(var i in chats)
+	{
+  	deptobj = Departments[chats[i].DepartmentID];
+  	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
+  	sgobj = SkillGroups[deptobj.skillgroup];
+    if(chats[i].ChatStatusType == 7 || chats[i].ChatStatusType == 8 || (chats[i].ChatStatusType >= 11 && chats[i].ChatStatusType <= 15))	// unavailable chat 7, 8, 11, 12, 13, 14 or 15
+  	{
+  		if(chats[i].Answered == "" || chats[i].Answered == null)	// only count as unavail if not answered
+  		{
+  			Overall.ntcun++;
+  			deptobj.ntcun++;
+  			sgobj.ntcun++;
+  		}
+  	}
+  }
+}
+
 // process all inactive (closed) chat objects
 function allInactiveChats(chats) {
 	for(var i in chats)
@@ -1499,6 +1546,8 @@ function allInactiveChats(chats) {
 		else
 			processWindowClosed(chats[i]);	// closed because unavailable or abandoned
 	}
+
+  updateUnavailableChats(chats);
 }
 
 // gets today's chat data incase system was started during the day
@@ -1520,6 +1569,7 @@ function getInactiveChatData() {
 	{
 		parameters = "FolderID="+fid+"&FromDate="+StartOfDay.toISOString();
 		getApiData("getInactiveChats", parameters, allInactiveChats);
+    UnavailableFifo.push(Fid: fid, Since: new Date().toISOString());
 		sleep(300);
 	}
 }
@@ -1637,11 +1687,11 @@ function updateChatStats() {
 		doStartOfDay();
 		return;
 	}
-//	calculateTCAN_TCUA_TCUQ();
+	calculateTCAN_TCUA_TCUQ();
 	calculateLWT_CIQ_TAC();
 	calculateCPH();
 	calculateACC_CCONC();
-	var str = TimeNow.toISOString()+": Chats started today: "+Object.keys(AllChats).length;
+	var str = TimeNow.toISOString()+": Today's chats: "+Object.keys(AllChats).length;
 //	str = str + "\r\nClients connected: "+io.eio.clientsCount;	// useful for debuging socket.io errors
 	console.log(str);
 	io.emit('overallStats',Overall);
@@ -1666,8 +1716,8 @@ function doStartOfDay() {
 	getApiData("getCustomOperatorStatuses", 0, customStatusCallback);
 	sleep(100);
 	setUpDeptAndSkillGroups();
-	getInactiveChatData();
 	getActiveChatData();
+  getInactiveChatData();
 	getOperatorAvailabilityData();
 }
 
@@ -1682,4 +1732,5 @@ function checkOperatorAvailability() {
 console.log("Server started on port "+PORT);
 doStartOfDay();		// initialise everything
 setInterval(updateChatStats,3000);	// updates socket io data at infinitum
-setInterval(longWaitChatsTimer, 30000);
+setInterval(longWaitChatsTimer,30000);
+setInterval(unavailableChatsTimer,20000);

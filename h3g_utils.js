@@ -1,8 +1,8 @@
-// utilities for use in dashboard 
+// utilities for use in dashboard
 
 var ChatStatus = ["Logged Out","Away","Available"];
 var csvfile = null;
-var RTAVersion = "RTA Dashboard v1.16";
+var RTAVersion = "RTA Dashboard v1.17";
 
 function readCookie(name)
 {
@@ -31,21 +31,21 @@ function saveCookie(name, value, delay)
 		  delay = delay*24*60*60*1000;	// convert days to milliseconds
 	  else
 		  delay = delay*1000;	// seconds to milliseconds
-	  
+
 	  date = new Date();
 	  date.setTime(date.getTime()+delay);	// delay must be in seconds
 	  expires = "; expires=" + date.toGMTString();		// convert unix date to string
   }
   else
 	  expires = "";
-  
+
   document.cookie = name+"="+value+expires+"; path=/";
 }
 
 /*
  * Delete cookie by setting expiry to 1st Jan 1970
  */
-function delCookie(name) 
+function delCookie(name)
 {
 	document.cookie = name + "=; expires=Thu, 01-Jan-70 00:00:01 GMT; path=/";
 }
@@ -73,8 +73,8 @@ function checksignedin()
 	}
 	else
 	{
-		signin(name,pwd);	
-	}	
+		signin(name,pwd);
+	}
 }
 
 function signin(uname, pwd)
@@ -176,8 +176,8 @@ function showCsatStats(data) {
 }
 
 function createTopRow(tableid, id, name) {
-	
-	row = tableid.insertRow();	
+
+	row = tableid.insertRow();
 	row.id = name;
 	var cols = tableid.rows[0].cells.length;
 	for(var i=0; i < cols; i++)
@@ -185,7 +185,7 @@ function createTopRow(tableid, id, name) {
 		row.insertCell(i);
 	}
 	if(row.rowIndex == 1)		// not the title but next one down
-		row.cells[0].outerHTML = "<th>"+name+"</th>";	
+		row.cells[0].outerHTML = "<th>"+name+"</th>";
 	else
 		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showSkillGroup('"+id+"','"+name+"')\">"+name+"</th>";
 
@@ -193,8 +193,8 @@ function createTopRow(tableid, id, name) {
 }
 
 function createSkillRow(tableid, id, name) {
-	
-	row = tableid.insertRow();	
+
+	row = tableid.insertRow();
 	row.id = name;
 	var cols = tableid.rows[0].cells.length;
 	for(var i=0; i < cols; i++)
@@ -202,7 +202,7 @@ function createSkillRow(tableid, id, name) {
 		row.insertCell(i);
 	}
 	if(row.rowIndex == 1)		// not the title but next one down
-		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showSkillCsat('"+id+"','"+name+"')\">"+name+"</th>";	
+		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showSkillCsat('"+id+"','"+name+"')\">"+name+"</th>";
 	else
 		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showSkillGroup('"+id+"','"+name+"')\">"+name+"</th>";
 
@@ -210,7 +210,7 @@ function createSkillRow(tableid, id, name) {
 }
 
 function createDeptRow(tableid, id, name) {
-	row = tableid.insertRow();	
+	row = tableid.insertRow();
 	row.id = name;
 	var cols = tableid.rows[0].cells.length;
 	for(var i=0; i < cols; i++)
@@ -218,7 +218,7 @@ function createDeptRow(tableid, id, name) {
 		row.insertCell(i);
 	}
 	if(row.rowIndex == 1)		// not the title but next one down
-		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showCsat('"+id+"','"+name+"')\">"+name+"</th>";	
+		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showCsat('"+id+"','"+name+"')\">"+name+"</th>";
 	else
 		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showDepartment('"+id+"','"+name+"')\">"+name+"</th>";
 
@@ -226,7 +226,7 @@ function createDeptRow(tableid, id, name) {
 }
 
 function createOperatorRow(tableid, id, name) {
-	
+
 	row = tableid.insertRow();	// there is already a header row and top row
 	row.id = name;
 	var cols = tableid.rows[0].cells.length;
@@ -235,14 +235,14 @@ function createOperatorRow(tableid, id, name) {
 		row.insertCell(i);
 	}
 	if(row.rowIndex == 1)		// not the title but next one download
-		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showDeptCsat('"+id+"','"+name+"')\">"+name+"</th>";	
+		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showDeptCsat('"+id+"','"+name+"')\">"+name+"</th>";
 	else
 		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showCsat('"+id+"','"+name+"')\">"+name+"</th>";
 	return row;
 }
 
 function createCsatRow(tableid, id, name) {
-	
+
 	row = tableid.insertRow();	// there is already a header row and top row
 	row.id = name;
 	var cols = tableid.rows[0].cells.length;
@@ -257,7 +257,7 @@ function createCsatRow(tableid, id, name) {
 function showTopMetrics(rowid, data) {
 	var tcanpc = " (0%)";
 	var tcunpc = " (0%)";
-	
+
 	if(data.tco != 0)
 	{
 		tcanpc = " ("+Math.round((data.tcan/data.tco)*100)+"%)";
@@ -275,7 +275,7 @@ function showTopMetrics(rowid, data) {
 	rowid.cells[9].innerHTML = data.tcua;
 	rowid.cells[10].innerHTML = data.tcun + tcunpc;
 	rowid.cells[11].outerHTML = NF.printASA(data.asa);
-	rowid.cells[12].outerHTML = NF.printACT(data.act);	
+	rowid.cells[12].outerHTML = NF.printACT(data.act);
 	rowid.cells[13].innerHTML = data.acc;
 	rowid.cells[14].innerHTML = data.oaway;
 	rowid.cells[15].innerHTML = data.oavail+data.oaway;	// total logged in
@@ -286,7 +286,7 @@ function showOperatorMetrics(rowid, data) {
 //	var act = 0;
 //	if(data.tcan > 0)
 //		act = Math.round(data.tct/data.tcan);
-	
+
 	if(typeof(data.did) !== 'undefined')	// this is for a dept not operator
 	{
 		st = "N/A";
@@ -301,22 +301,22 @@ function showOperatorMetrics(rowid, data) {
 		mcc = data.maxcc;
 		ac = data.activeChats.length;
 	}
-	
+
 	rowid.cells[1].innerHTML = st;
 	rowid.cells[2].innerHTML = tcs;
 	rowid.cells[3].innerHTML = mcc;
 	rowid.cells[4].innerHTML = ac;
 	rowid.cells[5].innerHTML = data.acc;
 	rowid.cells[6].innerHTML = data.tcan;
-	rowid.cells[7].innerHTML = data.cph;	
-	rowid.cells[8].outerHTML = NF.printACT(data.act);	
+	rowid.cells[7].innerHTML = data.cph;
+	rowid.cells[8].outerHTML = NF.printACT(data.act);
 	rowid.cells[9].outerHTML = NF.printConcurrency(data.cconc);
 }
 
 function showCsatMetrics(rowid, data) {
 	var tc = data.tcc || data.tcan-data.tac;	// tcc in operator object only not in dept or skillgroup object
 	if(isNaN(tc)) tc=0;
-	
+
 	rowid.cells[1].innerHTML = tc;	// answered - active is closed chats
 	rowid.cells[2].innerHTML = data.csat.surveys;
 	rowid.cells[3].innerHTML = Math.round(data.csat.FCR*100) + "%";
@@ -331,7 +331,7 @@ function tableToCsvFile(dashtable) {
 	var key, keys, j, i, k;
 	var str = "";
 
-	$('#download').hide();	
+	$('#download').hide();
 	$("#message1").text("Preparing file for export");
 	var exportData = "Dashboard Metrics Export "+new Date().toUTCString()+"\r\n";
 	exportData = exportData + "\r\n";
@@ -342,10 +342,10 @@ function tableToCsvFile(dashtable) {
 		for (var j = 0, col; col = row.cells[j]; j++)
 		{
 			str = str +"\""+ col.innerHTML + "\",";
-		} 
+		}
 		str = str + "\r\n";
 	}
-	exportData = exportData + str +"\r\n";		
+	exportData = exportData + str +"\r\n";
 	prepareDownloadFile(exportData);
 }
 
@@ -357,7 +357,7 @@ function buildCsvFile(fdata, sdata) {
 	var key, keys, j, i, k;
 	var str = "";
 
-	$('#download').hide();	
+	$('#download').hide();
 	$("#message1").text("Preparing file for export");
 	var exportData = "Dashboard Metrics Export "+new Date().toUTCString()+"\r\n";
 	// add csv header using keys in first object
@@ -456,41 +456,41 @@ var str = '<hr size="4" noshade/>'+
 	'<div class="wrapper col-xs-12">'+
 	'<span id="ctime" class="pull-right"></span> '+
 	'</div> ';
-	
+
 document.write(str);
 }
 
 //Threshold print functions
 // ACT
 NF.printACT = function(value) {
-	
+
 	if (value == 0)			// 0 so default colour
 		return '<td>' + toHHMMSS(value) + '</td>';
 
 	if(value >= this.thresholds.ACT.red) {
 		return '<td class="nf-red">' + toHHMMSS(value) + '</td>';
 	}
-	
+
 	if(value >= this.thresholds.ACT.amber) {
 		return '<td class="nf-amber">' + toHHMMSS(value) + '</td>';
 	}
-	
+
 	return '<td class="nf-green">' + toHHMMSS(value) + '</td>';
 };
 
 
 // ASA
 NF.printASA = function(value) {
-	
+
 	if (value == 0)			// 0 so default colour
 		return '<td>' + toHHMMSS(value) + '</td>';
 
 	if(value >= this.thresholds.ASA.red)
 		return '<td class="nf-red">' + toHHMMSS(value) + '</td>';
-	
+
 	if(value >= this.thresholds.ASA.amber)
 		return '<td class="nf-amber">' + toHHMMSS(value) + '</td>';
-	
+
 	return '<td class="nf-green">' + toHHMMSS(value) + '</td>';
 };
 
@@ -506,26 +506,26 @@ NF.printSL = function(data) {
 
 	if(slapc >= this.thresholds.SL.green)
 		return '<td class="nf-green">' + slapc + '%</td>';
-	
-	if(slapc >= this.thresholds.SL.amber) 
+
+	if(slapc >= this.thresholds.SL.amber)
 		return '<td class="nf-amber">' + slapc + '%</td>';
-	 
+
 	return '<td class="nf-red">' + slapc + '%</td>';
 };
 
 // Concurrency
 NF.printConcurrency = function(value) {
-	
+
 	if (value == 0)			// 0 so default colour
 		return '<td>' + value + '</td>';
 
 	if (value > this.thresholds.concurrency.green)
 		return '<td class="nf-green">' + value + '</td>';
-	
+
 	else if ( value <= this.thresholds.concurrency.green && value >= this.thresholds.concurrency.amber )
 		return '<td class="nf-amber">' + value + '</td>';
-	
-	else 
+
+	else
 		return '<td class="nf-red">' + value + '</td>';
 };
 
@@ -535,7 +535,7 @@ NF.printAnswered = function(data) {
 
 	if(data.tco != 0)
 		value = Math.round((data.tcan/data.tco)*100);
-		
+
 	tcanpc = data.tcan+" ("+value+"%)";
 
 	if(value == 0)			// 0 so default colour
@@ -543,26 +543,25 @@ NF.printAnswered = function(data) {
 
 	if(value >= this.thresholds.answered.green)
 		return '<td class="nf-green">' + tcanpc + '</td>';
-	
+
 	if(value >= this.thresholds.answered.amber)
 		return '<td class="nf-amber">' + tcanpc + '</td>';
-	
+
 	return '<td class="nf-red">' + tcanpc + '</td>';
 };
 
 // Unanswered
 NF.printUnanswered = function(value) {
-	
+
 	if (value == 0)			// 0 so default colour
 		return '<td>' + value + '</td>';
 
 	if(value >= this.thresholds.unanswered.red)
 		return '<td class="nf-red">' + value + '</td>';
-		
+
 	if(value >= this.thresholds.unanswered.amber)
 		return '<td class="nf-amber">' + value + '</td>';
-	
+
 	else
 		return '<td class="nf-green">' + value + '</td>';
 };
-

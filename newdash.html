@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>H3G Dashboard</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script type="text/javascript" src="jquery-2.1.3.min.js"></script>
+	<link rel="stylesheet" href="bootstrap.min.css">
+	<link rel="stylesheet" href="h3g_dashboard.css">
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="thresholds.js"></script>
+	<script src="h3g_utils.js"></script>
+	<script src="newdash.js"></script>
+</head>
+<body>
+<script>showDashboardHeader()</script>
+<script>showLoginForm()</script>
+<div class="form-horizontal col-xs-12">
+	<table id="topTable" class="table">
+	  <thead>
+	    <colgroup>
+            <col class="col-md-1">
+        </colgroup>
+		<tr>
+		  <th title="The metric, hover over each one to see definition">Metric</th>
+		  <th title="This is the average concurrent chats per operator">Concurrency</th>
+		  <th title="No of chats answered within 30s">Service Level</th>
+		  <th title="Chats currently in queue waiting to be answered">CIQ</th>
+		  <th title="Longest waiting time for the chats in queue">LWT</th>
+		  <th title="Chats offered today">Offered</th>
+		  <th title="No of chats currently active">Active</th>
+		  <th title="No of chats answered (active and closed)">Answered</th>
+		  <th title="Chats that went unanswered as they were cancelled while in the queue">Unans (Q)</th>
+		  <th title="Chats that went unanswered while in queue with an operator assigned">Unans (assign)</th>
+		  <th title="Chats that were unavailable as percentage of chats offered">Unavailable</th>
+		  <th title="Average speed to answer">ASA</th>
+		  <th title="Average chat time">ACT</th>
+		  <th title="Available chat capacity based on 2 chats per agent">ACC</th>
+		  <th title="No. of agents currently set to away">Agents Away</th>
+		  <th title="No. of agents currently logged in">Agents Logged in</th>
+		  </tr>
+	  </thead>
+	</table>
+</div>
+<script>showDashboardFooter()</script>
+</body>
+</html>
