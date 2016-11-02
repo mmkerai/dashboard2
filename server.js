@@ -1,7 +1,7 @@
 /* RTA Dashboard for H3G.
  * This script should run on Heroku
  */
-// Version 1.17 1st Nov 2016
+// Version 1.18 2nd Nov 2016
 /* acronyms used in this script
 // cconc - chat concurrency
 // cph - chats per hour
@@ -232,8 +232,9 @@ var DashMetrics = function(did,name,sg) {
 		this.tcan = 0;
 		this.tcuq = 0;
 		this.tcua = 0;
-    this.tcun = 0;
-    this.ntcan = 0;
+		this.tcun = 0;
+		this.ntco = 0;
+		this.ntcan = 0;
 		this.ntcuq = 0;
 		this.ntcua = 0;
 		this.ntcun = 0;
@@ -717,7 +718,7 @@ function processAnsweredChat(chat) {
 		processStartedChat(chat);
 	}
 
-	AllChats[chat.ChatID].answered = new Date(chat.Answered);
+	AllChats[chat.ChatID].answered = (chat.Answered == "") ? new Date() : new Date(chat.Answered);
 	AllChats[chat.ChatID].operatorID = chat.OperatorID;
 	AllChats[chat.ChatID].status = 2;		// active chat
 
@@ -806,7 +807,7 @@ function processClosedChat(chat) {
 	}
 
 	AllChats[chat.ChatID].status = 0;		// inactive/complete/cancelled/closed
-	AllChats[chat.ChatID].ended = new Date(chat.Ended);
+	AllChats[chat.ChatID].ended = (chat.Ended == "") ? new Date() : new Date(chat.Ended);
 	AllChats[chat.ChatID].closed = new Date(chat.Closed);
 
 	var opobj = Operators[AllChats[chat.ChatID].operatorID];
@@ -820,16 +821,18 @@ function processClosedChat(chat) {
 	sgobj.tcc++;
 	// add the total chat time for this chat
 	var chattime = Math.round((AllChats[chat.ChatID].ended - AllChats[chat.ChatID].answered)/1000);
-	opobj.tcta = opobj.tcta + chattime;
-	Overall.tcta = Overall.tcta + chattime;
-	deptobj.tcta = deptobj.tcta + chattime;
-	sgobj.tcta = sgobj.tcta + chattime;
+	if(chattime < 10000)
+	{
+		opobj.tcta = opobj.tcta + chattime;
+		Overall.tcta = Overall.tcta + chattime;
+		deptobj.tcta = deptobj.tcta + chattime;
+		sgobj.tcta = sgobj.tcta + chattime;
 
-	opobj.act = Math.round(opobj.tcta/opobj.tcc);
-	Overall.act = Math.round(Overall.tcta/Overall.tcc);
-	deptobj.act = Math.round(deptobj.tcta/deptobj.tcc);
-	sgobj.act = Math.round(sgobj.tcta/sgobj.tcc);
-
+		opobj.act = Math.round(opobj.tcta/opobj.tcc);
+		Overall.act = Math.round(Overall.tcta/Overall.tcc);
+		deptobj.act = Math.round(deptobj.tcta/deptobj.tcc);
+		sgobj.act = Math.round(sgobj.tcta/sgobj.tcc);
+	}
 	updateCconc(AllChats[chat.ChatID]);	// update chat conc now that it is closed
 	return true;
 }
@@ -1213,6 +1216,7 @@ function calculateACC_CCONC() {
 
 	// calculate TCO
 	Overall.tco = Overall.tcan + Overall.tcua + Overall.tcuq;
+	Overall.ntco = Overall.ntcan + Overall.ntcua + Overall.ntcuq;
 	if(Overall.tct != 0)
 		Overall.cconc = ((Overall.tct+Overall.mct)/Overall.tct).toFixed(2);
 

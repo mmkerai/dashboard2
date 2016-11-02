@@ -81,7 +81,7 @@ function newshowTopMetrics(rowid, data) {
 	rowid.cells[2].outerHTML = NF.printSL(data);
 	rowid.cells[3].innerHTML = data.ciq;
 	rowid.cells[4].innerHTML = toHHMMSS(data.lwt);
-	rowid.cells[5].innerHTML = data.tco;
+	rowid.cells[5].innerHTML = data.ntco;
 	rowid.cells[6].innerHTML = data.tac;
 	rowid.cells[7].innerHTML = data.ntcan;
 	rowid.cells[8].innerHTML = data.ntcuq;
