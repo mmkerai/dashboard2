@@ -1,7 +1,7 @@
 /* RTA Dashboard for H3G.
  * This script should run on Heroku
  */
-// Version 1.18 2nd Nov 2016
+// Version 1.19 12th Nov 2016
 /* acronyms used in this script
 // cconc - chat concurrency
 // cph - chats per hour
@@ -1216,7 +1216,6 @@ function calculateACC_CCONC() {
 
 	// calculate TCO
 	Overall.tco = Overall.tcan + Overall.tcua + Overall.tcuq;
-	Overall.ntco = Overall.ntcan + Overall.ntcua + Overall.ntcuq;
 	if(Overall.tct != 0)
 		Overall.cconc = ((Overall.tct+Overall.mct)/Overall.tct).toFixed(2);
 
@@ -1262,7 +1261,7 @@ function calculateTCAN_TCUA_TCUQ() {
 				Departments[tchat.departmentID].ntcan++;
 				SkillGroups[tchat.skillgroup].ntcan++;
 			}
-			else if(tchat.closed != 0)	// chat closed therefore must be unanswered
+			else if(tchat.winclosed != 0)	// chat window closed therefore must be unanswered
 			{
 				if(tchat.operatorID == 0 || tchat.operatorID == 'undefined')	// operator unassigned
 				{
@@ -1279,6 +1278,7 @@ function calculateTCAN_TCUA_TCUQ() {
 			}
 		}
 	}
+	Overall.ntco = Overall.ntcan + Overall.ntcua + Overall.ntcuq;
 }
 
 // this function calls API again if data is truncated
@@ -1739,4 +1739,4 @@ console.log("Server started on port "+PORT);
 doStartOfDay();		// initialise everything
 setInterval(updateChatStats,3000);	// updates socket io data at infinitum
 setInterval(longWaitChatsTimer,30000);
-setInterval(unavailableChatsTimer,20000);
+setInterval(unavailableChatsTimer,15000);

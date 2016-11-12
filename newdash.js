@@ -71,10 +71,10 @@ function newshowTopMetrics(rowid, data) {
 	var tcanpc = " (0%)";
 	var tcunpc = " (0%)";
 
-	if(data.tco != 0)
+	if(data.ntco != 0)
 	{
-		tcanpc = " ("+Math.round((data.ntcan/data.tco)*100)+"%)";
-		tcunpc = " ("+Math.round((data.ntcun/(data.ntcun+data.tco))*100) +"%)";
+		tcanpc = " ("+Math.round((data.ntcan/data.ntco)*100)+"%)";
+		tcunpc = " ("+Math.round((data.ntcun/(data.ntcun+data.ntco))*100) +"%)";
 	}
 
 	rowid.cells[1].outerHTML = NF.printConcurrency(data.cconc);
