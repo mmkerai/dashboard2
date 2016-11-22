@@ -1,7 +1,7 @@
 /* RTA Dashboard for H3G.
  * This script should run on Heroku
  */
-// Version 1.19 12th Nov 2016
+// Version 1.20 22nd Nov 2016
 /* acronyms used in this script
 // cconc - chat concurrency
 // cph - chats per hour
@@ -296,7 +296,9 @@ var AuthUsers = new Object();
 var Exceptions;
 var LongWaitChats;
 var UnavailableFifo;
-
+var	UpdateChatsIntID;
+var	LongWaitChatsIntID;
+var	UnavailChatsIntID;
 // load list of authorised users and their passwords
 if(DoUserAuth)
 {
@@ -1690,7 +1692,10 @@ function updateChatStats() {
 		console.log(TimeNow.toISOString()+": New day started, stats reset");
 		var csvdata = getCsvChatData();
 		postToArchive(csvdata);
-		doStartOfDay();
+		clearInterval(UpdateChatsIntID);
+		clearInterval(LongWaitChatsIntID);
+		clearInterval(UnavailChatsIntID);
+		setTimeout(doStartOfDay,10000);	//restart after 5 seconds to give time for ajaxes to complete
 		return;
 	}
 	calculateTCAN_TCUA_TCUQ();
@@ -1725,6 +1730,9 @@ function doStartOfDay() {
 	getActiveChatData();
 	getInactiveChatData();
 	getOperatorAvailabilityData();
+	UpdateChatsIntID = setInterval(updateChatStats,3000);	// updates socket io data at infinitum
+	LongWaitChatsIntID = setInterval(longWaitChatsTimer,30000);
+	UnavailChatsIntID = setInterval(unavailableChatsTimer,15000);
 }
 
 function checkOperatorAvailability() {
@@ -1737,6 +1745,4 @@ function checkOperatorAvailability() {
 }
 console.log("Server started on port "+PORT);
 doStartOfDay();		// initialise everything
-setInterval(updateChatStats,3000);	// updates socket io data at infinitum
-setInterval(longWaitChatsTimer,30000);
-setInterval(unavailableChatsTimer,15000);
+
