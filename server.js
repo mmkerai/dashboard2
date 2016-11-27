@@ -1,7 +1,7 @@
 /* RTA Dashboard for H3G.
  * This script should run on Heroku
  */
-// Version 1.20 22nd Nov 2016
+// Version 1.21 27th Nov 2016
 /* acronyms used in this script
 // cconc - chat concurrency
 // cph - chats per hour
@@ -733,15 +733,18 @@ function processAnsweredChat(chat) {
 	opobj.tcan++;
 	opobj.activeChats.push(chat.ChatID);
 
-	var speed = Math.round((AllChats[chat.ChatID].answered - AllChats[chat.ChatID].started)/1000);
-	Overall.tata = Overall.tata + speed;
-	deptobj.tata = deptobj.tata + speed;
-	sgobj.tata = sgobj.tata + speed;
-	opobj.tata = opobj.tata + speed;
-	Overall.asa = Math.round(Overall.tata / Overall.tcan);
-	deptobj.asa = Math.round(deptobj.tata / deptobj.tcan);
-	sgobj.asa = Math.round(sgobj.tata / sgobj.tcan);
-	opobj.asa = Math.round(opobj.tata / opobj.tcan);
+	var speed = Math.round((AllChats[chat.ChatID].answered - AllChats[chat.ChatID].started)/1000); // calc speed to answer for this chat
+  if(speed < 36000)		// make sure it is sensible 60sec * 60min * 10 hours
+	{
+  	Overall.tata = Overall.tata + speed;
+  	deptobj.tata = deptobj.tata + speed;
+  	sgobj.tata = sgobj.tata + speed;
+  	opobj.tata = opobj.tata + speed;
+  	Overall.asa = Math.round(Overall.tata / Overall.tcan);
+  	deptobj.asa = Math.round(deptobj.tata / deptobj.tcan);
+  	sgobj.asa = Math.round(sgobj.tata / sgobj.tcan);
+  	opobj.asa = Math.round(opobj.tata / opobj.tcan);
+  }
 
 	if(speed < SLATHRESHOLD)		// sla threshold in seconds
 	{
@@ -1244,9 +1247,11 @@ function calculateTCAN_TCUA_TCUQ() {
 	Overall.ntcuq = 0;
 	for(var i in Departments)
 	{
+    Departments[i].ntco = 0;
 		Departments[i].ntcan = 0;
 		Departments[i].ntcua = 0;
 		Departments[i].ntcuq = 0;
+    SkillGroups[Departments[i].skillgroup].ntco = 0;
 		SkillGroups[Departments[i].skillgroup].ntcan = 0;
 		SkillGroups[Departments[i].skillgroup].ntcua = 0;
 		SkillGroups[Departments[i].skillgroup].ntcuq = 0;
@@ -1260,7 +1265,9 @@ function calculateTCAN_TCUA_TCUQ() {
 			if(tchat.answered != 0)
 			{
 				Overall.ntcan++;
-				Departments[tchat.departmentID].ntcan++;
+				Departments[tchat.departmentID].ntco++;
+				SkillGroups[tchat.skillgroup].ntco++;
+        Departments[tchat.departmentID].ntcan++;
 				SkillGroups[tchat.skillgroup].ntcan++;
 			}
 			else if(tchat.winclosed != 0)	// chat window closed therefore must be unanswered
@@ -1268,12 +1275,16 @@ function calculateTCAN_TCUA_TCUQ() {
 				if(tchat.operatorID == 0 || tchat.operatorID == 'undefined')	// operator unassigned
 				{
 					Overall.ntcuq++;
+          Departments[tchat.departmentID].ntco++;
+  				SkillGroups[tchat.skillgroup].ntco++;
 					Departments[tchat.departmentID].ntcuq++;
 					SkillGroups[tchat.skillgroup].ntcuq++;
 				}
 				else
 				{
 					Overall.ntcua++;
+          Departments[tchat.departmentID].ntco++;
+  				SkillGroups[tchat.skillgroup].ntco++;
 					Departments[tchat.departmentID].ntcua++;
 					SkillGroups[tchat.skillgroup].ntcua++;
 				}
@@ -1745,4 +1756,3 @@ function checkOperatorAvailability() {
 }
 console.log("Server started on port "+PORT);
 doStartOfDay();		// initialise everything
-
