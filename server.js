@@ -1,7 +1,7 @@
 /* RTA Dashboard for H3G.
  * This script should run on Heroku
  */
-// Version 1.21 27th Nov 2016
+// Version 1.23 15th Jan 2017
 /* acronyms used in this script
 // cconc - chat concurrency
 // cph - chats per hour
@@ -18,8 +18,9 @@
 // act - average chat time
 // acc - available chat capacity
 // mcc - max chat capacity
-// aaway - total number of agents away
-// aavail - total number of agents available
+// oaway - total number of agents away less in custom status
+// ocustomst - total number of agents in custom status
+// oavail - total number of agents available
 // status - current status 0 - logged out, 1 - away, 2 - available
 // tcs - time in current status
 // tcta - total time of all chats
@@ -53,7 +54,7 @@ var SETTINGSID;
 var KEY;
 var SLATHRESHOLD, INQTHRESHOLD;	// chat in q threshold for double checking (in case trigger missed)
 var MAXCHATCONCURRENCY;
-var TZONE, TOFFSET;
+var TZONE,TOFFSET,CUSTOMST,CUSTOMST_ID;
 var AUTHUSERS = {};
 var DoUserAuth = true;	// default do manual auth from JSON
 
@@ -67,6 +68,7 @@ try
 	INQTHRESHOLD = EnVars.INQTHRESHOLD || 300;	 // 5 mins
 	MAXCHATCONCURRENCY = EnVars.MAXCHATCONCURRENCY || 2;
 	TZONE = EnVars.TIMEZONE || "GMT";
+	CUSTOMST = EnVars.CUSTOMST || "Approaching Shrinkage";
 	DoUserAuth = false;		// if using config file then must be on TechM server so no user auth required
 }
 catch(e)
@@ -81,6 +83,7 @@ catch(e)
 		INQTHRESHOLD = process.env.INQTHRESHOLD || 300;
 		MAXCHATCONCURRENCY = process.env.MAXCHATCONCURRENCY || 2;
 		TZONE = process.env.TIMEZONE || "GMT";
+		CUSTOMST = process.env.CUSTOMST || "Approaching Shrinkage";
 		AUTHUSERS = JSON.parse(process.env.AUTHUSERS) || {};
 	}
 	else
@@ -245,6 +248,7 @@ var DashMetrics = function(did,name,sg) {
 		this.act = 0;
 		this.acc = 0;
 		this.oaway = 0;
+		this.ocustomst = 0;
 		this.oavail = 0;
 		this.csat = new Csat();
 };
@@ -292,13 +296,14 @@ var EndOfDay;			// global time for end of the day before all stats are reset
 var Overall;		// top level stats
 var	OperatorsSetupComplete;
 var	GetOperatorAvailabilitySuccess;
-var AuthUsers = new Object();
 var Exceptions;
 var LongWaitChats;
 var UnavailableFifo;
-var	UpdateChatsIntID;
-var	LongWaitChatsIntID;
-var	UnavailChatsIntID;
+var UpdateChatsIntID;
+var LongWaitChatsIntID;
+var UnavailChatsIntID;
+var AuthUsers = new Object();
+
 // load list of authorised users and their passwords
 if(DoUserAuth)
 {
@@ -394,7 +399,7 @@ function initialiseGlobals () {
 	Exceptions = new Exception();
 	GetOperatorAvailabilitySuccess = false;
 	LongWaitChats = new Array();
-  UnavailableFifo = new Array();
+	UnavailableFifo = new Array();
 }
 // Process incoming Boldchat triggered chat data
 app.post('/chat-started', function(req, res){
@@ -617,7 +622,9 @@ function foldersCallback(dlist) {
 function customStatusCallback(dlist) {
 	for(var i in dlist)
 	{
-			CustomStatus[dlist[i].CustomOperatorStatusID] = dlist[i].Name;
+		CustomStatus[dlist[i].CustomOperatorStatusID] = dlist[i].Name;
+		if(dlist[i].Name == CUSTOMST)
+			CUSTOMST_ID = dlist[i].CustomOperatorStatusID
 	}
 	console.log("No of Custom Statuses: "+Object.keys(CustomStatus).length);
 	sendToLogs("No of Custom Statuses: "+Object.keys(CustomStatus).length);
@@ -647,18 +654,30 @@ function operatorAvailabilityCallback(dlist) {
 		{
 			Operators[operator].status = dlist[i].StatusType;
 			Operators[operator].cstatus = (dlist[i].CustomOperatorStatusID === null ? "" : CustomStatus[dlist[i].CustomOperatorStatusID]);
-			if(dlist[i].StatusType != 0)						// dont bother is logged out
+			if(dlist[i].StatusType != 0)						// not logged out
 				Operators[operator].statusdtime = TimeNow;
 			// update metrics
 			if(dlist[i].StatusType == 1)
 			{
-				Overall.oaway++;
-				SkillGroups[OperatorSkills[operator]].oaway++;
+				if(dlist[i].CustomOperatorStatusID == CUSTOMST_ID)
+				{
+					Overall.ocustomst++;
+					SkillGroups[OperatorSkills[operator]].ocustomst++;
+				}
+				else
+				{
+					Overall.oaway++;
+					SkillGroups[OperatorSkills[operator]].oaway++;
+				}
+				
 				depts = new Array();
 				depts = OperatorDepts[operator];
 				for(var did in depts)
 				{
-					Departments[depts[did]].oaway++;
+					if(dlist[i].CustomOperatorStatusID == CUSTOMST_ID)
+						Departments[depts[did]].ocustomst++;
+					else
+						Departments[depts[did]].oaway++;
 				}
 			}
 			else if(dlist[i].StatusType == 2)
@@ -857,46 +876,48 @@ function processWindowClosed(chat) {
 
 	AllChats[chat.ChatID].status = 0;		// inactive/complete/cancelled/closed
 	AllChats[chat.ChatID].statustype = chat.ChatStatusType;
-	AllChats[chat.ChatID].operatorID = chat.OperatorID || 0;
+	AllChats[chat.ChatID].operatorID = chat.OperatorID;
 	AllChats[chat.ChatID].ended = new Date(chat.Ended);
 	AllChats[chat.ChatID].closed = new Date(chat.Closed);
-	AllChats[chat.ChatID].winclosed = new Date(chat.WindowClosed);
-	if(chat.ChatStatusType == 1)		// abandoned (closed during pre chat form) chats
+	if(AllChats[chat.ChatID].winclosed == 0)		// check this is not double counting
 	{
-		Exceptions.chatsAbandoned++;
-		Overall.tcaban++;
-		return false;
-	}
-	if(chat.ChatStatusType == 10 || chat.ChatStatusType == 18)		// blocked chats
-	{
-		Exceptions.chatsBlocked++;
-	}
+		AllChats[chat.ChatID].winclosed = new Date(chat.WindowClosed);
+		if(chat.ChatStatusType == 1)		// abandoned (closed during pre chat form) chats
+		{
+			Exceptions.chatsAbandoned++;
+			Overall.tcaban++;
+			return false;
+		}
+		if(chat.ChatStatusType == 10 || chat.ChatStatusType == 18)		// blocked chats
+		{
+			Exceptions.chatsBlocked++;
+		}
 
-	if(chat.ChatStatusType == 7 || chat.ChatStatusType == 8 || (chat.ChatStatusType >= 11 && chat.ChatStatusType <= 15))	// unavailable chat 7, 8, 11, 12, 13, 14 or 15
-	{
-		if(chat.Answered == "" || chat.Answered == null)	// only count as unavail if not answered
+		if(chat.ChatStatusType == 7 || chat.ChatStatusType == 8 || (chat.ChatStatusType >= 11 && chat.ChatStatusType <= 15))	// unavailable chat 7, 8, 11, 12, 13, 14 or 15
 		{
-			Overall.tcun++;
-			deptobj.tcun++;
-			sgobj.tcun++;
+			if(chat.Answered == "" || chat.Answered == null)	// only count as unavail if not answered
+			{
+				Overall.tcun++;
+				deptobj.tcun++;
+				sgobj.tcun++;
+			}
+		}
+		else if(AllChats[chat.ChatID].answered == 0 && AllChats[chat.ChatID].started != 0)		// chat started but unanswered and now win closed
+		{
+			if(chat.OperatorID == "" || chat.OperatorID == null)	// operator unassigned
+			{
+				Overall.tcuq++;
+				deptobj.tcuq++;
+				sgobj.tcuq++;
+			}
+			else
+			{
+				Overall.tcua++;
+				deptobj.tcua++;
+				sgobj.tcua++;
+			}
 		}
 	}
-	else if(AllChats[chat.ChatID].answered == 0 && AllChats[chat.ChatID].started != 0)		// chat started but unanswered and now win closed
-	{
-		if(chat.OperatorID == "" || chat.OperatorID == null)	// operator unassigned
-		{
-			Overall.tcuq++;
-			deptobj.tcuq++;
-			sgobj.tcuq++;
-		}
-		else
-		{
-			Overall.tcua++;
-			deptobj.tcua++;
-			sgobj.tcua++;
-		}
-	}
-
 	updateCSAT(chat);
 	return true;
 }
@@ -917,7 +938,7 @@ function processOperatorStatusChanged(ostatus) {
 
 	var oldstatus = Operators[opid].status	// save old status for later processing
 	// Get the custom status via async API call as currently not available in the trigger
-	getApiData("getOperatorAvailability", "ServiceTypeID=1&OperatorID="+opid, operatorCustomStatusCallback);
+	getApiData("getOperatorAvailability","ServiceTypeID=1&OperatorID="+opid,operatorCustomStatusCallback);
 	// update metrics
 	Operators[opid].status = ostatus.StatusType;	// new status
 	if(ostatus.StatusType == 1 && oldstatus != 1)	// make sure this is an actual change
@@ -1397,7 +1418,7 @@ function getOperatorAvailabilityData() {
 	setTimeout(checkOperatorAvailability,60000);		// check if successful after a minute
 }
 
-// gets current active chats
+// gets current active chats - used during startup only
 function getActiveChatData() {
 	if(!OperatorsSetupComplete)
 	{
@@ -1515,22 +1536,22 @@ function updateUnavailableChats(chats) {
   var deptobj,sgobj;
 	for(var i in chats)
 	{
-  	deptobj = Departments[chats[i].DepartmentID];
-  	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
-  	sgobj = SkillGroups[deptobj.skillgroup];
-    if(chats[i].ChatStatusType == 7 || chats[i].ChatStatusType == 8 || (chats[i].ChatStatusType >= 11 && chats[i].ChatStatusType <= 15))	// unavailable chat 7, 8, 11, 12, 13, 14 or 15
-  	{
-  		if(chats[i].Answered == "" || chats[i].Answered == null)	// only count as unavail if not answered
-  		{
-  			Overall.ntcun++;
-  			deptobj.ntcun++;
-  			sgobj.ntcun++;
-  		}
-  	}
+		deptobj = Departments[chats[i].DepartmentID];
+		if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
+		sgobj = SkillGroups[deptobj.skillgroup];
+		if(chats[i].ChatStatusType == 7 || chats[i].ChatStatusType == 8 || (chats[i].ChatStatusType >= 11 && chats[i].ChatStatusType <= 15))	// unavailable chat 7, 8, 11, 12, 13, 14 or 15
+		{
+			if(chats[i].Answered == "" || chats[i].Answered == null)	// only count as unavail if not answered
+			{
+				Overall.ntcun++;
+				deptobj.ntcun++;
+				sgobj.ntcun++;
+			}
+		}
   }
 }
 
-// process all inactive (closed) chat objects
+// process all inactive (closed) chat objects - only used during startup
 function allInactiveChats(chats) {
 	for(var i in chats)
 	{
@@ -1678,12 +1699,16 @@ io.on('connection', function(socket){
 		removeSocket(socket.id, "timeout");
 	});
 
-	socket.on('downloadChats', function(data){
+	socket.on('downloadChats', function(data) {
 		console.log("Download chats requested");
 		sendToLogs("Download chats requested");
 		var csvdata = getCsvChatData();
 		socket.emit('chatsCsvResponse',csvdata);
 		});
+
+    socket.on('updateCustomStatus', function(data) {
+      getApiData("getOperatorAvailability", "ServiceTypeID=1&OperatorID="+data, operatorCustomStatusCallback);
+  	});
 });
 
 function removeSocket(id, evname) {

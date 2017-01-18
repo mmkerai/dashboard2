@@ -2,7 +2,7 @@
 
 var ChatStatus = ["Logged Out","Away","Available"];
 var csvfile = null;
-var RTAVersion = "RTA Dashboard v1.21";
+var RTAVersion = "RTA Dashboard v1.23";
 
 function readCookie(name)
 {
@@ -77,8 +77,7 @@ function checksignedin()
 	}
 }
 
-function signin(uname, pwd)
-{
+function signin(uname, pwd) {
 	var data = new Object();
 	data = {name: uname,pwd: pwd};
 //	console.log("Data object: "+data.name+" and "+data.pwd);
@@ -302,8 +301,8 @@ function showOperatorMetrics(rowid, data) {
 		ac = data.activeChats.length;
 	}
 
-	rowid.cells[1].innerHTML = st;
-	rowid.cells[2].innerHTML = tcs;
+	rowid.cells[1].outerHTML = "<th class='h3g_link' onClick=\"updateCustomStatus('"+data.oid+"')\">"+st+"</th>";
+  rowid.cells[2].innerHTML = tcs;
 	rowid.cells[3].innerHTML = mcc;
 	rowid.cells[4].innerHTML = ac;
 	rowid.cells[5].innerHTML = data.acc;

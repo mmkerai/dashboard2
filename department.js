@@ -18,7 +18,7 @@ did = getURLParameter("did");
 		var pwd = $('#password').val();
 		signin(name,pwd);
 	});
-		
+
 	socket.on('connection', function(data){
 		console.log("Socket connected");
     });
@@ -49,18 +49,19 @@ did = getURLParameter("did");
 		$("#signinform").hide();
 		$("#deptTable").show();
 	});
-	
+
 	socket.on('deptOperators', function(ddata){
+
 		DeptOperators = ddata[did];	// get dept operators
 	});
-	
+
 	socket.on('departmentStats', function(ddata){
 		for(var i in ddata)
 		{
 			if(ddata[i].did == did) 	// show dept
 				showOperatorStats(ddata[i]);
 		}
-	});	
+	});
 
 	socket.on('operatorStats', function(ddata){
 		$("#ctime").text("Last refreshed: "+new Date().toLocaleString());
@@ -71,40 +72,16 @@ did = getURLParameter("did");
 			{
 				if(ddata[i].status == 0 && ddata[i].tcan == 0)	// if logged out and have not answered some chats today
 					continue;
-				else	
+				else
 					showOperatorStats(ddata[i]);
 			}
 		}
-	});	
+	});
 });
 
 $(window).on('beforeunload',function () {
 	socket.close();
 });
-
-/*function createDeptRow(tableid,index,sg,name) {
-
-	var sgid = "SG"+sg.replace(/\s/g,"");		// prefix tbody element id with SG so doesnt clash with toplevelmetrics row
-	var tb = document.getElementById(sgid);
-	if(tb === null)
-	{
-		tb = tableid.appendChild(document.createElement('tbody'));
-		tb.id = sgid;
-	}
-	row = tb.insertRow();
-//	row = tableid.insertRow(index+1);
-	row.id = name;
-	var cols = tableid.rows[0].cells.length;
-	for(var i=0; i < cols; i++)
-	{
-		row.insertCell(i);
-	}
-	row.cells[0].outerHTML = "<td onClick=\"showOperators('"+name+"')\">"+name+"</td>";
-	$("#"+sgid).hide();		// start of hiding it
-	ShowDept[sg] = false;
-			
-	return row;
-}*/
 
 function showCsat(oid,dname) {
 	window.open("csat.html?oid="+oid, '_blank');
@@ -112,6 +89,10 @@ function showCsat(oid,dname) {
 
 function showDeptCsat(did,dname) {
 	window.open("csat.html?did="+did, '_blank');
+}
+
+function updateCustomStatus(oid) {
+	socket.emit("updateCustomStatus", oid);
 }
 
 function exportMetrics() {
