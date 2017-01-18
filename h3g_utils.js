@@ -277,7 +277,8 @@ function showTopMetrics(rowid, data) {
 	rowid.cells[12].outerHTML = NF.printACT(data.act);
 	rowid.cells[13].innerHTML = data.acc;
 	rowid.cells[14].innerHTML = data.oaway;
-	rowid.cells[15].innerHTML = data.oavail+data.oaway;	// total logged in
+	rowid.cells[15].innerHTML = data.ocustomst;
+	rowid.cells[16].innerHTML = data.oavail+data.oaway+data.ocustomst;	// total logged in
 }
 
 function showOperatorMetrics(rowid, data) {
