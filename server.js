@@ -540,11 +540,7 @@ function debugLog(name, dataobj) {
 
 function sendToLogs(text) {
 	console.log(text);
-	for(var i in LoggedInUsers)
-	{
-		socketid = LoggedInUsers[i];
-		io.to(socketid).emit('consoleLogs', text);
-	}
+	io.emit('consoleLogs', text);
 }
 
 function deptsCallback(dlist) {
