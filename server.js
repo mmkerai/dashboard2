@@ -539,7 +539,7 @@ function debugLog(name, dataobj) {
 }
 
 function sendToLogs(text) {
-	console.logs(text);
+	console.log(text);
 	for(var i in LoggedInUsers)
 	{
 		socketid = LoggedInUsers[i];
