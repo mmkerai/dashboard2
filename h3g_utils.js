@@ -303,7 +303,7 @@ function showOperatorMetrics(rowid, data) {
 	}
 
 	rowid.cells[1].outerHTML = "<th class='h3g_link' onClick=\"updateCustomStatus('"+data.oid+"')\">"+st+"</th>";
-  rowid.cells[2].innerHTML = tcs;
+	rowid.cells[2].innerHTML = tcs;
 	rowid.cells[3].innerHTML = mcc;
 	rowid.cells[4].innerHTML = ac;
 	rowid.cells[5].innerHTML = data.acc;
