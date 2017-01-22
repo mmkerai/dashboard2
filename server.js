@@ -1334,7 +1334,6 @@ function calculateTCAN_TCUA_TCUQ() {
 
 // go through each operator status and tally up
 function calculateOperatorStatuses() {
-	var opobj = new Object();
 	var depts = new Array();
 	// first zero out everything
 	Overall.oaway = 0;
@@ -1350,27 +1349,25 @@ function calculateOperatorStatuses() {
 		SkillGroups[Departments[i].skillgroup].oavail = 0;
 	}
 
-	for(var i in Operators)
+	for(var opid in Operators)
 	{
-		opopj = Operators[i];
-		if(typeof opobj == 'undefined') continue;
-		if(opobj.status)// logged in
+		if(Operators[opid].status)// logged in
 		{
-			if(opobj.status == 2)	// available
+			if(Operators[opid].status == 2)	// available
 			{
 				Overall.oavail++;
-				SkillGroups[OperatorSkills[opobj.oid]].oavail++;
-				depts = OperatorDepts[opopj.oid];
+				SkillGroups[OperatorSkills[opid]].oavail++;
+				depts = OperatorDepts[opid];
 				for(var did in depts)
 				{
 					Departments[depts[did]].oavail++;
 				}					
 			}
-			if(opobj.status == 1 && opobj.cstatus == CUSTOMST)	// shrinkage
+			if(Operators[opid].status == 1 && Operators[opid].cstatus == CUSTOMST)	// shrinkage
 			{
 				Overall.ocustomst++;
-				SkillGroups[OperatorSkills[opobj.oid]].ocustomst++;
-				depts = OperatorDepts[opopj.oid];
+				SkillGroups[OperatorSkills[opid]].ocustomst++;
+				depts = OperatorDepts[opid];
 				for(var did in depts)
 				{
 					Departments[depts[did]].ocustomst++;
@@ -1379,8 +1376,8 @@ function calculateOperatorStatuses() {
 			else // must be just away 
 			{
 				Overall.oaway++;
-				SkillGroups[OperatorSkills[opobj.oid]].oaway++;
-				depts = OperatorDepts[opopj.oid];
+				SkillGroups[OperatorSkills[opid]].oaway++;
+				depts = OperatorDepts[opid];
 				for(var did in depts)
 				{
 					Departments[depts[did]].oaway++;
