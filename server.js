@@ -1352,6 +1352,7 @@ function calculateOperatorStatuses() {
 	for(var i in Operators)
 	{
 		opopj = Operators[i];
+		if(typeof opobj == 'undefined') continue;
 		if(opobj.status)// logged in
 		{
 			if(opobj.status == 2)	// available
