@@ -798,7 +798,7 @@ function processReassignedChat(chat) {
 	var tchat = AllChats[chat.ChatID];
 	if(tchat.operatorID != 0 && tchat.operatorID != 'undefined')// only adjust metrics if reassigned after answered previously
 	{
-		if(Operators[tchat.operatorID] != 'undefined')
+		if(typeof Operators[tchat.operatorID] != 'undefined')
 			removeActiveChat(Operators[tchat.operatorID], chat.ChatID); // remove from previous op
 		var opobj = Operators[chat.OperatorID];
 		if(typeof(opobj) === 'undefined') return false;		// an operator that doesnt exist (may happen if created midday)
