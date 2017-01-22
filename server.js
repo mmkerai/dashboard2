@@ -1,7 +1,7 @@
 /* RTA Dashboard for H3G.
  * This script should run on Heroku
  */
-// Version 1.23 15th Jan 2017
+// Version 1.24 21st Jan 2017
 /* acronyms used in this script
 // cconc - chat concurrency
 // cph - chats per hour
@@ -342,7 +342,7 @@ function validateSignature(body, triggerUrl) {
 
 	var str = "Trigger signature validation error: "+triggerUrl;
 	Exceptions.signatureInvalid++;
-	console.log(str);
+//	console.log(str);
 	sendToLogs(str);
 //	debugLog(triggerUrl,body);
 	return true;	// true while testing - change to false afterwards
@@ -469,7 +469,7 @@ app.post('/operator-status-changed', function(req, res) {
 	{
 		sendToLogs("operator-status-changed, operator: "+Operators[req.body.LoginID].name);
 		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
-			processOperatorStatusChanged(req.body);
+			processOperatorStatusChanged2(req.body);
 	}
 });
 
@@ -539,6 +539,7 @@ function debugLog(name, dataobj) {
 }
 
 function sendToLogs(text) {
+	console.logs(text);
 	for(var i in LoggedInUsers)
 	{
 		socketid = LoggedInUsers[i];
@@ -574,8 +575,11 @@ function deptsCallback(dlist) {
 		Departments[dlist[i].DepartmentID] = new DashMetrics(dlist[i].DepartmentID,newname,sg);
 		SkillGroups[sg] = new DashMetrics(sg,sg,"n/a");
 	}
-	console.log("No of Depts: "+Object.keys(Departments).length);
-	console.log("No of Skillgroups: "+Object.keys(SkillGroups).length);
+//	console.log("No of Depts: "+Object.keys(Departments).length);
+	sendToLogs("No of Depts: "+Object.keys(Departments).length);
+//	console.log("No of Skillgroups: "+Object.keys(SkillGroups).length);
+	sendToLogs("No of Skillgroups: "+Object.keys(SkillGroups).length);
+	
 	for(var did in Departments)
 	{
 		parameters = "DepartmentID="+did;
@@ -603,7 +607,7 @@ function operatorsCallback(dlist) {
 		var conc = new Array(1440).fill(0);	// initialise with zeros
 		OperatorCconc[dlist[i].LoginID] = conc;
 	}
-	console.log("No of Operators: "+Object.keys(Operators).length);
+//	console.log("No of Operators: "+Object.keys(Operators).length);
 	sendToLogs("No of Operators: "+Object.keys(Operators).length);
 }
 
@@ -615,7 +619,7 @@ function foldersCallback(dlist) {
 			Folders[dlist[i].FolderID] = dlist[i].Name;
 		}
 	}
-	console.log("No of Chat Folders: "+Object.keys(Folders).length);
+//	console.log("No of Chat Folders: "+Object.keys(Folders).length);
 	sendToLogs("No of Chat Folders: "+Object.keys(Folders).length);
 }
 
@@ -626,7 +630,7 @@ function customStatusCallback(dlist) {
 		if(dlist[i].Name == CUSTOMST)
 			CUSTOMST_ID = dlist[i].CustomOperatorStatusID
 	}
-	console.log("No of Custom Statuses: "+Object.keys(CustomStatus).length);
+//	console.log("No of Custom Statuses: "+Object.keys(CustomStatus).length);
 	sendToLogs("No of Custom Statuses: "+Object.keys(CustomStatus).length);
 }
 
@@ -638,7 +642,7 @@ function deptOperatorsCallback(dlist, dept) {
 	}
 
 	DeptOperators[dept] = doperators;
-	console.log("Operators in dept: "+dept+" - "+DeptOperators[dept].length);
+//	console.log("Operators in dept: "+dept+" - "+DeptOperators[dept].length);
 	sendToLogs("Operators in dept: "+dept+" - "+DeptOperators[dept].length);
 }
 
@@ -794,7 +798,8 @@ function processReassignedChat(chat) {
 	var tchat = AllChats[chat.ChatID];
 	if(tchat.operatorID != 0 && tchat.operatorID != 'undefined')// only adjust metrics if reassigned after answered previously
 	{
-		removeActiveChat(Operators[tchat.operatorID], chat.ChatID); // remove from previous op
+		if(Operators[tchat.operatorID] != 'undefined')
+			removeActiveChat(Operators[tchat.operatorID], chat.ChatID); // remove from previous op
 		var opobj = Operators[chat.OperatorID];
 		if(typeof(opobj) === 'undefined') return false;		// an operator that doesnt exist (may happen if created midday)
 
@@ -1008,6 +1013,20 @@ function processOperatorStatusChanged(ostatus) {
 		}
 	}
 	return true;
+}
+
+// process operator status changed2. This leave it for the another func to add up everything
+function processOperatorStatusChanged2(ostatus) {
+
+	var opid = ostatus.LoginID;
+	if(typeof(Operators[opid]) === 'undefined')
+	{
+		Exceptions.operatorIDUndefined++;
+		return false;
+	}
+
+	getApiData("getOperatorAvailability","ServiceTypeID=1&OperatorID="+opid,operatorCustomStatusCallback);
+	Operators[opid].status = ostatus.StatusType;	// new status
 }
 
 // This is called after chat is closed to save concurrency time
@@ -1268,11 +1287,11 @@ function calculateTCAN_TCUA_TCUQ() {
 	Overall.ntcuq = 0;
 	for(var i in Departments)
 	{
-    Departments[i].ntco = 0;
+		Departments[i].ntco = 0;
 		Departments[i].ntcan = 0;
 		Departments[i].ntcua = 0;
 		Departments[i].ntcuq = 0;
-    SkillGroups[Departments[i].skillgroup].ntco = 0;
+		SkillGroups[Departments[i].skillgroup].ntco = 0;
 		SkillGroups[Departments[i].skillgroup].ntcan = 0;
 		SkillGroups[Departments[i].skillgroup].ntcua = 0;
 		SkillGroups[Departments[i].skillgroup].ntcuq = 0;
@@ -1288,7 +1307,7 @@ function calculateTCAN_TCUA_TCUQ() {
 				Overall.ntcan++;
 				Departments[tchat.departmentID].ntco++;
 				SkillGroups[tchat.skillgroup].ntco++;
-        Departments[tchat.departmentID].ntcan++;
+				Departments[tchat.departmentID].ntcan++;
 				SkillGroups[tchat.skillgroup].ntcan++;
 			}
 			else if(tchat.winclosed != 0)	// chat window closed therefore must be unanswered
@@ -1296,16 +1315,16 @@ function calculateTCAN_TCUA_TCUQ() {
 				if(tchat.operatorID == 0 || tchat.operatorID == 'undefined')	// operator unassigned
 				{
 					Overall.ntcuq++;
-          Departments[tchat.departmentID].ntco++;
-  				SkillGroups[tchat.skillgroup].ntco++;
+					Departments[tchat.departmentID].ntco++;
+					SkillGroups[tchat.skillgroup].ntco++;
 					Departments[tchat.departmentID].ntcuq++;
 					SkillGroups[tchat.skillgroup].ntcuq++;
 				}
 				else
 				{
 					Overall.ntcua++;
-          Departments[tchat.departmentID].ntco++;
-  				SkillGroups[tchat.skillgroup].ntco++;
+					Departments[tchat.departmentID].ntco++;
+					SkillGroups[tchat.skillgroup].ntco++;
 					Departments[tchat.departmentID].ntcua++;
 					SkillGroups[tchat.skillgroup].ntcua++;
 				}
@@ -1313,6 +1332,62 @@ function calculateTCAN_TCUA_TCUQ() {
 		}
 	}
 	Overall.ntco = Overall.ntcan + Overall.ntcua + Overall.ntcuq;
+}
+
+// go through each operator status and tally up
+function calculateOperatorStatuses() {
+	var opobj,depts;
+	// first zero out everything
+	Overall.oaway = 0;
+	Overall.ocustomst = 0;
+	Overall.oavail = 0;
+	for(var i in Departments)
+	{
+		Departments[i].oaway = 0;
+		Departments[i].ocustomst = 0;
+		Departments[i].oavail = 0;
+		SkillGroups[Departments[i].skillgroup].oaway = 0;
+		SkillGroups[Departments[i].skillgroup].ocustomst = 0;
+		SkillGroups[Departments[i].skillgroup].oavail = 0;
+	}
+
+	for(var i in Operators)
+	{
+		opopj = Operators[i];
+		if(opobj.status)// logged in
+		{
+			if(opobj.status == 2)	// available
+			{
+				Overall.oavail++;
+				SkillGroups[OperatorSkills[opobj.oid]].oavail++;
+				depts = OperatorDepts[opopj.oid];
+				for(var did in depts)
+				{
+					Departments[depts[did]].oavail++;
+				}					
+			}
+			if(opobj.status == 1 && opobj.cstatus == CUSTOMST)	// shrinkage
+			{
+				Overall.ocustomst++;
+				SkillGroups[OperatorSkills[opobj.oid]].ocustomst++;
+				depts = OperatorDepts[opopj.oid];
+				for(var did in depts)
+				{
+					Departments[depts[did]].ocustomst++;
+				}						
+			}
+			else // must be just away 
+			{
+				Overall.oaway++;
+				SkillGroups[OperatorSkills[opobj.oid]].oaway++;
+				depts = OperatorDepts[opopj.oid];
+				for(var did in depts)
+				{
+					Departments[depts[did]].oaway++;
+				}						
+			}
+		}		
+	}
 }
 
 // this function calls API again if data is truncated
@@ -1533,7 +1608,7 @@ function unavailableChatsTimer() {
 
 // find all unavailable chats from inactive chats response
 function updateUnavailableChats(chats) {
-  var deptobj,sgobj;
+	var deptobj,sgobj;
 	for(var i in chats)
 	{
 		deptobj = Departments[chats[i].DepartmentID];
@@ -1548,7 +1623,7 @@ function updateUnavailableChats(chats) {
 				sgobj.ntcun++;
 			}
 		}
-  }
+	}
 }
 
 // process all inactive (closed) chat objects - only used during startup
@@ -1585,7 +1660,6 @@ function allInactiveChats(chats) {
 		else
 			processWindowClosed(chats[i]);	// closed because unavailable or abandoned
 	}
-
   updateUnavailableChats(chats);
 }
 
@@ -1700,7 +1774,7 @@ io.on('connection', function(socket){
 	});
 
 	socket.on('downloadChats', function(data) {
-		console.log("Download chats requested");
+//		console.log("Download chats requested");
 		sendToLogs("Download chats requested");
 		var csvdata = getCsvChatData();
 		socket.emit('chatsCsvResponse',csvdata);
@@ -1712,7 +1786,7 @@ io.on('connection', function(socket){
 });
 
 function removeSocket(id, evname) {
-		console.log("Socket "+evname+" at "+ TimeNow);
+		sendToLogs("Socket "+evname+" at "+ TimeNow);
 		var index = LoggedInUsers.indexOf(id);
 		if(index >= 0) LoggedInUsers.splice(index, 1);	// remove from list of valid users
 }
@@ -1738,6 +1812,7 @@ function updateChatStats() {
 	calculateLWT_CIQ_TAC();
 	calculateCPH();
 	calculateACC_CCONC();
+	calculateOperatorStatuses();
 	var str = TimeNow.toISOString()+": Today's chats: "+Object.keys(AllChats).length;
 //	str = str + "\r\nClients connected: "+io.eio.clientsCount;	// useful for debuging socket.io errors
 	console.log(str);
@@ -1775,7 +1850,6 @@ function checkOperatorAvailability() {
 	if(GetOperatorAvailabilitySuccess)
 		return;
 
-	console.log("Getting operator availability again");
 	sendToLogs("Getting operator availability again");
 	getOperatorAvailabilityData();	// try again
 }
