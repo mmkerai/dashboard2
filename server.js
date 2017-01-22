@@ -796,18 +796,20 @@ function processReassignedChat(chat) {
 	}
 
 	var tchat = AllChats[chat.ChatID];
-	if(tchat.operatorID != 0 && tchat.operatorID != 'undefined')// only adjust metrics if reassigned after answered previously
+	if(tchat.operatorID != 0 && tchat.operatorID != '')// only adjust metrics if reassigned after answered previously
 	{
 		if(typeof Operators[tchat.operatorID] != 'undefined')
+		{
 			removeActiveChat(Operators[tchat.operatorID], chat.ChatID); // remove from previous op
+			Operators[tchat.operatorID].tcan--;		// remove chat answereed credit from this operator
+			Departments[tchat.departmentID].tcan--;		// remove chat answereed credit from this dept
+			SkillGroups[tchat.skillgroup].tcan--;		// remove chat answereed credit from this skillgroup
+		}
 		var opobj = Operators[chat.OperatorID];
 		if(typeof(opobj) === 'undefined') return false;		// an operator that doesnt exist (may happen if created midday)
 
 //		console.log("Previous Operator: "+Operators[tchat.operatorID].name);
 //		console.log("New Operator: "+opobj.name);
-		Operators[tchat.operatorID].tcan--;		// remove chat answereed credit from this operator
-		Departments[tchat.departmentID].tcan--;		// remove chat answereed credit from this dept
-		SkillGroups[tchat.skillgroup].tcan--;		// remove chat answereed credit from this skillgroup
 		tchat.operatorID = chat.OperatorID;		// assign new operator to this chat
 		tchat.departmentID = chat.DepartmentID;		// assign new department to this chat
 		opobj.tcan++;							// and give him credit
