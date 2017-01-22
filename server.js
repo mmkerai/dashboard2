@@ -1334,7 +1334,8 @@ function calculateTCAN_TCUA_TCUQ() {
 
 // go through each operator status and tally up
 function calculateOperatorStatuses() {
-	var opobj,depts;
+	var opobj = new Object();
+	var depts = new Array();
 	// first zero out everything
 	Overall.oaway = 0;
 	Overall.ocustomst = 0;
