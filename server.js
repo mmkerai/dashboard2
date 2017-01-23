@@ -164,13 +164,13 @@ app.get('/csat.html', function(req, res){
 app.get('/csat.js', function(req, res){
 	res.sendFile(__dirname + '/csat.js');
 });
-/*
+
 process.on('uncaughtException', function (err) {
 	var estr = 'Exception: ' + err;
 	console.log(estr);
 	postToArchive(estr);
 });
-*/
+
 //********************************* Global class exceptions
 var Exception = function() {
 		this.chatsStarted = 0;
