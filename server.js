@@ -169,6 +169,7 @@ process.on('uncaughtException', function (err) {
 	var estr = 'Exception: ' + err;
 	console.log(estr);
 	postToArchive(estr);
+	process.exit(1);
 });
 
 //********************************* Global class exceptions
