@@ -1,7 +1,7 @@
 /* RTA Dashboard for H3G.
  * This script should run on Heroku
  */
-// Version 1.24 21st Jan 2017
+// Version 1.24 24th Jan 2017
 /* acronyms used in this script
 // cconc - chat concurrency
 // cph - chats per hour
@@ -169,7 +169,6 @@ process.on('uncaughtException', function (err) {
 	var estr = 'Exception: ' + err;
 	console.log(estr);
 	postToArchive(estr);
-	process.exit(1);
 });
 
 //********************************* Global class exceptions
@@ -203,7 +202,7 @@ var Csat = function() {
 };
 
 //******* Global class for chat data
-var ChatData = function(chatid, dept, sg) {
+var ChatData = function(chatid,dept,sg) {
 		this.chatID = chatid;
 		this.departmentID = dept;
 		this.skillgroup = sg;
@@ -1335,7 +1334,7 @@ function calculateTCAN_TCUA_TCUQ() {
 
 // go through each operator status and tally up
 function calculateOperatorStatuses() {
-	var depts = new Array();
+	var depts;
 	// first zero out everything
 	Overall.oaway = 0;
 	Overall.ocustomst = 0;
@@ -1352,38 +1351,38 @@ function calculateOperatorStatuses() {
 
 	for(var opid in Operators)
 	{
-		if(Operators[opid].status)// logged in
+		if(Operators[opid].status == 2)	// available
 		{
-			if(Operators[opid].status == 2)	// available
+			Overall.oavail++;
+			SkillGroups[OperatorSkills[opid]].oavail++;
+			depts = new Array();
+			depts = OperatorDepts[opid];
+			for(var did in depts)
 			{
-				Overall.oavail++;
-				SkillGroups[OperatorSkills[opid]].oavail++;
-				depts = OperatorDepts[opid];
-				for(var did in depts)
-				{
-					Departments[depts[did]].oavail++;
-				}					
-			}
-			if(Operators[opid].status == 1 && Operators[opid].cstatus == CUSTOMST)	// shrinkage
+				Departments[depts[did]].oavail++;
+			}					
+		}
+		else if(Operators[opid].status == 1 && Operators[opid].cstatus == CUSTOMST)	// shrinkage
+		{
+			Overall.ocustomst++;
+			SkillGroups[OperatorSkills[opid]].ocustomst++;
+			depts = new Array();
+			depts = OperatorDepts[opid];
+			for(var did in depts)
 			{
-				Overall.ocustomst++;
-				SkillGroups[OperatorSkills[opid]].ocustomst++;
-				depts = OperatorDepts[opid];
-				for(var did in depts)
-				{
-					Departments[depts[did]].ocustomst++;
-				}						
-			}
-			else // must be just away 
+				Departments[depts[did]].ocustomst++;
+			}						
+		}
+		else if(Operators[opid].status == 1) // must be just away 
+		{
+			Overall.oaway++;
+			SkillGroups[OperatorSkills[opid]].oaway++;
+			depts = new Array();
+			depts = OperatorDepts[opid];
+			for(var did in depts)
 			{
-				Overall.oaway++;
-				SkillGroups[OperatorSkills[opid]].oaway++;
-				depts = OperatorDepts[opid];
-				for(var did in depts)
-				{
-					Departments[depts[did]].oaway++;
-				}						
-			}
+				Departments[depts[did]].oaway++;
+			}						
 		}		
 	}
 }
