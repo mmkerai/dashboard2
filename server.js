@@ -301,7 +301,7 @@ var LongWaitChats;
 var UnavailableFifo;
 var UpdateChatsIntID;
 var LongWaitChatsIntID;
-var UnavailChatsIntID;
+//var UnavailChatsIntID;
 var AuthUsers = new Object();
 
 // load list of authorised users and their passwords
@@ -1024,7 +1024,7 @@ function processOperatorStatusChanged2(ostatus) {
 	}
 
 	getApiData("getOperatorAvailability","ServiceTypeID=1&OperatorID="+opid,operatorCustomStatusCallback);
-	Operators[opid].status = ostatus.StatusType;	// new status
+	Operators[opid].status = ostatus.StatusType;	// new status - 0, 1 or 2
 }
 
 // This is called after chat is closed to save concurrency time
@@ -1351,12 +1351,14 @@ function calculateOperatorStatuses() {
 
 	for(var opid in Operators)
 	{
+		depts = new Array();
+		depts = OperatorDepts[opid];
+		if(typeof(depts) === 'undefined') continue;	// operator depts not recognised
+		
 		if(Operators[opid].status == 2)	// available
 		{
 			Overall.oavail++;
 			SkillGroups[OperatorSkills[opid]].oavail++;
-			depts = new Array();
-			depts = OperatorDepts[opid];
 			for(var did in depts)
 			{
 				Departments[depts[did]].oavail++;
@@ -1366,8 +1368,6 @@ function calculateOperatorStatuses() {
 		{
 			Overall.ocustomst++;
 			SkillGroups[OperatorSkills[opid]].ocustomst++;
-			depts = new Array();
-			depts = OperatorDepts[opid];
 			for(var did in depts)
 			{
 				Departments[depts[did]].ocustomst++;
@@ -1377,8 +1377,6 @@ function calculateOperatorStatuses() {
 		{
 			Overall.oaway++;
 			SkillGroups[OperatorSkills[opid]].oaway++;
-			depts = new Array();
-			depts = OperatorDepts[opid];
 			for(var did in depts)
 			{
 				Departments[depts[did]].oaway++;
@@ -1592,6 +1590,7 @@ function updateLongWaitChat(chat) {
 }
 
 // get inactive chats by folder to calc unavailable. This is done every 12 sec
+/*
 function unavailableChatsTimer() {
 	if(UnavailableFifo.length > 0)	// check not empty
 	{
@@ -1622,7 +1621,7 @@ function updateUnavailableChats(chats) {
 		}
 	}
 }
-
+*/
 // process all inactive (closed) chat objects - only used during startup
 function allInactiveChats(chats) {
 	for(var i in chats)
@@ -1801,7 +1800,7 @@ function updateChatStats() {
 		postToArchive(csvdata);
 		clearInterval(UpdateChatsIntID);
 		clearInterval(LongWaitChatsIntID);
-		clearInterval(UnavailChatsIntID);
+//		clearInterval(UnavailChatsIntID);
 		setTimeout(doStartOfDay,10000);	//restart after 5 seconds to give time for ajaxes to complete
 		return;
 	}
@@ -1840,7 +1839,7 @@ function doStartOfDay() {
 	getOperatorAvailabilityData();
 	UpdateChatsIntID = setInterval(updateChatStats,3000);	// updates socket io data at infinitum
 	LongWaitChatsIntID = setInterval(longWaitChatsTimer,30000);
-	UnavailChatsIntID = setInterval(unavailableChatsTimer,15000);
+//	UnavailChatsIntID = setInterval(unavailableChatsTimer,15000); dont need to do this anymore
 }
 
 function checkOperatorAvailability() {
@@ -1850,5 +1849,6 @@ function checkOperatorAvailability() {
 	sendToLogs("Getting operator availability again");
 	getOperatorAvailabilityData();	// try again
 }
+
 console.log("Server started on port "+PORT);
 doStartOfDay();		// initialise everything
