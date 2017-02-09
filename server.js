@@ -1,7 +1,7 @@
 /* RTA Dashboard for H3G.
  * This script should run on Heroku
  */
-// Version 1.24 24th Jan 2017
+// Version 1.25 8th Feb 2017
 /* acronyms used in this script
 // cconc - chat concurrency
 // cph - chats per hour
@@ -342,7 +342,6 @@ function validateSignature(body, triggerUrl) {
 
 	var str = "Trigger signature validation error: "+triggerUrl;
 	Exceptions.signatureInvalid++;
-//	console.log(str);
 	sendToLogs(str);
 //	debugLog(triggerUrl,body);
 	return true;	// true while testing - change to false afterwards
@@ -571,9 +570,7 @@ function deptsCallback(dlist) {
 		Departments[dlist[i].DepartmentID] = new DashMetrics(dlist[i].DepartmentID,newname,sg);
 		SkillGroups[sg] = new DashMetrics(sg,sg,"n/a");
 	}
-//	console.log("No of Depts: "+Object.keys(Departments).length);
 	sendToLogs("No of Depts: "+Object.keys(Departments).length);
-//	console.log("No of Skillgroups: "+Object.keys(SkillGroups).length);
 	sendToLogs("No of Skillgroups: "+Object.keys(SkillGroups).length);
 	
 	for(var did in Departments)
@@ -603,7 +600,6 @@ function operatorsCallback(dlist) {
 		var conc = new Array(1440).fill(0);	// initialise with zeros
 		OperatorCconc[dlist[i].LoginID] = conc;
 	}
-//	console.log("No of Operators: "+Object.keys(Operators).length);
 	sendToLogs("No of Operators: "+Object.keys(Operators).length);
 }
 
@@ -615,7 +611,6 @@ function foldersCallback(dlist) {
 			Folders[dlist[i].FolderID] = dlist[i].Name;
 		}
 	}
-//	console.log("No of Chat Folders: "+Object.keys(Folders).length);
 	sendToLogs("No of Chat Folders: "+Object.keys(Folders).length);
 }
 
@@ -626,7 +621,6 @@ function customStatusCallback(dlist) {
 		if(dlist[i].Name == CUSTOMST)
 			CUSTOMST_ID = dlist[i].CustomOperatorStatusID
 	}
-//	console.log("No of Custom Statuses: "+Object.keys(CustomStatus).length);
 	sendToLogs("No of Custom Statuses: "+Object.keys(CustomStatus).length);
 }
 
@@ -638,7 +632,6 @@ function deptOperatorsCallback(dlist, dept) {
 	}
 
 	DeptOperators[dept] = doperators;
-//	console.log("Operators in dept: "+dept+" - "+DeptOperators[dept].length);
 	sendToLogs("Operators in dept: "+dept+" - "+DeptOperators[dept].length);
 }
 
@@ -753,17 +746,17 @@ function processAnsweredChat(chat) {
 	opobj.activeChats.push(chat.ChatID);
 
 	var speed = Math.round((AllChats[chat.ChatID].answered - AllChats[chat.ChatID].started)/1000); // calc speed to answer for this chat
-  if(speed < 36000)		// make sure it is sensible 60sec * 60min * 10 hours
+	if(speed < 7200)		// make sure it is sensible 60sec * 60min * 2 hours
 	{
-  	Overall.tata = Overall.tata + speed;
-  	deptobj.tata = deptobj.tata + speed;
-  	sgobj.tata = sgobj.tata + speed;
-  	opobj.tata = opobj.tata + speed;
-  	Overall.asa = Math.round(Overall.tata / Overall.tcan);
-  	deptobj.asa = Math.round(deptobj.tata / deptobj.tcan);
-  	sgobj.asa = Math.round(sgobj.tata / sgobj.tcan);
-  	opobj.asa = Math.round(opobj.tata / opobj.tcan);
-  }
+		Overall.tata = Overall.tata + speed;
+		deptobj.tata = deptobj.tata + speed;
+		sgobj.tata = sgobj.tata + speed;
+		opobj.tata = opobj.tata + speed;
+		Overall.asa = Math.round(Overall.tata / Overall.tcan);
+		deptobj.asa = Math.round(deptobj.tata / deptobj.tcan);
+		sgobj.asa = Math.round(sgobj.tata / sgobj.tcan);
+		opobj.asa = Math.round(opobj.tata / opobj.tcan);
+	}
 
 	if(speed < SLATHRESHOLD)		// sla threshold in seconds
 	{
@@ -848,7 +841,7 @@ function processClosedChat(chat) {
 	sgobj.tcc++;
 	// add the total chat time for this chat
 	var chattime = Math.round((AllChats[chat.ChatID].ended - AllChats[chat.ChatID].answered)/1000);
-	if(chattime < 10000)
+	if(chattime < 18000)	// make sure it is sensible 60sec * 60min * 5 hours as some chats get left open for days
 	{
 		opobj.tcta = opobj.tcta + chattime;
 		Overall.tcta = Overall.tcta + chattime;
@@ -1023,8 +1016,23 @@ function processOperatorStatusChanged2(ostatus) {
 		return false;
 	}
 
-	getApiData("getOperatorAvailability","ServiceTypeID=1&OperatorID="+opid,operatorCustomStatusCallback);
+	var oldstatus = Operators[opid].status	// save old status for later processing
 	Operators[opid].status = ostatus.StatusType;	// new status - 0, 1 or 2
+	if(ostatus.StatusType !== oldstatus)	// make sure this is an actual change
+	{
+		Operators[opid].statusdtime = TimeNow;	// reset time in current status
+	}
+
+	if(ostatus.StatusType == 1)		// if away Get the custom status via async API call as currently not available in the trigger
+		getApiData("getOperatorAvailability","ServiceTypeID=1&OperatorID="+opid,operatorCustomStatusCallback);
+
+	if(ostatus.StatusType == 0)		// logged out
+	{
+		Operators[opid].cstatus = "";
+//		Operators[opid].statusdtime = 0;	// reset if operator logged out
+		Operators[opid].activeChats = new Array();	// reset active chats in case there are any transferred
+	}
+	return true;	
 }
 
 // This is called after chat is closed to save concurrency time
@@ -1433,7 +1441,7 @@ function getApiData(method,params,fcallback,cbparam) {
 		}
 	});
 }
-
+/*
 // calculates conc for all inactive chats (used during start up only)
 function calculateInactiveConc() {
 	if(ApiDataNotReady)
@@ -1444,7 +1452,7 @@ function calculateInactiveConc() {
 	}
 	calculateOperatorConc();
 }
-
+*/
 // calculate total chat times for concurrency
 function calculateOperatorConc() {
 	var opobj = new Object();
@@ -1481,7 +1489,7 @@ function getOperatorAvailabilityData() {
 	if(!OperatorsSetupComplete)
 	{
 		console.log("Static data not ready (OA): "+ApiDataNotReady);
-		setTimeout(getOperatorAvailabilityData, 2000);
+		setTimeout(getOperatorAvailabilityData,2000);
 		return;
 	}
 	getApiData("getOperatorAvailability", "ServiceTypeID=1", operatorAvailabilityCallback);
@@ -1493,7 +1501,7 @@ function getActiveChatData() {
 	if(!OperatorsSetupComplete)
 	{
 		console.log("Static data not ready (AC): "+ApiDataNotReady);
-		setTimeout(getActiveChatData, 1000);
+		setTimeout(getActiveChatData,1000);
 		return;
 	}
 
@@ -1656,7 +1664,7 @@ function allInactiveChats(chats) {
 		else
 			processWindowClosed(chats[i]);	// closed because unavailable or abandoned
 	}
-  updateUnavailableChats(chats);
+//  updateUnavailableChats(chats);
 }
 
 // gets today's chat data incase system was started during the day
@@ -1788,7 +1796,6 @@ function removeSocket(id, evname) {
 }
 
 function updateChatStats() {
-	var socketid;
 
 	if(!OperatorsSetupComplete) return;		//try again later
 
@@ -1801,7 +1808,7 @@ function updateChatStats() {
 		clearInterval(UpdateChatsIntID);
 		clearInterval(LongWaitChatsIntID);
 //		clearInterval(UnavailChatsIntID);
-		setTimeout(doStartOfDay,10000);	//restart after 5 seconds to give time for ajaxes to complete
+		setTimeout(doStartOfDay,12000);	//restart after 12 seconds to give time for ajaxes to complete
 		return;
 	}
 	calculateTCAN_TCUA_TCUQ();
@@ -1825,13 +1832,13 @@ function updateChatStats() {
 // setup all globals
 function doStartOfDay() {
 	initialiseGlobals();	// zero all memory
-	getApiData("getDepartments", 0, deptsCallback);
+	getApiData("getDepartments",0,deptsCallback);
 	sleep(100);
-	getApiData("getOperators", 0, operatorsCallback);
+	getApiData("getOperators",0,operatorsCallback);
 	sleep(100);
-	getApiData("getFolders", "FolderType=5", foldersCallback);	// get only chat folders
+	getApiData("getFolders","FolderType=5",foldersCallback);	// get only chat folders
 	sleep(100);
-	getApiData("getCustomOperatorStatuses", 0, customStatusCallback);
+	getApiData("getCustomOperatorStatuses",0,customStatusCallback);
 	sleep(100);
 	setUpDeptAndSkillGroups();
 	getActiveChatData();
