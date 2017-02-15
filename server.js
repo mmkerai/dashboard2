@@ -1,7 +1,7 @@
 /* RTA Dashboard for H3G.
  * This script should run on Heroku
  */
-// Version 1.25 8th Feb 2017
+// Version 1.26 15th Feb 2017
 /* acronyms used in this script
 // cconc - chat concurrency
 // cph - chats per hour
@@ -756,14 +756,14 @@ function processAnsweredChat(chat) {
 		deptobj.asa = Math.round(deptobj.tata / deptobj.tcan);
 		sgobj.asa = Math.round(sgobj.tata / sgobj.tcan);
 		opobj.asa = Math.round(opobj.tata / opobj.tcan);
-	}
 
-	if(speed < SLATHRESHOLD)		// sla threshold in seconds
-	{
-		Overall.csla++;
-		deptobj.csla++;
-		sgobj.csla++;
-		opobj.csla++;
+		if(speed < SLATHRESHOLD)		// sla threshold in seconds
+		{
+			Overall.csla++;
+			deptobj.csla++;
+			sgobj.csla++;
+			opobj.csla++;
+		}
 	}
 	return true;
 }
@@ -789,7 +789,7 @@ function processReassignedChat(chat) {
 	{
 		if(typeof Operators[tchat.operatorID] != 'undefined')
 		{
-			removeActiveChat(Operators[tchat.operatorID], chat.ChatID); // remove from previous op
+			removeActiveChat(Operators[tchat.operatorID],chat.ChatID); // remove from previous op
 			Operators[tchat.operatorID].tcan--;		// remove chat answereed credit from this operator
 			Departments[tchat.departmentID].tcan--;		// remove chat answereed credit from this dept
 			SkillGroups[tchat.skillgroup].tcan--;		// remove chat answereed credit from this skillgroup
@@ -800,7 +800,7 @@ function processReassignedChat(chat) {
 //		console.log("Previous Operator: "+Operators[tchat.operatorID].name);
 //		console.log("New Operator: "+opobj.name);
 		tchat.operatorID = chat.OperatorID;		// assign new operator to this chat
-		tchat.departmentID = chat.DepartmentID;		// assign new department to this chat
+		tchat.departmentID = chat.DepartmentID;	// assign new department to this chat
 		opobj.tcan++;							// and give him credit
 		opobj.activeChats.push(chat.ChatID);	// credit the new operator
 		deptobj.tcan++;							// and dept
@@ -913,8 +913,8 @@ function processWindowClosed(chat) {
 				sgobj.tcua++;
 			}
 		}
+		updateCSAT(chat);
 	}
-	updateCSAT(chat);
 	return true;
 }
 
@@ -1018,20 +1018,23 @@ function processOperatorStatusChanged2(ostatus) {
 
 	var oldstatus = Operators[opid].status	// save old status for later processing
 	Operators[opid].status = ostatus.StatusType;	// new status - 0, 1 or 2
+	if(ostatus.StatusType == 0)		// logged out
+	{
+		Operators[opid].cstatus = "";
+//		Operators[opid].statusdtime = 0;	// reset if operator logged out
+		Operators[opid].activeChats = new Array();	// reset active chats in case there are any transferred
+		return true;
+	}
+
 	if(ostatus.StatusType !== oldstatus)	// make sure this is an actual change
 	{
+		Operators[opid].cstatus = "";
 		Operators[opid].statusdtime = TimeNow;	// reset time in current status
 	}
 
 	if(ostatus.StatusType == 1)		// if away Get the custom status via async API call as currently not available in the trigger
 		getApiData("getOperatorAvailability","ServiceTypeID=1&OperatorID="+opid,operatorCustomStatusCallback);
 
-	if(ostatus.StatusType == 0)		// logged out
-	{
-		Operators[opid].cstatus = "";
-//		Operators[opid].statusdtime = 0;	// reset if operator logged out
-		Operators[opid].activeChats = new Array();	// reset active chats in case there are any transferred
-	}
 	return true;	
 }
 

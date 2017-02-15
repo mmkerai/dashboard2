@@ -2,7 +2,7 @@
 
 var ChatStatus = ["Logged Out","Away","Available"];
 var csvfile = null;
-var RTAVersion = "RTA Dashboard v1.25";
+var RTAVersion = "RTA Dashboard v1.26";
 
 function readCookie(name)
 {
@@ -499,7 +499,10 @@ NF.printSL = function(data) {
 	var slapc = 0;
 
 	if(data.tcan != 0)
+	{
 		slapc = Math.round((data.csla/data.tcan)*100);
+		if(slapc > 100) slapc = 100;	// can be greater than 100 if chat transfered
+	}
 
 	if (slapc == 0)			// 0 so default colour
 		return '<td>' + slapc + '%</td>';
