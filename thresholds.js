@@ -19,8 +19,8 @@ var NF = NF || {
 		
 		// SL thresholds
 		SL: {
-			green: 90,
-			amber: 85,
+			green: 75,
+			amber: 70,
 			red: 0
 		},
 		

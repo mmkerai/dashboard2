@@ -1,7 +1,7 @@
 /* RTA Dashboard for H3G.
  * This script should run on Heroku
  */
-// Version 1.27 10th April 2017
+// Version 1.26 15th Feb 2017
 /* acronyms used in this script
 // cconc - chat concurrency
 // cph - chats per hour
@@ -54,7 +54,7 @@ var SETTINGSID;
 var KEY;
 var SLATHRESHOLD, INQTHRESHOLD;	// chat in q threshold for double checking (in case trigger missed)
 var MAXCHATCONCURRENCY;
-var STARTDAY,CUSTOMST,CUSTOMST_ID;
+var TZONE,TOFFSET,CUSTOMST,CUSTOMST_ID;
 var AUTHUSERS = {};
 var DoUserAuth = true;	// default do manual auth from JSON
 
@@ -64,10 +64,10 @@ try
 	AID = EnVars.AID || 0;
 	SETTINGSID = EnVars.APISETTINGSID || 0;
 	KEY = EnVars.APIKEY || 0;
-	SLATHRESHOLD = EnVars.SLATHRESHOLDS || 30;
+	SLATHRESHOLD = EnVars.SLATHRESHOLDS || 90;
 	INQTHRESHOLD = EnVars.INQTHRESHOLD || 300;	 // 5 mins
 	MAXCHATCONCURRENCY = EnVars.MAXCHATCONCURRENCY || 2;
-	STARTDAY = JSON.parse(EnVars.STARTOFDAY) || {};	// contains hours and minutes (UTC)
+	TZONE = EnVars.TIMEZONE || "GMT";
 	CUSTOMST = EnVars.CUSTOMST || "Approaching Shrinkage";
 	DoUserAuth = false;		// if using config file then must be on TechM server so no user auth required
 }
@@ -79,10 +79,10 @@ catch(e)
 		AID = process.env.AID || 0;
 		SETTINGSID = process.env.APISETTINGSID || 0;
 		KEY = process.env.APIKEY || 0;
-		SLATHRESHOLD = process.env.SLATHRESHOLDS || 30;
+		SLATHRESHOLD = process.env.SLATHRESHOLDS || 90;
 		INQTHRESHOLD = process.env.INQTHRESHOLD || 300;
 		MAXCHATCONCURRENCY = process.env.MAXCHATCONCURRENCY || 2;
-		STARTDAY = JSON.parse(process.env.STARTOFDAY) || {};
+		TZONE = process.env.TIMEZONE || "GMT";
 		CUSTOMST = process.env.CUSTOMST || "Approaching Shrinkage";
 		AUTHUSERS = JSON.parse(process.env.AUTHUSERS) || {};
 	}
@@ -95,13 +95,14 @@ if(AID == 0 || SETTINGSID == 0 || KEY == 0)
 	console.log("BoldChat API Environmental Variables not set. Terminating!");
 	process.exit(1);
 }
-
-if(STARTDAY.hours > 23 || STARTDAY.hours < 0 || STARTDAY.minutes > 59 || STARTDAY.minutes < 0)
+/*
+if(TZONE != "GMT" && TZONE != "BST")
 {
-	console.log("Start of day time invalid - must from 00:00 to 23:59");
+	console.log("Timezone invalid - must be GMT or BST. Terminating!");
 	process.exit(1);
 }
-console.log("Start of Day: "+ STARTDAY.hours+":"+STARTDAY.minutes+" UTC");
+TOFFSET = (TZONE == "BST") ? 1 : 0;
+console.log("Time offset is: "+ TOFFSET+" hour");*/
 console.log("Config loaded successfully");
 var TriggerDomain = "https://h3gdashboard-dev.herokuapp.com";		// used to validate the signature of push data
 
@@ -299,6 +300,7 @@ var LongWaitChats;
 var UnavailableFifo;
 var UpdateChatsIntID;
 var LongWaitChatsIntID;
+//var UnavailChatsIntID;
 var AuthUsers = new Object();
 
 // load list of authorised users and their passwords
@@ -383,11 +385,12 @@ function initialiseGlobals () {
 	CustomStatus = new Object();
 	TimeNow = new Date();
 	StartOfDay = new Date();
-	StartOfDay.setUTCHours(STARTDAY.hours,STARTDAY.minutes,0,0);
-	if(StartOfDay > TimeNow)
-		StartOfDay.setDate(StartOfDay.getDate() - 1)	// previous day if past midnight but before start of day time
+//	StartOfDay.setHours(StartOfDay.getHours() + TOFFSET);	// allow for TIMEZONE
+	StartOfDay.setUTCHours(0,0,0,0);	// first milli second of the day
+//	StartOfDay.setHours(StartOfDay.getHours() - TOFFSET);	// allow for TIMEZONE
 	EndOfDay = new Date();
-	EndOfDay.setTime(StartOfDay.getTime() + ((24*60*60*1000) - 1));	// 24 hours less one milli from start of day 
+	EndOfDay.setUTCHours(23,59,59,999);	// last milli second of the day
+//	EndOfDay.setHours(EndOfDay.getHours() - TOFFSET);	// allow for TIMEZONE
 	Overall = new DashMetrics("Overall","Overall");
 	OperatorsSetupComplete = false;
 	ApiDataNotReady = 0;
@@ -1440,7 +1443,18 @@ function getApiData(method,params,fcallback,cbparam) {
 		}
 	});
 }
-
+/*
+// calculates conc for all inactive chats (used during start up only)
+function calculateInactiveConc() {
+	if(ApiDataNotReady)
+	{
+		console.log("Chat data not ready (CiC): "+ApiDataNotReady);
+		setTimeout(calculateInactiveConc, 1000);
+		return;
+	}
+	calculateOperatorConc();
+}
+*/
 // calculate total chat times for concurrency
 function calculateOperatorConc() {
 	var opobj = new Object();
@@ -1585,6 +1599,39 @@ function updateLongWaitChat(chat) {
 	} // if not answered or closed then this chat must still be in the queue so ignore
 }
 
+// get inactive chats by folder to calc unavailable. This is done every 12 sec
+/*
+function unavailableChatsTimer() {
+	if(UnavailableFifo.length > 0)	// check not empty
+	{
+		var folder = UnavailableFifo.shift();
+		var parameters = "FolderID="+folder.Fid+"&FromDate="+folder.Since;
+		getApiData("getInactiveChats",parameters,updateUnavailableChats);
+		var stime = new Date().toISOString();
+		UnavailableFifo.push({Fid: folder.Fid, Since: stime});
+	}
+}
+
+// find all unavailable chats from inactive chats response
+function updateUnavailableChats(chats) {
+	var deptobj,sgobj;
+	for(var i in chats)
+	{
+		deptobj = Departments[chats[i].DepartmentID];
+		if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
+		sgobj = SkillGroups[deptobj.skillgroup];
+		if(chats[i].ChatStatusType == 7 || chats[i].ChatStatusType == 8 || (chats[i].ChatStatusType >= 11 && chats[i].ChatStatusType <= 15))	// unavailable chat 7, 8, 11, 12, 13, 14 or 15
+		{
+			if(chats[i].Answered == "" || chats[i].Answered == null)	// only count as unavail if not answered
+			{
+				Overall.ntcun++;
+				deptobj.ntcun++;
+				sgobj.ntcun++;
+			}
+		}
+	}
+}
+*/
 // process all inactive (closed) chat objects - only used during startup
 function allInactiveChats(chats) {
 	for(var i in chats)
@@ -1619,6 +1666,7 @@ function allInactiveChats(chats) {
 		else
 			processWindowClosed(chats[i]);	// closed because unavailable or abandoned
 	}
+//  updateUnavailableChats(chats);
 }
 
 // gets today's chat data incase system was started during the day
@@ -1632,6 +1680,7 @@ function getInactiveChatData() {
 
 	// set date to start of today. Search seems to work by looking at closed time i.e. everything that closed after
 	// "FromDate" will be included even if the created datetime is before the FromDate.
+//	startDate.setHours(startDate.getHours() - TOFFSET);	// allow for TIMEZONE
 	console.log("Getting inactive chat info from "+ Object.keys(Folders).length +" folders");
 	console.log("Start Date: "+ StartOfDay.toISOString());
 	var parameters, stime;
@@ -1760,6 +1809,7 @@ function updateChatStats() {
 		postToArchive(csvdata);
 		clearInterval(UpdateChatsIntID);
 		clearInterval(LongWaitChatsIntID);
+//		clearInterval(UnavailChatsIntID);
 		setTimeout(doStartOfDay,12000);	//restart after 12 seconds to give time for ajaxes to complete
 		return;
 	}
@@ -1798,6 +1848,7 @@ function doStartOfDay() {
 	getOperatorAvailabilityData();
 	UpdateChatsIntID = setInterval(updateChatStats,3000);	// updates socket io data at infinitum
 	LongWaitChatsIntID = setInterval(longWaitChatsTimer,30000);
+//	UnavailChatsIntID = setInterval(unavailableChatsTimer,15000); dont need to do this anymore
 }
 
 function checkOperatorAvailability() {
