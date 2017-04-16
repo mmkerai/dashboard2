@@ -1,7 +1,7 @@
 /* RTA Dashboard for H3G.
  * This script should run on Heroku
  */
-// Version 1.27 10th April 2017
+// Version 1.28 15th April 2017
 /* acronyms used in this script
 // cconc - chat concurrency
 // cph - chats per hour
@@ -56,7 +56,7 @@ var SLATHRESHOLD, INQTHRESHOLD;	// chat in q threshold for double checking (in c
 var MAXCHATCONCURRENCY;
 var STARTDAY,CUSTOMST,CUSTOMST_ID;
 var AUTHUSERS = {};
-var DoUserAuth = true;	// default do manual auth from JSON
+var TriggerDomain = "https://h3gdashboard-dev.herokuapp.com";		// used to validate the signature of push data
 
 try
 {
@@ -67,9 +67,8 @@ try
 	SLATHRESHOLD = EnVars.SLATHRESHOLDS || 30;
 	INQTHRESHOLD = EnVars.INQTHRESHOLD || 300;	 // 5 mins
 	MAXCHATCONCURRENCY = EnVars.MAXCHATCONCURRENCY || 2;
-	STARTDAY = JSON.parse(EnVars.STARTOFDAY) || {};	// contains hours and minutes (UTC)
+	STARTDAY = EnVars.STARTOFDAY || {"hours":0,"minutes":0};	// contains hours and minutes (UTC)
 	CUSTOMST = EnVars.CUSTOMST || "Approaching Shrinkage";
-	DoUserAuth = false;		// if using config file then must be on TechM server so no user auth required
 }
 catch(e)
 {
@@ -103,7 +102,6 @@ if(STARTDAY.hours > 23 || STARTDAY.hours < 0 || STARTDAY.minutes > 59 || STARTDA
 }
 console.log("Start of Day: "+ STARTDAY.hours+":"+STARTDAY.minutes+" UTC");
 console.log("Config loaded successfully");
-var TriggerDomain = "https://h3gdashboard-dev.herokuapp.com";		// used to validate the signature of push data
 
 //****** Callbacks for all URL requests
 app.get('/', function(req, res){
@@ -301,20 +299,93 @@ var UpdateChatsIntID;
 var LongWaitChatsIntID;
 var AuthUsers = new Object();
 
-// load list of authorised users and their passwords
-if(DoUserAuth)
+var au = [];
+au = AUTHUSERS.users;
+for(var i in au)
 {
-	var au = [];
-	au = AUTHUSERS.users;
-	for(var i in au)
-	{
-		var uname = au[i].name;
-		var pwd = au[i].pwd;
-		AuthUsers[uname] = pwd;
-	//	console.log("User: "+uname+" saved");
-	}
-	console.log(Object.keys(AuthUsers).length +" user credentials loaded");
+	var uname = au[i].name;
+	var pwd = au[i].pwd;
+	AuthUsers[uname] = pwd;
+//	console.log("User: "+uname+" saved");
 }
+console.log(Object.keys(AuthUsers).length +" user credentials loaded");
+
+
+// Process incoming Boldchat triggered chat data
+app.post('/chat-started', function(req, res){
+	Exceptions.chatsStarted++;
+	res.send({ "result": "success" });
+	if(validateSignature(req.body, TriggerDomain+'/chat-started'))
+	{
+		sendToLogs("Chat-started, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
+		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
+			processStartedChat(req.body);
+	}
+});
+
+// Process incoming Boldchat triggered chat data
+app.post('/chat-answered', function(req, res){
+	Exceptions.chatsAnswered++;
+	res.send({ "result": "success" });
+	if(validateSignature(req.body, TriggerDomain+'/chat-answered'))
+	{
+		sendToLogs("Chat-answered, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
+		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
+			processAnsweredChat(req.body);
+	}
+});
+
+// Process incoming Boldchat triggered chat re-assigned message
+app.post('/chat-reassigned', function(req, res) {
+	Exceptions.chatReassigned++;
+	res.send({ "result": "success" });
+	if(validateSignature(req.body, TriggerDomain+'/chat-reassigned'))
+	{
+		sendToLogs("chat-reassigned, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
+		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
+			processReassignedChat(req.body);
+	}
+});
+
+// Process incoming Boldchat triggered chat data
+app.post('/chat-closed', function(req, res){
+	Exceptions.chatsClosed++;
+	res.send({ "result": "success" });
+	if(validateSignature(req.body, TriggerDomain+'/chat-closed'))
+	{
+		sendToLogs("Chat-closed, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
+		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
+			processClosedChat(req.body);
+	}
+});
+
+// Process incoming Boldchat triggered chat data
+app.post('/chat-window-closed', function(req, res){
+	Exceptions.chatsWinClosed++;
+	res.send({ "result": "success" });
+	if(validateSignature(req.body, TriggerDomain+'/chat-window-closed'))
+	{
+		sendToLogs("Chat-window-closed, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
+		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
+			processWindowClosed(req.body);
+	}
+});
+
+// Process incoming Boldchat triggered operator data
+app.post('/operator-status-changed', function(req, res) {
+	Exceptions.opStatusChanged++;
+	res.send({ "result": "success" });
+	if(validateSignature(req.body, TriggerDomain+'/operator-status-changed'))
+	{
+		sendToLogs("operator-status-changed, operator: "+req.body.Name);
+		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
+		{
+			processOperatorStatusChanged2(req.body);
+		}
+	}
+});
+
+// Functions below this point
 
 function sleep(milliseconds) {
 	var start = new Date().getTime();
@@ -396,79 +467,6 @@ function initialiseGlobals () {
 	LongWaitChats = new Array();
 	UnavailableFifo = new Array();
 }
-// Process incoming Boldchat triggered chat data
-app.post('/chat-started', function(req, res){
-	Exceptions.chatsStarted++;
-	res.send({ "result": "success" });
-	if(validateSignature(req.body, TriggerDomain+'/chat-started'))
-	{
-		sendToLogs("Chat-started, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
-		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
-			processStartedChat(req.body);
-	}
-});
-
-// Process incoming Boldchat triggered chat data
-app.post('/chat-answered', function(req, res){
-	Exceptions.chatsAnswered++;
-	res.send({ "result": "success" });
-	if(validateSignature(req.body, TriggerDomain+'/chat-answered'))
-	{
-		sendToLogs("Chat-answered, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
-		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
-			processAnsweredChat(req.body);
-	}
-});
-
-// Process incoming Boldchat triggered chat re-assigned message
-app.post('/chat-reassigned', function(req, res) {
-	Exceptions.chatReassigned++;
-	res.send({ "result": "success" });
-	if(validateSignature(req.body, TriggerDomain+'/chat-reassigned'))
-	{
-		sendToLogs("chat-reassigned, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
-		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
-			processReassignedChat(req.body);
-	}
-});
-
-// Process incoming Boldchat triggered chat data
-app.post('/chat-closed', function(req, res){
-	Exceptions.chatsClosed++;
-	res.send({ "result": "success" });
-	if(validateSignature(req.body, TriggerDomain+'/chat-closed'))
-	{
-		sendToLogs("Chat-closed, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
-		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
-			processClosedChat(req.body);
-	}
-});
-
-// Process incoming Boldchat triggered chat data
-app.post('/chat-window-closed', function(req, res){
-	Exceptions.chatsWinClosed++;
-	res.send({ "result": "success" });
-	if(validateSignature(req.body, TriggerDomain+'/chat-window-closed'))
-	{
-		sendToLogs("Chat-window-closed, chat id: "+req.body.ChatID+",ChatStatusType is "+req.body.ChatStatusType);
-		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
-			processWindowClosed(req.body);
-	}
-});
-
-// Process incoming Boldchat triggered operator data
-app.post('/operator-status-changed', function(req, res) {
-	Exceptions.opStatusChanged++;
-	res.send({ "result": "success" });
-	if(validateSignature(req.body, TriggerDomain+'/operator-status-changed'))
-	{
-		sendToLogs("operator-status-changed, operator: "+req.body.Name);
-		if(OperatorsSetupComplete)		//make sure all static data has been obtained first
-		{
-			processOperatorStatusChanged2(req.body);
-		}
-	}
-});
 
 // Set up code for outbound BoldChat API calls.  All of the capture callback code should ideally be packaged as an object.
 
@@ -1503,7 +1501,7 @@ function getActiveChatData() {
 
 // setup dept and skills by operator for easy indexing. Used during start up only
 function setUpDeptAndSkillGroups() {
-	if(ApiDataNotReady)
+	if(ApiDataNotReady > 0)
 	{
 		console.log("Static data not ready (setD&SG): "+ApiDataNotReady);
 		setTimeout(setUpDeptAndSkillGroups, 1000);
