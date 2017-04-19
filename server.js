@@ -1,7 +1,7 @@
 /* RTA Dashboard for H3G.
  * This script should run on Heroku
  */
-// Version 1.28 15th April 2017
+// Version 1.29 19th April 2017
 /* acronyms used in this script
 // cconc - chat concurrency
 // cph - chats per hour
@@ -562,6 +562,7 @@ function deptsCallback(dlist) {
 		ch2 = dname.indexOf("]");
 		sg = dname.substring(ch1+1,ch2);	// name between the brackets
 		str = dname.substring(ch2+1);		// remainder of the name
+		if(str == null) continue;		// ignore if nothing after the square brackets
 		ch3 = str.match("[A-Za-z0-9]+").index;
 		newname = str.substring(ch3);
 
