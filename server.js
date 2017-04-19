@@ -523,7 +523,6 @@ function postToArchive(postdata) {
 	post_req.write(postdata);
 	post_req.end();
 	post_req.on('error', function(err){console.log("HTML error"+err.stack)});
-	console.log("End of day archived successfully");
 }
 
 function debugLog(name, dataobj) {
@@ -557,12 +556,12 @@ function deptsCallback(dlist) {
 	{
 		dname = dlist[i].Name;
 		sg = dname.match("^\\[(.*)]");	// match square brackets at beginning
-		if(sg == null) continue;		// dept name does not match a skillgroup in square brackets
+		if(sg === null) continue;		// dept name does not match a skillgroup in square brackets
 		ch1 = dname.indexOf("[");
 		ch2 = dname.indexOf("]");
 		sg = dname.substring(ch1+1,ch2);	// name between the brackets
 		str = dname.substring(ch2+1);		// remainder of the name
-		if(str == null) continue;		// ignore if nothing after the square brackets
+		if(str === null || typeof str == 'undefined') continue;		// ignore if nothing after the square brackets
 		ch3 = str.match("[A-Za-z0-9]+").index;
 		newname = str.substring(ch3);
 
@@ -1759,6 +1758,7 @@ function updateChatStats() {
 		console.log(TimeNow.toISOString()+": New day started, stats reset");
 		var csvdata = getCsvChatData();
 		postToArchive(csvdata);
+		console.log("End of day archived successfully");
 		clearInterval(UpdateChatsIntID);
 		clearInterval(LongWaitChatsIntID);
 		setTimeout(doStartOfDay,12000);	//restart after 12 seconds to give time for ajaxes to complete
