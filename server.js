@@ -459,6 +459,8 @@ function initialiseGlobals () {
 		StartOfDay.setDate(StartOfDay.getDate() - 1)	// previous day if past midnight but before start of day time
 	EndOfDay = new Date();
 	EndOfDay.setTime(StartOfDay.getTime() + ((24*60*60*1000) - 1));	// 24 hours less one milli from start of day 
+	console.log("Start of Day: "+StartOfDay.toISOString());
+	console.log("End of Day: "+EndOfDay.toISOString());
 	Overall = new DashMetrics("Overall","Overall");
 	OperatorsSetupComplete = false;
 	ApiDataNotReady = 0;
