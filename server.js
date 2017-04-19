@@ -561,10 +561,10 @@ function deptsCallback(dlist) {
 		ch2 = dname.indexOf("]");
 		sg = dname.substring(ch1+1,ch2);	// name between the brackets
 		str = dname.substring(ch2+1);		// remainder of the name
-		if(str === null || typeof str == 'undefined') continue;		// ignore if nothing after the square brackets
+		if(str === null) continue;		// ignore if nothing after the square brackets
 		ch3 = str.match("[A-Za-z0-9]+").index;
 		newname = str.substring(ch3);
-
+		console.log("Dept saved: "+newname);
 		Departments[dlist[i].DepartmentID] = new DashMetrics(dlist[i].DepartmentID,newname,sg);
 		SkillGroups[sg] = new DashMetrics(sg,sg,"n/a");
 	}
