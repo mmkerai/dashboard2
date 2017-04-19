@@ -560,7 +560,7 @@ function deptsCallback(dlist) {
 		ch1 = dname.indexOf("[");
 		ch2 = dname.indexOf("]");
 		sg = dname.substring(ch1+1,ch2);	// name between the brackets
-		if(ch2 == dname.length) continue;
+		if((ch2+1) >= dname.length) continue;
 		str = dname.substring(ch2+1);		// remainder of the name
 		if(str === null) continue;		// ignore if nothing after the square brackets
 		ch3 = str.match("[A-Za-z0-9]+").index;
