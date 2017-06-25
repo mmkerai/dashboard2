@@ -1,7 +1,7 @@
 /* RTA Dashboard for H3G.
  * This script should run on Heroku
  */
-// Version 1.29 19th April 2017
+// Version 1.30 25th June 2017
 /* acronyms used in this script
 // cconc - chat concurrency
 // cph - chats per hour
@@ -646,7 +646,7 @@ function operatorAvailabilityCallback(dlist) {
 	for(var i in dlist)
 	{
 		operator = dlist[i].LoginID;
-		if(typeof(OperatorSkills[operator]) !== 'undefined')		// check operator id is valid
+		if(typeof(OperatorSkills[operator]) !== 'undefined' && typeof(Operators[operator]) !== 'undefined')		// check operator id is valid
 		{
 			Operators[operator].status = dlist[i].StatusType;
 			Operators[operator].cstatus = (dlist[i].CustomOperatorStatusID === null ? "" : CustomStatus[dlist[i].CustomOperatorStatusID]);
@@ -709,8 +709,8 @@ function processStartedChat(chat) {
 	var deptobj = Departments[chat.DepartmentID];
 	if(typeof(deptobj) === 'undefined') return false;		// a dept we are not interested in
 
-  var tchat = AllChats[chat.ChatID];
-  if(typeof(tchat) === 'undefined')	  // not yet in today's list
+	var tchat = AllChats[chat.ChatID];
+	if(typeof(tchat) === 'undefined')	  // not yet in today's list
 	{
 	   tchat = new ChatData(chat.ChatID, chat.DepartmentID, Departments[chat.DepartmentID].skillgroup);
 	}
@@ -1143,7 +1143,7 @@ function calculateCPH() {
 				Overall.cph++;
 				Departments[tchat.departmentID].cph++;
 				SkillGroups[tchat.skillgroup].cph++;
-				if(tchat.operatorID)		// make sure operator id is not missing
+				if(typeof(Operators[tchat.operatorID]) !== 'undefined')		// make sure operator id is not missing
 					Operators[tchat.operatorID].cph++;
 			}
 		}
@@ -1171,7 +1171,7 @@ function calculateLWT_CIQ_TAC() {
 	for(var i in AllChats)
 	{
 		tchat = AllChats[i];
-		if(tchat.status == 1)		// chat not answered yet
+		if(tchat.status === 1)		// chat not answered yet
 		{
 			Overall.ciq++;
 			Departments[tchat.departmentID].ciq++;
@@ -1192,7 +1192,7 @@ function calculateLWT_CIQ_TAC() {
 			if(maxwait < waittime)
 				maxwait = waittime;
 		}
-		else if(tchat.status == 2)	// active chat
+		else if(tchat.status === 2)	// active chat
 		{
 			Overall.tac++;
 			Departments[tchat.departmentID].tac++;
@@ -1229,7 +1229,7 @@ function calculateACC_CCONC() {
 	for(var i in OperatorDepts)
 	{
 		depts = OperatorDepts[i];
-		if(typeof(depts) === 'undefined') continue;	// operator not recognised
+		if(typeof(depts) === 'undefined') continue;	// dept not recognised
 
 		opobj = Operators[i];
 		if(typeof(opobj) === 'undefined') continue;	// operator not recognised
@@ -1247,7 +1247,7 @@ function calculateACC_CCONC() {
 		sgid = OperatorSkills[i];
 		SkillGroups[sgid].tct = SkillGroups[sgid].tct + opobj.tct;
 		SkillGroups[sgid].mct = SkillGroups[sgid].mct + opobj.mct;
-		if(opobj.status == 2)		// make sure operator is available
+		if(opobj.status === 2)		// make sure operator is available
 		{
 			opobj.acc = opobj.maxcc - opobj.activeChats.length;
 			if(opobj.acc < 0) opobj.acc = 0;			// make sure not negative
@@ -1363,7 +1363,7 @@ function calculateOperatorStatuses() {
 		depts = OperatorDepts[opid];
 		if(typeof(depts) === 'undefined') continue;	// operator depts not recognised
 		
-		if(Operators[opid].status == 2)	// available
+		if(Operators[opid].status === 2)	// available
 		{
 			Overall.oavail++;
 			SkillGroups[OperatorSkills[opid]].oavail++;
@@ -1372,7 +1372,7 @@ function calculateOperatorStatuses() {
 				Departments[depts[did]].oavail++;
 			}					
 		}
-		else if(Operators[opid].status == 1 && Operators[opid].cstatus == CUSTOMST)	// shrinkage
+		else if(Operators[opid].status === 1 && Operators[opid].cstatus == CUSTOMST)	// shrinkage
 		{
 			Overall.ocustomst++;
 			SkillGroups[OperatorSkills[opid]].ocustomst++;
@@ -1381,7 +1381,7 @@ function calculateOperatorStatuses() {
 				Departments[depts[did]].ocustomst++;
 			}						
 		}
-		else if(Operators[opid].status == 1) // must be just away 
+		else if(Operators[opid].status === 1) // must be just away 
 		{
 			Overall.oaway++;
 			SkillGroups[OperatorSkills[opid]].oaway++;
@@ -1565,7 +1565,7 @@ function updateLongWaitChat(chat) {
 	{
 		if(chat.Answered !== "" && chat.Answered !== null)
 		{
-			if(AllChats[chat.ChatID].status == 1)	// if chat was waiting to be answered
+			if(AllChats[chat.ChatID].status === 1)	// if chat was waiting to be answered
 			{
 				processAnsweredChat(chat);
 				Exceptions.longWaitChatUpdate++;
@@ -1577,7 +1577,7 @@ function updateLongWaitChat(chat) {
 		}
 		else if(chat.WindowClosed !== "" && chat.WindowClosed !== null)
 		{
-			if(AllChats[chat.ChatID].status == 1)	// if chat was waiting to be answered now closed means unanswered
+			if(AllChats[chat.ChatID].status === 1)	// if chat was waiting to be answered now closed means unanswered
 			{
 				processWindowClosed(chat);
 				Exceptions.longWaitChatUpdate++;
