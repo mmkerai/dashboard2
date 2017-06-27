@@ -1,7 +1,7 @@
 /* RTA Dashboard for H3G.
  * This script should run on Heroku
  */
-// Version 1.30 25th June 2017
+// Version 1.31 27th June 2017
 /* acronyms used in this script
 // cconc - chat concurrency
 // cph - chats per hour
@@ -28,6 +28,7 @@
 // mct - multi chat time (time in more than 1 chat)
 // csla - no of chats within sla
 */
+
 //****** Set up Express Server and socket.io
 var http = require('http');
 var https = require('https');
@@ -399,7 +400,6 @@ function sleep(milliseconds) {
 }
 
 function validateSignature(body, triggerUrl) {
-
 	var unencrypted = getUnencryptedSignature(body, triggerUrl);
 	var encrypted = encryptSignature(unencrypted);
 //	console.log('unencrypted signature', unencrypted);
@@ -1418,7 +1418,6 @@ function getApiData(method,params,fcallback,cbparam) {
 		{
 			Exceptions.APIJsonError++;
 			emsg = TimeNow+ ": API did not return JSON message: "+str;
-			console.log(emsg);
 			sendToLogs(emsg);
 			return;
 		}
@@ -1428,7 +1427,6 @@ function getApiData(method,params,fcallback,cbparam) {
 		{
 			Exceptions.noJsonDataMsg++;
 			emsg = TimeNow+ ":"+method+": No data: "+str;
-			console.log(emsg);
 			sendToLogs(emsg);
 			return;
 		}
@@ -1482,6 +1480,7 @@ function getOperatorAvailabilityData() {
 		return;
 	}
 	getApiData("getOperatorAvailability", "ServiceTypeID=1", operatorAvailabilityCallback);
+	console.log("Getting Operator Availability");
 	setTimeout(checkOperatorAvailability,60000);		// check if successful after a minute
 }
 
@@ -1494,6 +1493,7 @@ function getActiveChatData() {
 		return;
 	}
 
+	console.log("Getting active chat info from "+ Object.keys(Departments).length +" departments");
 	for(var did in Departments)	// active chats are by department
 	{
 		parameters = "DepartmentID="+did;
@@ -1502,7 +1502,7 @@ function getActiveChatData() {
 	}
 }
 
-// setup dept and skills by operator for easy indexing. Used during start up only
+// setup dept and skills by operator for easy indexing. Called during start up only
 function setUpDeptAndSkillGroups() {
 	if(ApiDataNotReady > 0)
 	{
@@ -1732,7 +1732,6 @@ io.on('connection', function(socket){
 	});
 
 	socket.on('downloadChats', function(data) {
-//		console.log("Download chats requested");
 		sendToLogs("Download chats requested");
 		var csvdata = getCsvChatData();
 		socket.emit('chatsCsvResponse',csvdata);
@@ -1787,13 +1786,13 @@ function updateChatStats() {
 function doStartOfDay() {
 	initialiseGlobals();	// zero all memory
 	getApiData("getDepartments",0,deptsCallback);
-	sleep(100);
+	sleep(500);
 	getApiData("getOperators",0,operatorsCallback);
-	sleep(100);
+	sleep(500);
 	getApiData("getFolders","FolderType=5",foldersCallback);	// get only chat folders
-	sleep(100);
+	sleep(500);
 	getApiData("getCustomOperatorStatuses",0,customStatusCallback);
-	sleep(100);
+	sleep(500);
 	setUpDeptAndSkillGroups();
 	getActiveChatData();
 	getInactiveChatData();
