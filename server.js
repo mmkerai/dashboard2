@@ -273,6 +273,14 @@ var OpMetrics  = function(id,name) {
 		this.csat = new Csat();
 };
 
+//********************************* Global constants
+const OVERALL_ROOM = "overall_room";
+const SKILLGROUP_ROOM = "skillgroup_room";
+const DEPARTMENT_ROOM = "department_room";
+const OPERATOR_ROOM = "operator_room";
+const DEPTOPERATOR_ROOM = "deptoperator_room";
+const MONITOR_ROOM = "monitor_room";
+
 //********************************* Global variables for chat data
 var LoggedInUsers;	// used for socket ids
 var UsersLoggedIn;	// used for unique auth users logged in
@@ -1740,6 +1748,16 @@ io.on('connection', function(socket){
     socket.on('updateCustomStatus', function(data) {
       getApiData("getOperatorAvailability", "ServiceTypeID=1&OperatorID="+data, operatorCustomStatusCallback);
   	});
+	
+	socket.on('join room',function(room){
+		if(LoggedInUsers[socket.id] !== undefined)
+		{
+			console.log("Joining room "+room);
+			socket.join(room);
+		}
+		else
+			console.log("Security error - joining room without logging in");
+	});
 });
 
 function removeSocket(id, evname) {
@@ -1777,9 +1795,9 @@ function updateChatStats() {
 	io.emit('departmentStats',Departments);
 	io.emit('deptOperators',DeptOperators);
 	io.emit('operatorStats',Operators);
-	io.emit('consoleLogs',str);
-	io.emit('exceptions',Exceptions);
-	io.emit('usersLoggedIn',UsersLoggedIn);
+	io.sockets.in(MONITOR_ROOM).emit('consoleLogs',str);
+	io.sockets.in(MONITOR_ROOM).emit('exceptions',Exceptions);
+	io.sockets.in(MONITOR_ROOM).emit('usersLoggedIn',UsersLoggedIn);
 }
 
 // setup all globals

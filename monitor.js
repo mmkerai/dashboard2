@@ -39,7 +39,7 @@ $(document).ready(function() {
 		$('#message1').text("");
 		$('#myname').text(data.name);
 		$('#signinform').hide();
-		$('#topTable').show();
+		socket.emit('join room',"monitor_room");
 	});
 
 	socket.on('consoleLogs', function(data){
