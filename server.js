@@ -1790,11 +1790,12 @@ function updateChatStats() {
 	var str = TimeNow.toISOString()+": Today's chats: "+Object.keys(AllChats).length;
 //	str = str + "\r\nClients connected: "+io.eio.clientsCount;	// useful for debuging socket.io errors
 	console.log(str);
-	io.emit('overallStats',Overall);
+//	io.emit('overallStats',Overall);
 	io.emit('skillGroupStats',SkillGroups);
 	io.emit('departmentStats',Departments);
 	io.emit('deptOperators',DeptOperators);
 	io.emit('operatorStats',Operators);
+	io.sockets.in(OVERALL_ROOM).emit('overallStats',Overall);
 	io.sockets.in(MONITOR_ROOM).emit('consoleLogs',str);
 	io.sockets.in(MONITOR_ROOM).emit('exceptions',Exceptions);
 	io.sockets.in(MONITOR_ROOM).emit('usersLoggedIn',UsersLoggedIn);

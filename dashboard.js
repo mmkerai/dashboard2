@@ -39,6 +39,7 @@ $(document).ready(function() {
 		$('#myname').text(data.name);
 		$("#signinform").hide();
 		$("#topTable").show();
+		socket.emit('join room',"overall_room");
 	});	
 	socket.on('overallStats', function(data) {		
 		$("#ctime").text("Last refreshed: "+new Date().toLocaleString());
