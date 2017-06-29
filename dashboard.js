@@ -23,16 +23,16 @@ $(document).ready(function() {
 	socket.on('disconnect', function(data){
 		console.log("socket error at "+ new Date().toGMTString());
 	});
-	socket.on('connect_timeout', function(data){
+	socket.on('connect_timeout',function(data){
 		console.log("socket timeout at "+ new Date().toGMTString());
 	});
-	socket.on('connect_error', function(data){
+	socket.on('connect_error',function(data){
 		console.log("socket connect error at "+ new Date().toGMTString());
 	});
- 	socket.on('errorResponse', function(data) {
+ 	socket.on('errorResponse',function(data) {
 		$("#message1").text(data);
 	});
-	socket.on('authResponse', function(data) {
+	socket.on('authResponse',function(data) {
 		saveCookie("username", data.name, 1);	// save as cookie for 1 day
 		saveCookie("password", data.pwd, 1);
 		$('#message1').text("");
@@ -41,11 +41,11 @@ $(document).ready(function() {
 		$("#topTable").show();
 		socket.emit('join room',"overall_room");
 	});	
-	socket.on('overallStats', function(data) {		
+	socket.on('overallStats',function(data) {		
 		$("#ctime").text("Last refreshed: "+new Date().toLocaleString());
 		showTopLevelStats(data);
 	});		
-	socket.on('skillGroupStats', function(ddata) {
+	socket.on('skillGroupStats',function(ddata) {
 		for(var i in ddata)
 			showTopLevelStats(ddata[i]);
 	});

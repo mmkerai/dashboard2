@@ -1,7 +1,7 @@
 /* RTA Dashboard for H3G.
  * This script should run on Heroku
  */
-// Version 1.31 27th June 2017
+// Version 1.32 29th June 2017
 /* acronyms used in this script
 // cconc - chat concurrency
 // cph - chats per hour
@@ -1750,13 +1750,13 @@ io.on('connection', function(socket){
   	});
 	
 	socket.on('join room',function(room){
-		if(LoggedInUsers[socket.id] !== undefined)
+		if(LoggedInUsers.indexOf(socket.id) < 0)
+			console.log("Security error - joining room without logging in");
+		else
 		{
 			console.log("Joining room "+room);
 			socket.join(room);
 		}
-		else
-			console.log("Security error - joining room without logging in");
 	});
 });
 
