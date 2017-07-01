@@ -544,7 +544,7 @@ function debugLog(name, dataobj) {
 
 function sendToLogs(text) {
 	console.log(text);
-	io.emit('consoleLogs', text);
+	io.sockets.in(MONITOR_ROOM).emit('consoleLogs',text);
 }
 
 function deptsCallback(dlist) {
@@ -928,7 +928,7 @@ function processWindowClosed(chat) {
 	}
 	return true;
 }
-
+/*
 // process operator status changed. or unavailable
 function processOperatorStatusChanged(ostatus) {
 
@@ -1013,7 +1013,7 @@ function processOperatorStatusChanged(ostatus) {
 	}
 	return true;
 }
-
+*/
 // process operator status changed2. This leave it for the another func to add up everything
 function processOperatorStatusChanged2(ostatus) {
 
@@ -1371,7 +1371,7 @@ function calculateOperatorStatuses() {
 		depts = OperatorDepts[opid];
 		if(typeof(depts) === 'undefined') continue;	// operator depts not recognised
 		
-		if(Operators[opid].status === 2)	// available
+		if(Operators[opid].status == 2)	// available
 		{
 			Overall.oavail++;
 			SkillGroups[OperatorSkills[opid]].oavail++;
@@ -1380,7 +1380,7 @@ function calculateOperatorStatuses() {
 				Departments[depts[did]].oavail++;
 			}					
 		}
-		else if(Operators[opid].status === 1 && Operators[opid].cstatus == CUSTOMST)	// shrinkage
+		else if(Operators[opid].status == 1 && Operators[opid].cstatus == CUSTOMST)	// shrinkage
 		{
 			Overall.ocustomst++;
 			SkillGroups[OperatorSkills[opid]].ocustomst++;
@@ -1389,7 +1389,7 @@ function calculateOperatorStatuses() {
 				Departments[depts[did]].ocustomst++;
 			}						
 		}
-		else if(Operators[opid].status === 1) // must be just away 
+		else if(Operators[opid].status == 1) // must be just away 
 		{
 			Overall.oaway++;
 			SkillGroups[OperatorSkills[opid]].oaway++;
@@ -1718,13 +1718,14 @@ io.on('connection', function(socket){
 	});
 
 	socket.on('disconnect', function(data){
-		console.log("connection disconnect");
+		console.log("connection disconnect. Socket id: "+socket.id);
 		var index = LoggedInUsers.indexOf(socket.id);
 		if(index > -1) LoggedInUsers.splice(index, 1);	// remove from list of valid users
 
 		if(UsersLoggedIn[socket.id] !== undefined)
 		{
 			var username = UsersLoggedIn[socket.id];
+			console.log("Disconnected User: "+username);
 			UsersLoggedIn[socket.id] = undefined;
 			if(io.sockets.sockets[username] !== undefined)
 				io.sockets.sockets[username] = undefined;
@@ -1751,7 +1752,7 @@ io.on('connection', function(socket){
 	
 	socket.on('join room',function(room){
 		if(LoggedInUsers.indexOf(socket.id) < 0)
-			console.log("Security error - joining room without logging in");
+			console.log("Security error - trying to join room without logging in");
 		else
 		{
 			console.log("Joining room "+room);
@@ -1790,12 +1791,13 @@ function updateChatStats() {
 	var str = TimeNow.toISOString()+": Today's chats: "+Object.keys(AllChats).length;
 //	str = str + "\r\nClients connected: "+io.eio.clientsCount;	// useful for debuging socket.io errors
 	console.log(str);
-	io.emit('overallStats',Overall);
+//	io.emit('overallStats',Overall);
 	io.emit('skillGroupStats',SkillGroups);
 	io.emit('departmentStats',Departments);
 	io.emit('deptOperators',DeptOperators);
-	io.emit('operatorStats',Operators);
-//	io.sockets.in(OVERALL_ROOM).emit('overallStats',Overall);
+	io.sockets.in(OPERATOR_ROOM).emit('operatorStats',Operators);
+//	io.emit('operatorStats',Operators);
+	io.sockets.in(OVERALL_ROOM).emit('overallStats',Overall);
 	io.sockets.in(MONITOR_ROOM).emit('consoleLogs',str);
 	io.sockets.in(MONITOR_ROOM).emit('exceptions',Exceptions);
 	io.sockets.in(MONITOR_ROOM).emit('usersLoggedIn',UsersLoggedIn);

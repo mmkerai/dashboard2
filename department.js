@@ -48,6 +48,7 @@ did = getURLParameter("did");
 		$('#myname').text(data.name);
 		$("#signinform").hide();
 		$("#deptTable").show();
+		socket.emit('join room',"operator_room");
 	});
 
 	socket.on('deptOperators', function(ddata){
