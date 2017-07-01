@@ -48,11 +48,10 @@ did = getURLParameter("did");
 		$('#myname').text(data.name);
 		$("#signinform").hide();
 		$("#deptTable").show();
-		socket.emit('join room',"operator_room");
+		socket.emit('deptOperatorsRequest',"");
 	});
 
-/*	socket.on('deptOperators', function(ddata){
-
+	socket.on('deptOperatorsResponse', function(ddata){
 		DeptOperators = ddata[did];	// get dept operators
 	});
 
@@ -63,7 +62,7 @@ did = getURLParameter("did");
 				showOperatorStats(ddata[i]);
 		}
 	});
-*/
+
 	socket.on('operatorStats', function(ddata){
 		$("#ctime").text("Last refreshed: "+new Date().toLocaleString());
 

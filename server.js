@@ -1750,6 +1750,10 @@ io.on('connection', function(socket){
       getApiData("getOperatorAvailability", "ServiceTypeID=1&OperatorID="+data, operatorCustomStatusCallback);
   	});
 	
+    socket.on('deptOperatorsRequest', function(data) {
+      socket.emit('deptOperatorsResponse',DeptOperators);
+  });
+	
 	socket.on('join room',function(room){
 		if(LoggedInUsers.indexOf(socket.id) < 0)
 			console.log("Security error - trying to join room without logging in");
@@ -1783,7 +1787,7 @@ function updateChatStats() {
 		setTimeout(doStartOfDay,12000);	//restart after 12 seconds to give time for ajaxes to complete
 		return;
 	}
-	io.sockets.in(OPERATOR_ROOM).emit('operatorStats',Operators);
+//	io.sockets.in(OPERATOR_ROOM).emit('operatorStats',Operators);
 	calculateTCAN_TCUA_TCUQ();
 	calculateLWT_CIQ_TAC();
 	calculateCPH();
@@ -1795,8 +1799,8 @@ function updateChatStats() {
 	io.emit('overallStats',Overall);
 	io.emit('skillGroupStats',SkillGroups);
 	io.emit('departmentStats',Departments);
-	io.emit('deptOperators',DeptOperators);
-//	io.emit('operatorStats',Operators);
+//	io.emit('deptOperators',DeptOperators);
+	io.emit('operatorStats',Operators);
 //	io.sockets.in(OVERALL_ROOM).emit('overallStats',Overall);
 	io.sockets.in(MONITOR_ROOM).emit('consoleLogs',str);
 	io.sockets.in(MONITOR_ROOM).emit('exceptions',Exceptions);
