@@ -51,7 +51,7 @@ did = getURLParameter("did");
 		socket.emit('join room',"operator_room");
 	});
 
-	socket.on('deptOperators', function(ddata){
+/*	socket.on('deptOperators', function(ddata){
 
 		DeptOperators = ddata[did];	// get dept operators
 	});
@@ -63,7 +63,7 @@ did = getURLParameter("did");
 				showOperatorStats(ddata[i]);
 		}
 	});
-
+*/
 	socket.on('operatorStats', function(ddata){
 		$("#ctime").text("Last refreshed: "+new Date().toLocaleString());
 

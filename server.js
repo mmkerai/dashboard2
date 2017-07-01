@@ -1783,6 +1783,7 @@ function updateChatStats() {
 		setTimeout(doStartOfDay,12000);	//restart after 12 seconds to give time for ajaxes to complete
 		return;
 	}
+	io.sockets.in(OPERATOR_ROOM).emit('operatorStats',Operators);
 	calculateTCAN_TCUA_TCUQ();
 	calculateLWT_CIQ_TAC();
 	calculateCPH();
@@ -1791,13 +1792,12 @@ function updateChatStats() {
 	var str = TimeNow.toISOString()+": Today's chats: "+Object.keys(AllChats).length;
 //	str = str + "\r\nClients connected: "+io.eio.clientsCount;	// useful for debuging socket.io errors
 	console.log(str);
-//	io.emit('overallStats',Overall);
+	io.emit('overallStats',Overall);
 	io.emit('skillGroupStats',SkillGroups);
 	io.emit('departmentStats',Departments);
 	io.emit('deptOperators',DeptOperators);
-	io.sockets.in(OPERATOR_ROOM).emit('operatorStats',Operators);
 //	io.emit('operatorStats',Operators);
-	io.sockets.in(OVERALL_ROOM).emit('overallStats',Overall);
+//	io.sockets.in(OVERALL_ROOM).emit('overallStats',Overall);
 	io.sockets.in(MONITOR_ROOM).emit('consoleLogs',str);
 	io.sockets.in(MONITOR_ROOM).emit('exceptions',Exceptions);
 	io.sockets.in(MONITOR_ROOM).emit('usersLoggedIn',UsersLoggedIn);
