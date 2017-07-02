@@ -1,7 +1,7 @@
 /* RTA Dashboard for H3G.
  * This script should run on Heroku
  */
-// Version 1.32 29th June 2017
+// Version 1.33 2 July 2017
 /* acronyms used in this script
 // cconc - chat concurrency
 // cph - chats per hour
@@ -1787,7 +1787,6 @@ function updateChatStats() {
 		setTimeout(doStartOfDay,12000);	//restart after 12 seconds to give time for ajaxes to complete
 		return;
 	}
-//	io.sockets.in(OPERATOR_ROOM).emit('operatorStats',Operators);
 	calculateTCAN_TCUA_TCUQ();
 	calculateLWT_CIQ_TAC();
 	calculateCPH();
@@ -1803,6 +1802,8 @@ function updateChatStats() {
 //	io.emit('operatorStats',Operators);
 	io.sockets.in(OVERALL_ROOM).emit('overallStats',Overall);
 	io.sockets.in(SKILLGROUP_ROOM).emit('skillGroupStats',SkillGroups);
+	io.sockets.in(DEPARTMENT_ROOM).emit('departmentStats',Departments);
+	io.sockets.in(OPERATOR_ROOM).emit('operatorStats',Operators);
 	io.sockets.in(MONITOR_ROOM).emit('consoleLogs',str);
 	io.sockets.in(MONITOR_ROOM).emit('exceptions',Exceptions);
 	io.sockets.in(MONITOR_ROOM).emit('usersLoggedIn',UsersLoggedIn);

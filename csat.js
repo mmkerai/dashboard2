@@ -101,7 +101,11 @@ oid = getURLParameter("oid");
 		$('#myname').text(data.name);
 		$("#signinform").hide();
 		$("#csatTable").show();
-	});	
+		socket.emit('deptOperatorsRequest',"");
+		socket.emit('join room',"skillgroup_room");
+		socket.emit('join room',"department_room");
+		socket.emit('join room',"operator_room");
+	});
 });
 
 $(window).on('beforeunload',function () {

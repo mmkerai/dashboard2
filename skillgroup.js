@@ -44,6 +44,8 @@ sgid = getURLParameter("sgid");
 		$('#myname').text(data.name);
 		$("#signinform").hide();
 		$("#topTable").show();
+		socket.emit('join room',"skillgroup_room");
+		socket.emit('join room',"department_room");
 	});
 
 	socket.on('skillGroupStats', function(ddata){
