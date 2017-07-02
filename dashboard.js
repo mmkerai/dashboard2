@@ -40,6 +40,7 @@ $(document).ready(function() {
 		$("#signinform").hide();
 		$("#topTable").show();
 		socket.emit('join room',"overall_room");
+		socket.emit('join room',"skillgroup_room");
 	});	
 	socket.on('overallStats',function(data) {		
 		$("#ctime").text("Last refreshed: "+new Date().toLocaleString());

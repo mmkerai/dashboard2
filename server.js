@@ -1802,6 +1802,7 @@ function updateChatStats() {
 //	io.emit('deptOperators',DeptOperators);
 //	io.emit('operatorStats',Operators);
 	io.sockets.in(OVERALL_ROOM).emit('overallStats',Overall);
+	io.sockets.in(SKILLGROUP_ROOM).emit('skillGroupStats',SkillGroups);
 	io.sockets.in(MONITOR_ROOM).emit('consoleLogs',str);
 	io.sockets.in(MONITOR_ROOM).emit('exceptions',Exceptions);
 	io.sockets.in(MONITOR_ROOM).emit('usersLoggedIn',UsersLoggedIn);
