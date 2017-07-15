@@ -466,7 +466,7 @@ function initialiseGlobals () {
 	if(StartOfDay > TimeNow)
 		StartOfDay.setDate(StartOfDay.getDate() - 1)	// previous day if past midnight but before start of day time
 	EndOfDay = new Date();
-	EndOfDay.setTime(StartOfDay.getTime() + ((24*60*60*1000) - 1));	// 24 hours less one milli from start of day 
+	EndOfDay.setTime(StartOfDay.getTime() + ((24*60*60*1000) - 1));	// 24 hours less one milli from start of day
 	console.log("Start of Day: "+StartOfDay.toISOString());
 	console.log("End of Day: "+EndOfDay.toISOString());
 	Overall = new DashMetrics("Overall","Overall");
@@ -579,7 +579,7 @@ function deptsCallback(dlist) {
 	}
 	sendToLogs("No of Depts: "+Object.keys(Departments).length);
 	sendToLogs("No of Skillgroups: "+Object.keys(SkillGroups).length);
-	
+
 	for(var did in Departments)
 	{
 		parameters = "DepartmentID="+did;
@@ -673,7 +673,7 @@ function operatorAvailabilityCallback(dlist) {
 					Overall.oaway++;
 					SkillGroups[OperatorSkills[operator]].oaway++;
 				}
-				
+
 				depts = new Array();
 				depts = OperatorDepts[operator];
 				for(var did in depts)
@@ -1040,7 +1040,7 @@ function processOperatorStatusChanged2(ostatus) {
 	if(ostatus.StatusType == 1)		// if away Get the custom status via async API call as currently not available in the trigger
 		getApiData("getOperatorAvailability","ServiceTypeID=1&OperatorID="+opid,operatorCustomStatusCallback);
 
-	return true;	
+	return true;
 }
 
 // This is called after chat is closed to save concurrency time
@@ -1370,7 +1370,7 @@ function calculateOperatorStatuses() {
 		depts = new Array();
 		depts = OperatorDepts[opid];
 		if(typeof(depts) === 'undefined') continue;	// operator depts not recognised
-		
+
 		if(Operators[opid].status == 2)	// available
 		{
 			Overall.oavail++;
@@ -1378,7 +1378,7 @@ function calculateOperatorStatuses() {
 			for(var did in depts)
 			{
 				Departments[depts[did]].oavail++;
-			}					
+			}
 		}
 		else if(Operators[opid].status == 1 && Operators[opid].cstatus == CUSTOMST)	// shrinkage
 		{
@@ -1387,17 +1387,17 @@ function calculateOperatorStatuses() {
 			for(var did in depts)
 			{
 				Departments[depts[did]].ocustomst++;
-			}						
+			}
 		}
-		else if(Operators[opid].status == 1) // must be just away 
+		else if(Operators[opid].status == 1) // must be just away
 		{
 			Overall.oaway++;
 			SkillGroups[OperatorSkills[opid]].oaway++;
 			for(var did in depts)
 			{
 				Departments[depts[did]].oaway++;
-			}						
-		}		
+			}
+		}
 	}
 }
 
@@ -1749,11 +1749,11 @@ io.on('connection', function(socket){
     socket.on('updateCustomStatus', function(data) {
       getApiData("getOperatorAvailability", "ServiceTypeID=1&OperatorID="+data, operatorCustomStatusCallback);
   	});
-	
+
     socket.on('deptOperatorsRequest', function(data) {
       socket.emit('deptOperatorsResponse',DeptOperators);
   });
-	
+
 	socket.on('join room',function(room){
 		if(LoggedInUsers.indexOf(socket.id) < 0)
 			console.log("Security error - trying to join room without logging in");
@@ -1824,7 +1824,7 @@ function doStartOfDay() {
 	getActiveChatData();
 	getInactiveChatData();
 	getOperatorAvailabilityData();
-	UpdateChatsIntID = setInterval(updateChatStats,4000);	// updates socket io data at infinitum
+	UpdateChatsIntID = setInterval(updateChatStats,4500);	// updates socket io data at infinitum
 	LongWaitChatsIntID = setInterval(longWaitChatsTimer,30000);
 }
 
