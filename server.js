@@ -1,7 +1,7 @@
 /* RTA Dashboard for H3G.
  * This script should run on Heroku
  */
-// Version 1.33 2 July 2017
+// Version 1.34 17 July 2017
 /* acronyms used in this script
 // cconc - chat concurrency
 // cph - chats per hour
@@ -1787,7 +1787,7 @@ function updateChatStats() {
 		setTimeout(doStartOfDay,12000);	//restart after 12 seconds to give time for ajaxes to complete
 		return;
 	}
-	calculateTCAN_TCUA_TCUQ();
+//	calculateTCAN_TCUA_TCUQ();
 	calculateLWT_CIQ_TAC();
 	calculateCPH();
 	calculateACC_CCONC();
@@ -1824,7 +1824,7 @@ function doStartOfDay() {
 	getActiveChatData();
 	getInactiveChatData();
 	getOperatorAvailabilityData();
-	UpdateChatsIntID = setInterval(updateChatStats,4500);	// updates socket io data at infinitum
+	UpdateChatsIntID = setInterval(updateChatStats,4800);	// updates socket io data at infinitum
 	LongWaitChatsIntID = setInterval(longWaitChatsTimer,30000);
 }
 
