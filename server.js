@@ -1480,7 +1480,7 @@ function calculateOperatorConc() {
 function calculateOperatorConc(opid) {
 
   var opobj = Operators[opid];
-  if(typeof(opobj) === 'undefined')	continue;
+  if(typeof(opobj) === 'undefined')	return;
 	var chattime=0;
 	var mchattime=0;
 	var conc = new Array();
