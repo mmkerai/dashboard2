@@ -1,7 +1,7 @@
 /* RTA Dashboard for H3G.
  * This script should run on Heroku
  */
-// Version 1.34 17 July 2017
+// Version 1.35 18 July 2017
 /* acronyms used in this script
 // cconc - chat concurrency
 // cph - chats per hour
@@ -1063,6 +1063,7 @@ function updateCconc(tchat) {
 		conc[count]++; // save chat activity for the closed chats
 	}
 	OperatorCconc[tchat.operatorID] = conc;		// save it back for next time
+  calculateOperatorConc(tchat.operatorID);
 }
 
 function updateCSAT(chat) {
@@ -1232,7 +1233,7 @@ function calculateACC_CCONC() {
 		SkillGroups[Departments[i].skillgroup].mct = 0;
 	}
 
-	calculateOperatorConc();
+//	calculateOperatorConc();
 
 	for(var i in OperatorDepts)
 	{
@@ -1447,8 +1448,8 @@ function getApiData(method,params,fcallback,cbparam) {
 		}
 	});
 }
-
-// calculate total chat times for concurrency
+/*
+// calculate total chat times for concurrency for all operators
 function calculateOperatorConc() {
 	var opobj = new Object();
 	var chattime, mchattime;
@@ -1457,11 +1458,7 @@ function calculateOperatorConc() {
 	for(var op in OperatorCconc)
 	{
 		opobj = Operators[op];
-		if(typeof(opobj) === 'undefined')
-		{
-			console.log("undefined operator");
-			continue;
-		}
+		if(typeof(opobj) === 'undefined')	continue;
 		chattime=0;
 		mchattime=0;
 		conc = new Array();
@@ -1477,6 +1474,27 @@ function calculateOperatorConc() {
 		opobj.tct = chattime*60;			// minutes to seconds
 		opobj.mct = mchattime*60;		// minutes to seconds
 	}
+}
+*/
+// calculate total chat times for concurrency for indiv operator
+function calculateOperatorConc(opid) {
+
+  var opobj = Operators[opid];
+  if(typeof(opobj) === 'undefined')	continue;
+	var chattime=0;
+	var mchattime=0;
+	var conc = new Array();
+		conc = OperatorCconc[opid];
+		for(var i in conc)
+		{
+			if(conc[i] > 0) chattime++;		// all chats
+			for(var j=1;conc[i] > j;j++)	// multichats
+			{
+				mchattime++;	// multichats
+			}
+		}
+		opobj.tct = chattime*60;			// minutes to seconds
+		opobj.mct = mchattime*60;		// minutes to seconds
 }
 
 // gets operator availability info
