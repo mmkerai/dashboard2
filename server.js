@@ -755,6 +755,8 @@ function processAnsweredChat(chat) {
 	if(typeof(opobj) === 'undefined') return false;		// an operator that doesnt exist (may happen if created midday)
 	opobj.tcan++;
 	opobj.activeChats.push(chat.ChatID);
+	opobj.acc = opobj.maxcc - opobj.activeChats.length;
+  if(opobj.acc < 0) opobj.acc = 0;			// make sure not negative
 
 	var speed = Math.round((AllChats[chat.ChatID].answered - AllChats[chat.ChatID].started)/1000); // calc speed to answer for this chat
 	if(speed < 7200)		// make sure it is sensible 60sec * 60min * 2 hours
@@ -1028,6 +1030,7 @@ function processOperatorStatusChanged2(ostatus) {
 		Operators[opid].cstatus = "";
 //		Operators[opid].statusdtime = 0;	// reset if operator logged out
 		Operators[opid].activeChats = new Array();	// reset active chats in case there are any transferred
+    Operators[opid].acc = 0;
 		return true;
 	}
 
@@ -1038,8 +1041,10 @@ function processOperatorStatusChanged2(ostatus) {
 	}
 
 	if(ostatus.StatusType == 1)		// if away Get the custom status via async API call as currently not available in the trigger
-		getApiData("getOperatorAvailability","ServiceTypeID=1&OperatorID="+opid,operatorCustomStatusCallback);
-
+  {
+    getApiData("getOperatorAvailability","ServiceTypeID=1&OperatorID="+opid,operatorCustomStatusCallback);
+    Operators[opid].acc = 0;
+  }
 	return true;
 }
 
@@ -1120,6 +1125,7 @@ function removeActiveChat(opobj, chatid) {
 		{
 			achats.splice(x,1);
 			opobj.activeChats = achats;		// save back after removing
+      opobj.acc++;  //increment acc
 		}
 	}
 }
@@ -1256,15 +1262,15 @@ function calculateACC_CCONC() {
 		sgid = OperatorSkills[i];
 		SkillGroups[sgid].tct = SkillGroups[sgid].tct + opobj.tct;
 		SkillGroups[sgid].mct = SkillGroups[sgid].mct + opobj.mct;
-		if(opobj.status === 2)		// make sure operator is available
-		{
-			opobj.acc = opobj.maxcc - opobj.activeChats.length;
-			if(opobj.acc < 0) opobj.acc = 0;			// make sure not negative
+//		if(opobj.status === 2)		// make sure operator is available
+//		{
+//			opobj.acc = opobj.maxcc - opobj.activeChats.length;
+//			if(opobj.acc < 0) opobj.acc = 0;			// make sure not negative
 			Overall.acc = Overall.acc + opobj.acc;
 			SkillGroups[sgid].acc = SkillGroups[sgid].acc + opobj.acc;
-		}
-		else
-			opobj.acc = 0;			// available capacity is zero if not available
+//		}
+//		else
+//			opobj.acc = 0;			// available capacity is zero if not available
 		// all depts that the operator belongs to
 		for(var x in depts)
 		{
@@ -1292,7 +1298,7 @@ function calculateACC_CCONC() {
 			SkillGroups[sgid].cconc = ((SkillGroups[sgid].tct+SkillGroups[sgid].mct)/SkillGroups[sgid].tct).toFixed(2);
 	}
 }
-
+/*
 // calculate the main metrics offered, active, answered, unanswered and unavailable
 function calculateTCAN_TCUA_TCUQ() {
 	var tchat;
@@ -1348,7 +1354,7 @@ function calculateTCAN_TCUA_TCUQ() {
 	}
 	Overall.ntco = Overall.ntcan + Overall.ntcua + Overall.ntcuq;
 }
-
+*/
 // go through each operator status and tally up
 function calculateOperatorStatuses() {
 	var depts;
