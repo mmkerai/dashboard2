@@ -1262,15 +1262,15 @@ function calculateACC_CCONC() {
 		sgid = OperatorSkills[i];
 		SkillGroups[sgid].tct = SkillGroups[sgid].tct + opobj.tct;
 		SkillGroups[sgid].mct = SkillGroups[sgid].mct + opobj.mct;
-//		if(opobj.status === 2)		// make sure operator is available
-//		{
-//			opobj.acc = opobj.maxcc - opobj.activeChats.length;
+		if(opobj.status === 2)		// make sure operator is available
+		{
+//			opobj.acc = opobj.maxcc - opobj.activeChats.length
 //			if(opobj.acc < 0) opobj.acc = 0;			// make sure not negative
 			Overall.acc = Overall.acc + opobj.acc;
 			SkillGroups[sgid].acc = SkillGroups[sgid].acc + opobj.acc;
-//		}
-//		else
-//			opobj.acc = 0;			// available capacity is zero if not available
+		}
+		else
+			opobj.acc = 0;			// available capacity is zero if not available
 		// all depts that the operator belongs to
 		for(var x in depts)
 		{
