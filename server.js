@@ -1,7 +1,7 @@
 /* RTA Dashboard for H3G.
  * This script should run on Heroku
  */
-// Version 1.35 18 July 2017
+// Version 1.36 19 July 2017
 /* acronyms used in this script
 // cconc - chat concurrency
 // cph - chats per hour
@@ -233,11 +233,6 @@ var DashMetrics = function(did,name,sg) {
 		this.tcuq = 0;
 		this.tcua = 0;
 		this.tcun = 0;
-		this.ntco = 0;
-		this.ntcan = 0;
-		this.ntcuq = 0;
-		this.ntcua = 0;
-		this.ntcun = 0;
 		this.tcaban = 0;
 		this.asa = 0;
 		this.tata = 0	// total time to answer for all answered chat (used to calc asa)
@@ -304,7 +299,8 @@ var	GetOperatorAvailabilitySuccess;
 var Exceptions;
 var LongWaitChats;
 var UnavailableFifo;
-var UpdateChatsIntID;
+var UpdateMetricsIntID;
+var CalculateMetricsIntID;
 var LongWaitChatsIntID;
 var AuthUsers = new Object();
 
@@ -755,8 +751,6 @@ function processAnsweredChat(chat) {
 	if(typeof(opobj) === 'undefined') return false;		// an operator that doesnt exist (may happen if created midday)
 	opobj.tcan++;
 	opobj.activeChats.push(chat.ChatID);
-	opobj.acc = opobj.maxcc - opobj.activeChats.length;
-  if(opobj.acc < 0) opobj.acc = 0;			// make sure not negative
 
 	var speed = Math.round((AllChats[chat.ChatID].answered - AllChats[chat.ChatID].started)/1000); // calc speed to answer for this chat
 	if(speed < 7200)		// make sure it is sensible 60sec * 60min * 2 hours
@@ -1030,7 +1024,6 @@ function processOperatorStatusChanged2(ostatus) {
 		Operators[opid].cstatus = "";
 //		Operators[opid].statusdtime = 0;	// reset if operator logged out
 		Operators[opid].activeChats = new Array();	// reset active chats in case there are any transferred
-    Operators[opid].acc = 0;
 		return true;
 	}
 
@@ -1043,7 +1036,6 @@ function processOperatorStatusChanged2(ostatus) {
 	if(ostatus.StatusType == 1)		// if away Get the custom status via async API call as currently not available in the trigger
   {
     getApiData("getOperatorAvailability","ServiceTypeID=1&OperatorID="+opid,operatorCustomStatusCallback);
-    Operators[opid].acc = 0;
   }
 	return true;
 }
@@ -1116,7 +1108,7 @@ function updateCSAT(chat) {
 	return true;
 }
 
-function removeActiveChat(opobj, chatid) {
+function removeActiveChat(opobj,chatid) {
 	var achats = new Array();
 	achats = opobj.activeChats;
 	for(var x in achats) // go through each chat
@@ -1125,7 +1117,6 @@ function removeActiveChat(opobj, chatid) {
 		{
 			achats.splice(x,1);
 			opobj.activeChats = achats;		// save back after removing
-      opobj.acc++;  //increment acc
 		}
 	}
 }
@@ -1262,10 +1253,10 @@ function calculateACC_CCONC() {
 		sgid = OperatorSkills[i];
 		SkillGroups[sgid].tct = SkillGroups[sgid].tct + opobj.tct;
 		SkillGroups[sgid].mct = SkillGroups[sgid].mct + opobj.mct;
-		if(opobj.status === 2)		// make sure operator is available
+		if(opobj.status == 2)		// make sure operator is available
 		{
-//			opobj.acc = opobj.maxcc - opobj.activeChats.length
-//			if(opobj.acc < 0) opobj.acc = 0;			// make sure not negative
+			opobj.acc = opobj.maxcc - opobj.activeChats.length
+			if(opobj.acc < 0) opobj.acc = 0;			// make sure not negative
 			Overall.acc = Overall.acc + opobj.acc;
 			SkillGroups[sgid].acc = SkillGroups[sgid].acc + opobj.acc;
 		}
@@ -1795,7 +1786,7 @@ function removeSocket(id, evname) {
 		if(index >= 0) LoggedInUsers.splice(index, 1);	// remove from list of valid users
 }
 
-function updateChatStats() {
+function calculateChatStats() {
 
 	if(!OperatorsSetupComplete) return;		//try again later
 
@@ -1806,7 +1797,8 @@ function updateChatStats() {
 		var csvdata = getCsvChatData();
 		postToArchive(csvdata);
 		console.log("End of day archived successfully");
-		clearInterval(UpdateChatsIntID);
+		clearInterval(UpdateMetricsIntID);
+    clearInterval(CalculateMetricsIntID);
 		clearInterval(LongWaitChatsIntID);
 		setTimeout(doStartOfDay,12000);	//restart after 12 seconds to give time for ajaxes to complete
 		return;
@@ -1816,9 +1808,16 @@ function updateChatStats() {
 	calculateCPH();
 	calculateACC_CCONC();
 	calculateOperatorStatuses();
-	var str = TimeNow.toISOString()+": Today's chats: "+Object.keys(AllChats).length;
-//	str = str + "\r\nClients connected: "+io.eio.clientsCount;	// useful for debuging socket.io errors
-	console.log(str);
+}
+
+function updateChatStats() {
+
+	if(!OperatorsSetupComplete) return;		//try again later
+
+  var str = TimeNow.toISOString()+": Today's chats: "+Object.keys(AllChats).length;
+  //	str = str + "\r\nClients connected: "+io.eio.clientsCount;	// useful for debuging socket.io errors
+  sendToLogs(str);
+
 //	io.emit('overallStats',Overall);
 //	io.emit('skillGroupStats',SkillGroups);
 //	io.emit('departmentStats',Departments);
@@ -1828,7 +1827,6 @@ function updateChatStats() {
 	io.sockets.in(SKILLGROUP_ROOM).emit('skillGroupStats',SkillGroups);
 	io.sockets.in(DEPARTMENT_ROOM).emit('departmentStats',Departments);
 	io.sockets.in(OPERATOR_ROOM).emit('operatorStats',Operators);
-	io.sockets.in(MONITOR_ROOM).emit('consoleLogs',str);
 	io.sockets.in(MONITOR_ROOM).emit('exceptions',Exceptions);
 	io.sockets.in(MONITOR_ROOM).emit('usersLoggedIn',UsersLoggedIn);
 }
@@ -1848,7 +1846,8 @@ function doStartOfDay() {
 	getActiveChatData();
 	getInactiveChatData();
 	getOperatorAvailabilityData();
-	UpdateChatsIntID = setInterval(updateChatStats,4800);	// updates socket io data at infinitum
+	UpdateMetricsIntID = setInterval(updateChatStats,4500);	// updates socket io data at infinitum
+  CalculateMetricsIntID = setInterval(calculateChatStats,4000);	// calculate metrics data at infinitum
 	LongWaitChatsIntID = setInterval(longWaitChatsTimer,30000);
 }
 
