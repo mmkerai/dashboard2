@@ -1,7 +1,7 @@
 /* RTA Dashboard for H3G.
  * This script should run on Heroku
  */
-// Version 1.36 19 July 2017
+// Version 1.37 28 July 2017
 /* acronyms used in this script
 // cconc - chat concurrency
 // cph - chats per hour
@@ -131,12 +131,6 @@ app.get('/skillgroup.js', function(req, res){
 });
 app.get('/department.js', function(req, res){
 	res.sendFile(__dirname + '/department.js');
-});
-app.get('/newdash.html', function(req, res){
-	res.sendFile(__dirname + '/newdash.html');
-});
-app.get('/newdash.js', function(req, res){
-	res.sendFile(__dirname + '/newdash.js');
 });
 app.get('/favicon.ico', function(req, res){
 	res.sendFile(__dirname + '/favicon.ico');
@@ -597,11 +591,13 @@ function operatorsCallback(dlist) {
 		return 0; //default return value (no sorting)
 	});
 
-	for(var i in dlist)
+	for(var i in dlist)    // create object only for operator who are active (not disabled)
 	{
-		createNewOperatorObject(dlist[i].LoginID,dlist[i].Name);
+    if(dlist[i].Disabled == null)   // if disabled then object will have a date
+		  createNewOperatorObject(dlist[i].LoginID,dlist[i].Name);
 	}
-	sendToLogs("No of Operators: "+Object.keys(Operators).length);
+  sendToLogs("Total No of Operators: "+dlist.length);
+	sendToLogs("Active Operators: "+Object.keys(Operators).length);
 }
 
 function createNewOperatorObject(opid,name) {
