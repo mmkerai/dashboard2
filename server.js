@@ -1,7 +1,7 @@
 /* RTA Dashboard for H3G.
  * This script should run on Heroku
  */
-// Version 2.31 19 October 2020
+// Version 2.32 2 November 2020
 // This version changes CSAT so they are shown as raw values
 /* acronyms used in this script
 // cconc - chat concurrency
@@ -67,7 +67,6 @@ var AuthUsers = new Object();	// user login list
 var RATELIMIT;	// rate limit in millisec.
 var TriggerDomain = "https://h3gdashboard-dev.herokuapp.com";		// used to validate the signature of push data ***CHANGE***
 
-/*
 try {
 	EnVars = JSON.parse(fs.readFileSync('config.json', 'utf8'));
 	AID = EnVars.AID || 0;
@@ -84,7 +83,7 @@ try {
 }
 catch (e) {
 	if (e.code === 'ENOENT') {
-		console.log("Config file not found, Reading Heroku Environment Variables"); */
+		console.log("Config file not found, Reading Heroku Environment Variables");
 		AID = process.env.AID || 0;
 		SETTINGSID = process.env.APISETTINGSID || 0;
 		KEY = process.env.APIKEY || 0;
@@ -96,10 +95,10 @@ catch (e) {
 		CUSTOMST = process.env.CUSTOMST || "Approaching Shrinkage";
 		AUTHUSERS = JSON.parse(process.env.AUTHUSERS) || {};
 		RATELIMIT = process.env.RATELIMIT || 60000;
-	// }
-	// else
-	// 	console.log("Error code: " + e.code);
-// }
+	}
+	else
+		console.log("Error code: " + e.code);
+}
 
 if (AID == 0 || SETTINGSID == 0 || KEY == 0) {
 	console.log("BoldChat API Environmental Variables not set. Terminating!");
@@ -694,6 +693,13 @@ function sendToLogs(text) {
 	io.sockets.in(MONITOR_ROOM).emit('consoleLogs', text);
 }
 
+/*
+*	Department call back function on considers department names
+*	that are encapsulated in square brackets at the start e.g.
+*	[eservices] upgrades. The name in square brackets becomes the skill group
+*	i.e. "eservices" and the remainder of the name is the dept name i.e. "upgrades".
+*	It will ignore department names that do not have square brackets at the start
+*/
 function deptsCallback(dlist) {
 	var dname, newname, str, sg, ch1, ch2, ch3;
 	// sort alphabetically first

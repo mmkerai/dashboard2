@@ -4,15 +4,14 @@
 	"private": "true",
 	"engines": {
 		"node": "latest"
-	 },
-	"dependencies": { 
+	},
+	"dependencies": {
 		"body-parser": "latest",
 		"cookie-parser": "latest",
-		"socket.io":"latest",
-		"express":"latest",
-		"express-session":"latest",
-		"request": "latest"
+		"cors": "^2.8.5",
+		"express": "latest",
+		"express-session": "latest",
+		"request": "latest",
+		"socket.io": "latest"
 	}
 }
-
-
