@@ -32,6 +32,11 @@ $(document).ready(function() {
  	socket.on('errorResponse',function(data) {
 		$("#message1").text(data);
 	});
+	socket.on('authErrorResponse', function(data){
+		$("#message1").text(data);
+		$("#topTable").hide();
+		$("#signinform").show();
+	});
 	socket.on('authResponse',function(data) {
 		saveCookie("username", data.name, 1);	// save as cookie for 1 day
 		saveCookie("password", data.pwd, 1);

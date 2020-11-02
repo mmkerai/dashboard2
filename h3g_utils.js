@@ -2,7 +2,7 @@
 
 var ChatStatus = ["Logged Out","Away","Available"];
 var csvfile = null;
-var RTAVersion = "RTA Dashboard v1.37";
+var RTAVersion = "RTA Dashboard v2.3";
 
 function readCookie(name)
 {
@@ -191,6 +191,7 @@ function createTopRow(tableid, id, name) {
 	return row;
 }
 
+// Update 14 Oct 2020 - no more csat menu
 function createSkillRow(tableid, id, name) {
 
 	row = tableid.insertRow();
@@ -201,13 +202,15 @@ function createSkillRow(tableid, id, name) {
 		row.insertCell(i);
 	}
 	if(row.rowIndex == 1)		// not the title but next one down
-		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showSkillCsat('"+id+"','"+name+"')\">"+name+"</th>";
+//		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showSkillCsat('"+id+"','"+name+"')\">"+name+"</th>";
+		row.cells[0].outerHTML = "<th>"+name+"</th>";
 	else
 		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showSkillGroup('"+id+"','"+name+"')\">"+name+"</th>";
 
 	return row;
 }
 
+// Update 14 Oct 2020 - no more csat menu
 function createDeptRow(tableid, id, name) {
 	row = tableid.insertRow();
 	row.id = name;
@@ -217,13 +220,15 @@ function createDeptRow(tableid, id, name) {
 		row.insertCell(i);
 	}
 	if(row.rowIndex == 1)		// not the title but next one down
-		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showCsat('"+id+"','"+name+"')\">"+name+"</th>";
+//		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showCsat('"+id+"','"+name+"')\">"+name+"</th>";
+		row.cells[0].outerHTML = "<th>"+name+"</th>";
 	else
 		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showDepartment('"+id+"','"+name+"')\">"+name+"</th>";
 
 	return row;
 }
 
+// Update 14 Oct 2020 - no more csat menu
 function createOperatorRow(tableid, id, name) {
 
 	row = tableid.insertRow();	// there is already a header row and top row
@@ -234,10 +239,12 @@ function createOperatorRow(tableid, id, name) {
 		row.insertCell(i);
 	}
 	if(row.rowIndex == 1)		// not the title but next one download
-		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showDeptCsat('"+id+"','"+name+"')\">"+name+"</th>";
+//		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showDeptCsat('"+id+"','"+name+"')\">"+name+"</th>";
+		row.cells[0].outerHTML = "<th>"+name+"</th>";
 	else
-		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showCsat('"+id+"','"+name+"')\">"+name+"</th>";
-	return row;
+//		row.cells[0].outerHTML = "<th class='h3g_link' onClick=\"showCsat('"+id+"','"+name+"')\">"+name+"</th>";
+		row.cells[0].outerHTML = "<th>"+name+"</th>";
+return row;
 }
 
 function createCsatRow(tableid, id, name) {
@@ -282,7 +289,6 @@ function showTopMetrics(rowid, data) {
 }
 
 function showOperatorMetrics(rowid, data) {
-
 //	var act = 0;
 //	if(data.tcan > 0)
 //		act = Math.round(data.tct/data.tcan);
@@ -293,6 +299,7 @@ function showOperatorMetrics(rowid, data) {
 		tcs = "N/A";
 		mcc = "N/A";
 		ac = data.tac;
+		apc = "N/A"
 	}
 	else
 	{
@@ -300,6 +307,7 @@ function showOperatorMetrics(rowid, data) {
 		tcs = toHHMMSS(data.tcs);
 		mcc = data.maxcc;
 		ac = data.activeChats.length;
+		apc = Math.round(data.apc) + '%';
 	}
 
 	rowid.cells[1].outerHTML = "<th class='h3g_link' onClick=\"updateCustomStatus('"+data.oid+"')\">"+st+"</th>";
@@ -311,6 +319,7 @@ function showOperatorMetrics(rowid, data) {
 	rowid.cells[7].innerHTML = data.cph;
 	rowid.cells[8].outerHTML = NF.printACT(data.act);
 	rowid.cells[9].outerHTML = NF.printConcurrency(data.cconc);
+	rowid.cells[10].innerHTML = apc;
 }
 
 function showCsatMetrics(rowid, data) {
@@ -322,7 +331,9 @@ function showCsatMetrics(rowid, data) {
 	rowid.cells[3].innerHTML = Math.round(data.csat.FCR*100) + "%";
 	rowid.cells[4].innerHTML = Math.round(data.csat.Resolved*100) + "%";
 	rowid.cells[5].innerHTML = Math.round(data.csat.OSAT*10) + "%";
-	rowid.cells[6].innerHTML = Math.round(data.csat.NPS*10) + "%";
+	// NPS calc update Aug 2020
+//	rowid.cells[6].innerHTML = Math.round(data.csat.NPS*10) + "%";
+	rowid.cells[6].innerHTML = data.csat.NPS.toFixed(1);
 }
 
 /* build csvfile from table to export snapshot
@@ -438,7 +449,7 @@ function showDashboardHeader() {
 str = '<h2><center>Chat Dashboard</center></h2>'+
 	'<div class="wrapper col-xs-12">'+
 	'<button type="button" id="myname" class="btn btn-primary">Not signed in</button> '+
-	'<button type="button" class="btn btn-secondary" onClick="clearCredentials()">Clear Credentials</button> '+
+	'<button type="button" class="btn btn-warning" onClick="clearCredentials()">Clear Credentials</button> '+
 	'<button type="button" class="btn btn-info" onClick="exportMetrics()">Export</button> '+
 	'<span class="col-xs-offset-1" id="message1"></span> '+
 	'<a class="btn btn-success" download="RTAexport.csv" id="download">Download file</a> '+

@@ -56,6 +56,15 @@ $(document).ready(function() {
 		$('#exp').html(str+"<br/>");
 	});
 
+	socket.on('mwExceptions', function(data){
+		var str = "";
+		for(var key in data)
+		{
+			str = str + key + ":" + data[key] +"<br/>";
+		}
+		$('#mwexp').html(str+"<br/>");
+	});
+
 	// this gives list of socket ids to user names. Remove duplicate user name first before
 	// showing who's logged on
 	socket.on('usersLoggedIn', function(data){
