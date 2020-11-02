@@ -238,6 +238,7 @@ var ChatData = function (chatid, dept, sg) {
 };
 
 //******** Global class for dashboard metrics
+// Used for top level and skillgroup based metrics
 var DashMetrics = function (did, name, sg) {
 	this.did = did;		// used only for departments
 	this.name = name;
@@ -301,7 +302,6 @@ const OVERALL_ROOM = "overall_room";
 const SKILLGROUP_ROOM = "skillgroup_room";
 const DEPARTMENT_ROOM = "department_room";
 const OPERATOR_ROOM = "operator_room";
-const DEPTOPERATOR_ROOM = "deptoperator_room";
 const MONITOR_ROOM = "monitor_room";
 
 //********************************* Global variables for chat data
