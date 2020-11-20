@@ -1,8 +1,10 @@
 /* RTA Dashboard for H3G.
  * This script should run on Heroku
  */
-// Version 2.32 2 November 2020
-// This version changes CSAT so they are shown as raw values
+// Version 2.33 20 November 2020
+// 2 Nov: This version changes CSAT so they are shown as raw values
+// 20th Nov: Fixed NPS 0 being interpreted as null
+
 /* acronyms used in this script
 // cconc - chat concurrency
 // cph - chats per hour
@@ -37,7 +39,7 @@ var cors = require('cors');
 var app = require('express')();
 app.use(cors());
 var server = http.createServer(app);
-var io = require('socket.io').listen(server);
+var io = require('socket.io')(server);
 var fs = require('fs');
 var crypto = require('crypto');
 var bodyParser = require('body-parser');
@@ -46,15 +48,12 @@ app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 	extended: true
 }));
 
-
-
 //********** Get port used by Heroku or use a default
 var PORT = Number(process.env.PORT || 3000);
 server.listen(PORT);
 console.log("Server started on port " + PORT);
 
 //******* Get BoldChat API Credentials
-console.log("Reading API variables from config.json file...");
 var EnVars;
 var AID;
 var SETTINGSID;
@@ -68,6 +67,7 @@ var RATELIMIT;	// rate limit in millisec.
 var TriggerDomain = "https://h3gdashboard-dev.herokuapp.com";		// used to validate the signature of push data ***CHANGE***
 
 try {
+	console.log("Reading API variables from config.json file...");
 	EnVars = JSON.parse(fs.readFileSync('config.json', 'utf8'));
 	AID = EnVars.AID || 0;
 	SETTINGSID = EnVars.APISETTINGSID || 0;
@@ -1207,9 +1207,9 @@ function updateCconc(tchat) {
 function updateCSAT(chat) {
 	var chatobj = AllChats[chat.ChatID];
 	if (typeof chatobj === 'undefined') return false;
-	chatobj.rateadvisor = Number(chat.rateadvisor) || null;
-	chatobj.NPS = Number(chat.NPS) || null;
-	chatobj.resolved = chat.resolved || null;
+	chatobj.rateadvisor = Number(chat.rateadvisor);
+	chatobj.NPS = Number(chat.NPS);
+	chatobj.resolved = chat.resolved;
 
 /* Update oct 2020 - RTA dashboard in no longer doing the calculations	
 	var opobj = Operators[chat.OperatorID];
