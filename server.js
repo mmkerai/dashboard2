@@ -1207,8 +1207,17 @@ function updateCconc(tchat) {
 function updateCSAT(chat) {
 	var chatobj = AllChats[chat.ChatID];
 	if (typeof chatobj === 'undefined') return false;
-	chatobj.rateadvisor = Number(chat.rateadvisor);
-	chatobj.NPS = Number(chat.NPS);
+	// checks if values are null or undefined and sets values accordingly
+	if(chat.rateadvisor == null) {
+		chatobj.rateadvisor = null;		
+	} else {
+		chatobj.rateadvisor = Number(chat.rateadvisor);
+	}
+	if(chat.NPS == null) {
+		chatobj.NPS = null;
+	} else {
+		chatobj.NPS = Number(chat.NPS)
+	}
 	chatobj.resolved = chat.resolved;
 
 /* Update oct 2020 - RTA dashboard in no longer doing the calculations	
